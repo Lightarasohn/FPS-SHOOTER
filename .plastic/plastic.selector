@@ -1,0 +1,4 @@
+repository "FPS-SHOOTER/FPS-SHOOTER@18968391373813@cloud"
+  path "/"
+    br "/main"
+    co "/main"
