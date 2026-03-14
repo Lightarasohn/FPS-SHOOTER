@@ -21,7 +21,13 @@ public class PlayerMovement : NetworkBehaviour
     */
 
     [Header("Movement")]
-    public float moveSpeed = 6f;
+    public float moveSpeed;
+    public float groundDrag;
+
+    [Header("Ground Check")]
+    public float playerHeight;
+    public LayerMask whatIsGround;
+    bool grounded;
 
     public Transform orientation;
 
@@ -30,6 +36,7 @@ public class PlayerMovement : NetworkBehaviour
 
     Vector3 moveDirection;
     Rigidbody rb;
+
 
     private void Start()
     {
@@ -41,7 +48,20 @@ public class PlayerMovement : NetworkBehaviour
     {
         //if (!HasInputAuthority) return; Karakter spawn edilirken açılcak
 
+        // Yere basılıp basılmadığını kontrol eder.
+        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
+
         MyInput();
+
+        // Yere basılıp basılmadığına göre sürtünme değerini ayarlar.
+        if (grounded)
+        {
+            rb.linearDamping = groundDrag;
+        }
+        else
+        {
+            rb.linearDamping = 0;
+        }
     }
 
     private void FixedUpdate()

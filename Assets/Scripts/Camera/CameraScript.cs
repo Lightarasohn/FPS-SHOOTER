@@ -3,8 +3,8 @@ using UnityEngine.InputSystem;
 
 public class CameraScript : MonoBehaviour
 {
-    public float sensX = 200f;
-    public float sensY = 200f;
+    public float sensX = 50f;
+    public float sensY = 50f;
 
     public Transform orientation;
 
