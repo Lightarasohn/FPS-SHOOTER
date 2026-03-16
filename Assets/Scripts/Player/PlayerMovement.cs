@@ -1,92 +1,160 @@
 using Fusion;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    // PlayerPrefab İÇİNDEKİ "NETWORK TRANSFORM" KULLANILACAK, SERVER İLE HABERLEŞEBİLMESİ İÇİN.
-    /*
-     * Yürüyüşe başlama keskin
-     * Yürüyüş sonunda ters yöne basılmamışsa hızlıca yavaşlayarak durma
-     * Yürüyüş yapılırken ters yöne basılmışsa 
-       -AYNI ANDA İKİ YÖNE DE BASILABİLİR, BİR YÖNE GİDERKEN GİTMEYİ BIRAKIP TERS YÖNE DE BASILABİLİR-
-       anında durma (Counter Strafing)
-     * Shift tuşuna koşma 
-     *  space Zıplama
-     * Yer ve Hava süratleri farklı (sv_accelerate ve sv_airaccelerate)
-     * Air strafe
-     * shift+ctrl kayma 
-     * CTRL = EĞİLME 
-     * akla geldikçe eklenebilir.
-    */
+    [Header("Hareket Ayarları (CS:GO Değerleri)")]
+    public float MaxGroundSpeed = 5f;
+    public float MaxAirSpeed = 0.5f; // Havada çok hızlı yön değiştirmeyi engeller (Air Strafing)
+    public float GroundAcceleration = 10f;
+    public float AirAcceleration = 2f;
+    public float Friction = 5f;
+    public float Gravity = 20f;
+    public float JumpForce = 6f;
 
-    [Header("Movement")]
-    public float moveSpeed;
-    public float groundDrag;
+    [Header("Referanslar")]
+    public Transform CameraPivot; // Kameranın yukarı/aşağı bakması için boyun noktası
 
-    [Header("Ground Check")]
-    public float playerHeight;
-    public LayerMask whatIsGround;
-    bool grounded;
+    // Networked değişkenler: Sunucu bunları geçmişe sarıp (rewind) tekrar hesaplayabilir!
+    [Networked] public Vector3 Velocity { get; set; }
+    [Networked] public bool IsGrounded { get; set; }
 
-    public Transform orientation;
+    // Çarpışma (Collision) tespiti için kapsül boyutları
+    private float _capsuleHeight = 2f;
+    private float _capsuleRadius = 0.35f;
 
-    float horizontalInput;
-    float verticalInput;
-
-    Vector3 moveDirection;
-    Rigidbody rb;
-
-
-    private void Start()
+    public override void FixedUpdateNetwork()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
-    }
-
-    private void Update()
-    {
-        //if (!HasInputAuthority) return; Karakter spawn edilirken açılcak
-
-        // Yere basılıp basılmadığını kontrol eder.
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
-
-        MyInput();
-
-        // Yere basılıp basılmadığına göre sürtünme değerini ayarlar.
-        if (grounded)
+        // 1. İstemciden gelen "O anki" veya "Geçmişteki" girdiyi güvenli bir şekilde al
+        if (GetInput(out NetworkInput input))
         {
-            rb.linearDamping = groundDrag;
+            // 2. KAMERA VE DÖNÜŞ (Look)
+            // Karakterin tamamını sağa/sola döndür
+            transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
+
+            // Sadece kamerayı (boynu) yukarı/aşağı döndür
+            if (CameraPivot != null)
+            {
+                CameraPivot.localRotation = Quaternion.Euler(input.LookPitch, 0, 0);
+            }
+
+            // 3. FİZİK VE HAREKET HESAPLAMASI (Quake/Source Matematiği)
+            Vector3 currentVelocity = Velocity;
+
+            // Yerde miyiz kontrolü
+            CheckGrounded();
+
+            // Girdi vektörünü dünyanın 3D yönüne çevir
+            Vector3 wishDir = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
+            wishDir.Normalize();
+
+            if (IsGrounded)
+            {
+                // Yerdeyken sürtünme uygula (Counter-strafing hissiyatı için anında durmayı sağlar)
+                ApplyFriction(ref currentVelocity, Runner.DeltaTime);
+
+                // Yerde hızlanma
+                Accelerate(ref currentVelocity, wishDir, MaxGroundSpeed, GroundAcceleration, Runner.DeltaTime);
+
+                // Zıplama
+                if (input.Buttons.IsSet(PlayerAction.Jump))
+                {
+                    currentVelocity.y = JumpForce;
+                    IsGrounded = false;
+                }
+            }
+            else
+            {
+                // Havadayken sürtünme yok, air-strafing için düşük ivmelenme var
+                Accelerate(ref currentVelocity, wishDir, MaxAirSpeed, AirAcceleration, Runner.DeltaTime);
+
+                // Yerçekimi
+                currentVelocity.y -= Gravity * Runner.DeltaTime;
+            }
+
+            // 4. ÇARPIŞMA (COLLISION) VE POZİSYON GÜNCELLEMESİ
+            Vector3 motion = currentVelocity * Runner.DeltaTime;
+            Vector3 newPosition = transform.position + motion;
+
+            // Kendi yazdığımız basit Duvar/Zemin kayma (Slide) mekaniği
+            newPosition = ResolveCollisions(transform.position, newPosition, ref currentVelocity);
+
+            // Sonuçları uygula ve ağa bildir
+            transform.position = newPosition;
+            Velocity = currentVelocity;
         }
-        else
+    }
+
+    // --- QUAKE/SOURCE MOTORU HAREKET MATEMATİĞİ ---
+
+    private void ApplyFriction(ref Vector3 velocity, float deltaTime)
+    {
+        float speed = new Vector3(velocity.x, 0, velocity.z).magnitude;
+        if (speed < 0.1f)
         {
-            rb.linearDamping = 0;
+            velocity.x = 0;
+            velocity.z = 0;
+            return;
+        }
+
+        float drop = speed * Friction * deltaTime;
+        float newSpeed = speed - drop;
+        if (newSpeed < 0) newSpeed = 0;
+
+        newSpeed /= speed;
+        velocity.x *= newSpeed;
+        velocity.z *= newSpeed;
+    }
+
+    private void Accelerate(ref Vector3 velocity, Vector3 wishDir, float wishSpeed, float accel, float deltaTime)
+    {
+        float currentSpeed = Vector3.Dot(new Vector3(velocity.x, 0, velocity.z), wishDir);
+        float addSpeed = wishSpeed - currentSpeed;
+
+        if (addSpeed <= 0) return;
+
+        float accelSpeed = accel * deltaTime * wishSpeed;
+        if (accelSpeed > addSpeed) accelSpeed = addSpeed;
+
+        velocity.x += accelSpeed * wishDir.x;
+        velocity.z += accelSpeed * wishDir.z;
+    }
+
+    // --- ÖZEL ÇARPIŞMA SİSTEMİ (CUSTOM COLLISION) ---
+
+    private void CheckGrounded()
+    {
+        // Karakterin ayak hizasından aşağıya küçük bir küre yollayarak yeri kontrol et
+        Vector3 origin = transform.position + (Vector3.up * 0.1f);
+        IsGrounded = Physics.SphereCast(origin, _capsuleRadius, Vector3.down, out _, 0.15f, ~LayerMask.GetMask("Player"));
+
+        if (IsGrounded && Velocity.y < 0)
+        {
+            Vector3 vel = Velocity;
+            vel.y = 0; // Yere değdiğimizde düşüş hızını sıfırla
+            Velocity = vel;
         }
     }
 
-    private void FixedUpdate()
+    private Vector3 ResolveCollisions(Vector3 startPos, Vector3 endPos, ref Vector3 currentVelocity)
     {
-        //if (!HasInputAuthority) return;
+        // İlerleyeceğimiz yöne kapsül fırlat (Sweep Test). Eğer duvar varsa boylu boyunca kay (Slide).
+        Vector3 p1 = startPos + Vector3.up * _capsuleRadius;
+        Vector3 p2 = startPos + Vector3.up * (_capsuleHeight - _capsuleRadius);
+        Vector3 direction = endPos - startPos;
+        float distance = direction.magnitude;
 
-        MovePlayer();
-    }
+        if (Physics.CapsuleCast(p1, p2, _capsuleRadius, direction.normalized, out RaycastHit hit, distance, ~LayerMask.GetMask("Player")))
+        {
+            // Duvara çarptık. Duvarın normaline (yüzey yönüne) göre hızımızı kırp (Slide)
+            Vector3 slideDirection = Vector3.ProjectOnPlane(direction, hit.normal);
 
-    private void MyInput()
-    {
-        Vector2 input = Keyboard.current != null ?
-            new Vector2(
-                (Keyboard.current.dKey.isPressed ? 1 : 0) - (Keyboard.current.aKey.isPressed ? 1 : 0),
-                (Keyboard.current.wKey.isPressed ? 1 : 0) - (Keyboard.current.sKey.isPressed ? 1 : 0)
-            ) : Vector2.zero;
+            // Hız vektörünü de duvara göre düzelt ki duvara takılı kalmayalım
+            currentVelocity = Vector3.ProjectOnPlane(currentVelocity, hit.normal);
 
-        horizontalInput = input.x;
-        verticalInput = input.y;
-    }
+            return startPos + slideDirection;
+        }
 
-    private void MovePlayer()
-    {
-        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-
-        rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+        return endPos; // Çarpışma yoksa gitmek istediğimiz yere git
     }
 }
