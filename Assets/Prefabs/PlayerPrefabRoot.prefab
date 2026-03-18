@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6550605423638413035}
   - component: {fileID: 3433873370801674601}
   - component: {fileID: 1091649947365796704}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4198068237768504932}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Orientation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5333613344276001815}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerPivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -208,7 +208,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1436318804711252892}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: CamPivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -244,9 +244,9 @@ GameObject:
   - component: {fileID: 2902910608747282722}
   - component: {fileID: -3720644454208557440}
   - component: {fileID: 2489393567794615939}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerPrefabRoot
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

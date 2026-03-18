@@ -6,6 +6,7 @@ public class PlayerMovement : NetworkBehaviour
     [Header("Hareket Ayarları (CS:GO Değerleri)")]
     public float MaxGroundSpeed = 5f;
     public float MaxAirSpeed = 0.5f; // Havada çok hızlı yön değiştirmeyi engeller (Air Strafing)
+    public float MaxFallingSpeed = -32f;
     public float GroundAcceleration = 10f;
     public float AirAcceleration = 2f;
     public float Friction = 5f;
@@ -70,7 +71,10 @@ public class PlayerMovement : NetworkBehaviour
                 Accelerate(ref currentVelocity, wishDir, MaxAirSpeed, AirAcceleration, Runner.DeltaTime);
 
                 // Yerçekimi
-                currentVelocity.y -= Gravity * Runner.DeltaTime;
+                if (currentVelocity.y <= MaxFallingSpeed)
+                    currentVelocity.y = MaxFallingSpeed;
+                else
+                    currentVelocity.y -= Gravity * Runner.DeltaTime;
             }
 
             // 4. ÇARPIŞMA (COLLISION) VE POZİSYON GÜNCELLEMESİ
@@ -126,11 +130,11 @@ public class PlayerMovement : NetworkBehaviour
     private void CheckGrounded(ref Vector3 currentVel)
     {
         // DÜZELTME 1 (Tünellemeye Karşı): Tarama başlangıcını daha yukarı (0.2f) alıyoruz.
-        Vector3 origin = PlayerPivot.position + (Vector3.up * 0.2f);
+        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.01f));
 
         // DÜZELTME 2 (Tünellemeye Karşı): Aşağıya doğru çok daha derin (0.5f) tarama yapıyoruz.
         // Böylece karakter tek bir karede hızlı düşse bile zemini kaçırmaz.
-        IsGrounded = Physics.SphereCast(origin, _capsuleRadius, Vector3.down, out _, 0.5f, ~LayerMask.GetMask("Player"));
+        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.down, out _, (_capsuleRadius + 0.05f), ~LayerMask.GetMask("Player"));
 
         if (IsGrounded && currentVel.y < 0)
         {
@@ -150,7 +154,7 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
         Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
 
-        if (Physics.CapsuleCast(p1, p2, _capsuleRadius, direction.normalized, out RaycastHit hit, distance, ~LayerMask.GetMask("Player")))
+        if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, _capsuleRadius, direction.normalized, out RaycastHit hit, distance, ~LayerMask.GetMask("Player")))
         {
             // Önce çarptığımız yüzeyin hemen dibine kadar güvenli bir şekilde git
             // Not: Buradaki startPos kalmalı, çünkü hareket ettirdiğimiz ana obje o.
@@ -173,16 +177,25 @@ public class PlayerMovement : NetworkBehaviour
     {
         if (PlayerPivot == null) return;
 
+        // Networked property'lere yalnızca obje spawnlandıysa eriş
+        bool grounded = false;
+        if (Application.isPlaying && Object != null && Object.IsInSimulation)
+        {
+            grounded = IsGrounded;
+        }
+
         // --- DÜZELTME 3 (Görsel Geri Bildirim): Zemindeyken Yeşil, Havadayken Kırmızı Çiz ---
-        if (IsGrounded)
+        if (grounded)
             Gizmos.color = Color.green; // Zemini bulduysak yeşil yap
         else
             Gizmos.color = Color.red; // Havadaysak kırmızı yap
 
+
+
         // Yeri kontrol eden küreyi çiz
-        Vector3 origin = PlayerPivot.position + (Vector3.up * 0.2f); // Kodla aynı yapıyoruz
+        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.01f)); // Kodla aynı yapıyoruz
         Gizmos.DrawWireSphere(origin, _capsuleRadius);
-        Gizmos.DrawLine(origin, origin + Vector3.down * 0.5f); // Yere attığı ışın derinliğini de kodla aynı yapıyoruz
+        Gizmos.DrawLine(origin, origin + Vector3.down * (_capsuleRadius + 0.05f)); // Yere attığı ışın derinliğini de kodla aynı yapıyoruz
 
         // Çarpışma Kapsülünü her zaman Mavi çiz
         Gizmos.color = Color.blue;
