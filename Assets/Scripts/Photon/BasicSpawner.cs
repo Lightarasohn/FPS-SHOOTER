@@ -100,6 +100,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
 
             _spawnedCharacters.Add(player, networkPlayerObject);
+            runner.SetPlayerObject(player, networkPlayerObject);
         }
     }
 
@@ -147,4 +148,24 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         throw new NotImplementedException();
     }
 
+    public void OnInput(NetworkRunner runner, Fusion.NetworkInput input)
+    {
+        var localPlayerObject = runner.GetPlayerObject(runner.LocalPlayer);
+
+        if (localPlayerObject != null)
+        {
+            // Kendi karakterimizin üzerindeki InputHandler'ı buluyoruz
+            var inputHandler = localPlayerObject.GetComponent<PlayerInputHandler>();
+            if (inputHandler != null)
+            {
+                // Update() içinde biriktirdiğimiz veriyi Fusion'ın ağına besliyoruz!
+                input.Set(inputHandler.CurrentInput);
+            }
+        }
+    }
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input)
+    {
+        throw new NotImplementedException();
+    }
 }
