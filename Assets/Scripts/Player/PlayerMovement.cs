@@ -14,6 +14,7 @@ public class PlayerMovement : NetworkBehaviour
 
     [Header("Referanslar")]
     public Transform CameraPivot; // Kameranın yukarı/aşağı bakması için boyun noktası
+    public Transform PlayerPivot;
 
     // Networked değişkenler: Sunucu bunları geçmişe sarıp (rewind) tekrar hesaplayabilir!
     [Networked] public Vector3 Velocity { get; set; }
@@ -42,7 +43,7 @@ public class PlayerMovement : NetworkBehaviour
             Vector3 currentVelocity = Velocity;
 
             // Yerde miyiz kontrolü
-            CheckGrounded();
+            CheckGrounded(ref currentVelocity);
 
             // Girdi vektörünü dünyanın 3D yönüne çevir
             Vector3 wishDir = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
@@ -122,39 +123,74 @@ public class PlayerMovement : NetworkBehaviour
 
     // --- ÖZEL ÇARPIŞMA SİSTEMİ (CUSTOM COLLISION) ---
 
-    private void CheckGrounded()
+    private void CheckGrounded(ref Vector3 currentVel)
     {
-        // Karakterin ayak hizasından aşağıya küçük bir küre yollayarak yeri kontrol et
-        Vector3 origin = transform.position + (Vector3.up * 0.1f);
-        IsGrounded = Physics.SphereCast(origin, _capsuleRadius, Vector3.down, out _, 0.15f, ~LayerMask.GetMask("Player"));
+        // DÜZELTME 1 (Tünellemeye Karşı): Tarama başlangıcını daha yukarı (0.2f) alıyoruz.
+        Vector3 origin = PlayerPivot.position + (Vector3.up * 0.2f);
 
-        if (IsGrounded && Velocity.y < 0)
+        // DÜZELTME 2 (Tünellemeye Karşı): Aşağıya doğru çok daha derin (0.5f) tarama yapıyoruz.
+        // Böylece karakter tek bir karede hızlı düşse bile zemini kaçırmaz.
+        IsGrounded = Physics.SphereCast(origin, _capsuleRadius, Vector3.down, out _, 0.5f, ~LayerMask.GetMask("Player"));
+
+        if (IsGrounded && currentVel.y < 0)
         {
-            Vector3 vel = Velocity;
-            vel.y = 0; // Yere değdiğimizde düşüş hızını sıfırla
-            Velocity = vel;
+            currentVel.y = 0; // Hızı referans üzerinden sıfırla
         }
     }
 
     private Vector3 ResolveCollisions(Vector3 startPos, Vector3 endPos, ref Vector3 currentVelocity)
     {
-        // İlerleyeceğimiz yöne kapsül fırlat (Sweep Test). Eğer duvar varsa boylu boyunca kay (Slide).
-        Vector3 p1 = startPos + Vector3.up * _capsuleRadius;
-        Vector3 p2 = startPos + Vector3.up * (_capsuleHeight - _capsuleRadius);
         Vector3 direction = endPos - startPos;
         float distance = direction.magnitude;
 
+        // HATA 2 ÇÖZÜMÜ: Hareket çok küçükse veya yoksa çarpışma hesaplama
+        if (distance < 0.001f) return startPos;
+
+        // DÜZELTİLEN KISIM BURASI: Kapsülü belden değil, PlayerPivot'tan (ayaklardan) çizmeye başlıyoruz!
+        Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
+        Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
+
         if (Physics.CapsuleCast(p1, p2, _capsuleRadius, direction.normalized, out RaycastHit hit, distance, ~LayerMask.GetMask("Player")))
         {
-            // Duvara çarptık. Duvarın normaline (yüzey yönüne) göre hızımızı kırp (Slide)
-            Vector3 slideDirection = Vector3.ProjectOnPlane(direction, hit.normal);
+            // Önce çarptığımız yüzeyin hemen dibine kadar güvenli bir şekilde git
+            // Not: Buradaki startPos kalmalı, çünkü hareket ettirdiğimiz ana obje o.
+            Vector3 safePos = startPos + direction.normalized * (hit.distance - 0.001f);
 
-            // Hız vektörünü de duvara göre düzelt ki duvara takılı kalmayalım
+            // Sonra kalan hareket mesafesini yüzeyin normaline göre kaydır (Slide)
+            Vector3 remainingDistance = direction.normalized * (distance - hit.distance);
+            Vector3 slideDirection = Vector3.ProjectOnPlane(remainingDistance, hit.normal);
+
+            // Hız vektörünü de duvara göre düzelt
             currentVelocity = Vector3.ProjectOnPlane(currentVelocity, hit.normal);
 
-            return startPos + slideDirection;
+            return safePos + slideDirection;
         }
 
-        return endPos; // Çarpışma yoksa gitmek istediğimiz yere git
+        return endPos;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (PlayerPivot == null) return;
+
+        // --- DÜZELTME 3 (Görsel Geri Bildirim): Zemindeyken Yeşil, Havadayken Kırmızı Çiz ---
+        if (IsGrounded)
+            Gizmos.color = Color.green; // Zemini bulduysak yeşil yap
+        else
+            Gizmos.color = Color.red; // Havadaysak kırmızı yap
+
+        // Yeri kontrol eden küreyi çiz
+        Vector3 origin = PlayerPivot.position + (Vector3.up * 0.2f); // Kodla aynı yapıyoruz
+        Gizmos.DrawWireSphere(origin, _capsuleRadius);
+        Gizmos.DrawLine(origin, origin + Vector3.down * 0.5f); // Yere attığı ışın derinliğini de kodla aynı yapıyoruz
+
+        // Çarpışma Kapsülünü her zaman Mavi çiz
+        Gizmos.color = Color.blue;
+        Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
+        Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
+        Gizmos.DrawWireSphere(p1, _capsuleRadius);
+        Gizmos.DrawWireSphere(p2, _capsuleRadius);
+        Gizmos.DrawLine(p1 + Vector3.left * _capsuleRadius, p2 + Vector3.left * _capsuleRadius);
+        Gizmos.DrawLine(p1 + Vector3.right * _capsuleRadius, p2 + Vector3.right * _capsuleRadius);
     }
 }
