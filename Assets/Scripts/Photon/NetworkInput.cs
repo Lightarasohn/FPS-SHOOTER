@@ -6,7 +6,7 @@ public enum PlayerAction
 {
     Jump = 0,
     Crouch = 1,
-    Walk = 2,      // CS:GO'daki Shift ile yürüme (sessiz/yavaş)
+    sprint = 2,      // CS:GO'daki Shift ile yürüme (sessiz/yavaş)
     Fire = 3,      // Sol tık (Ateş)
     Reload = 4     // R tuşu
 }

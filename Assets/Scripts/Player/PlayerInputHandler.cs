@@ -60,7 +60,7 @@ public class PlayerInputHandler : NetworkBehaviour
         // 3. Butonlar (Yeni Sistem: Doğrudan tuş atamaları)
         CurrentInput.Buttons.Set(PlayerAction.Jump, Keyboard.current.spaceKey.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Crouch, Keyboard.current.leftCtrlKey.isPressed);
-        CurrentInput.Buttons.Set(PlayerAction.Walk, Keyboard.current.leftShiftKey.isPressed);
+        CurrentInput.Buttons.Set(PlayerAction.sprint, Keyboard.current.leftShiftKey.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Fire, Mouse.current.leftButton.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Reload, Keyboard.current.rKey.isPressed);
 
