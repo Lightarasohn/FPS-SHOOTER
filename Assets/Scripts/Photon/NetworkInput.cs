@@ -1,4 +1,5 @@
 using Fusion;
+using System;
 using UnityEngine;
 
 // Hangi tuşların basıldığını bit seviyesinde tutacağımız Enum (Bitmask için)
@@ -26,4 +27,9 @@ public struct NetworkInput : INetworkInput
     // 3. Aksiyon Tuşları (Booleans)
     // Yukarıdaki PlayerAction enum'ını kullanarak tüm bool'ları tek bir değişkende paketliyoruz. (4 Byte)
     public NetworkButtons Buttons;
+
+    internal void Set(NetworkInput currentInput)
+    {
+        throw new NotImplementedException();
+    }
 }
