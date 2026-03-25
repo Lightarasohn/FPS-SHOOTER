@@ -66,6 +66,19 @@ public class PlayerMovement : NetworkBehaviour
         _capsuleHeight = StandingHeight;
         _baseCameraHeight = StandingCameraHeight; // Başlangıç değerini veriyoruz kamera sallanması için
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // fusion get ve setleri oto olarak kendi kodlariyla degistiriyo ve erisimimiz olmadigi icin degisiklik yapabilmek adina bunu yapiyoruz
+
+        bool isLocal = Object.HasInputAuthority;
+
+        if (!isLocal)
+        {
+            Camera playerLocalCamera = GetComponentInChildren<Camera>();
+            if (playerLocalCamera != null)
+                playerLocalCamera.enabled = false;
+
+            AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
+            if (playerLocalAudioListener != null)
+                playerLocalAudioListener.enabled = false;
+        }
     }
     [Networked] public bool spawnedProjectile { get; set; }
    
