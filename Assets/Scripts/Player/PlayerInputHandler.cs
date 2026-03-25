@@ -1,3 +1,4 @@
+using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem; // YENİ GİRDİ SİSTEMİ KÜTÜPHANESİ EKLENDİ
@@ -9,6 +10,10 @@ public class PlayerInputHandler : NetworkBehaviour
     public float MouseSensitivity = 0.1f;
 
     public NetworkInput CurrentInput;
+    public void OnInput(NetworkInput input, NetworkRunner runner)
+    {
+        input.Set(CurrentInput);
+    }
 
     public override void Spawned()
     {
@@ -70,4 +75,5 @@ public class PlayerInputHandler : NetworkBehaviour
         //     Debug.Log("YENİ GİRDİ SİSTEMİ ÇALIŞIYOR! Yön: " + CurrentInput.MoveDirection);
         // }
     }
+    
 }

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerMovement : NetworkBehaviour
 {
+    [SerializeField] private Weapon weapon;
+
     [Header("Hareket Ayarları (CS:GO Değerleri)")]
     public float MaxGroundSpeed = 5f;
     public float MaxAirSpeed = 0.5f;
@@ -56,12 +58,48 @@ public class PlayerMovement : NetworkBehaviour
     private float _capsuleHeight;
     private float _capsuleRadius = 0.35f;
 
+    // ------  volkan degisiklik ------ //
+
+    private ChangeDetector _changeDetector;
     public override void Spawned()
     {
         _capsuleHeight = StandingHeight;
         _baseCameraHeight = StandingCameraHeight; // Başlangıç değerini veriyoruz kamera sallanması için
-    }
+        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // fusion get ve setleri oto olarak kendi kodlariyla degistiriyo ve erisimimiz olmadigi icin degisiklik yapabilmek adina bunu yapiyoruz
 
+        bool isLocal = Object.HasInputAuthority;
+
+        if (!isLocal)
+        {
+            Camera playerLocalCamera = GetComponentInChildren<Camera>();
+            if (playerLocalCamera != null)
+                playerLocalCamera.enabled = false;
+
+            AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
+            if (playerLocalAudioListener != null)
+                playerLocalAudioListener.enabled = false;
+        }
+    }
+    [Networked] public bool spawnedProjectile { get; set; }
+   
+    public Material _material;
+    private void Awake()
+    {
+        _material = GetComponent<PlayerColor>().playerMeshRenderer.material;
+    }
+    public override void Render()
+    {
+        foreach (var change in _changeDetector.DetectChanges(this)) //DetectChanges ile nesnedeki değişiklikleri izleyip spawnedProjectile değiştiğinde _material rengini beyaza ayarlar.
+        {
+            switch (change)
+            {
+                case nameof(spawnedProjectile):
+                    _material.color = Color.white;
+                    break;
+            }
+        }
+        _material.color = Color.Lerp(_material.color, Color.blue, Time.deltaTime);
+    }
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
@@ -213,6 +251,14 @@ public class PlayerMovement : NetworkBehaviour
 
             transform.position = newPosition;
             Velocity = currentVelocity;
+        }
+        // --- ATEŞ ETME ---
+        if (input.Buttons.IsSet(PlayerAction.Fire) && Object.HasStateAuthority)
+        {
+            weapon.Shoot(Runner, Object.InputAuthority);
+
+            // mevcut efekt sistemin
+            spawnedProjectile = !spawnedProjectile;
         }
     }
 
