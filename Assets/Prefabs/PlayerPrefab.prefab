@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1563548216227777838}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.6, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.411}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -258,20 +258,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   MaxGroundSpeed: 5
-  MaxAirSpeed: 0.5
-  MaxFallingVelocity: -32
+  MaxAirSpeed: 3
+  MaxFallingSpeed: -32
   GroundAcceleration: 10
-  AirAcceleration: 2
-  Friction: 5
-  Gravity: 9
-  JumpForce: 6
-  EnvironmentMask:
-    serializedVersion: 2
-    m_Bits: 256
+  AirAcceleration: 1
+  Friction: 8
+  Gravity: 18
+  JumpForce: 7.8
+  StandingHeight: 2
+  CrouchHeight: 1.5
+  CrouchSpeedMultiplier: 0.5
+  CrouchTransitionSpeed: 10
+  StandingCameraHeight: 0.7
+  CrouchingCameraHeight: 0.25
+  SprintSpeedMultiplier: 1.5
+  SprintGracePeriod: 1
+  BobSpeed: 14
+  BobAmount: 0.08
+  SlideDuration: 1
+  SlideSpeedMultiplier: 2
   CameraPivot: {fileID: 1510667664030838850}
   PlayerPivot: {fileID: 5590398794584657195}
   _Velocity: {x: 0, y: 0, z: 0}
   _IsGrounded: 0
+  _IsCrouching: 0
+  _IsSliding: 0
+  _SlideDirection: {x: 0, y: 0, z: 0}
 --- !u!114 &-3815586937935660039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -284,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 652b7fcf8b928d545b8506cd10355aa2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
-  MouseSensitivity: 1
+  MouseSensitivity: 0.4
 --- !u!1 &7671411326593942015
 GameObject:
   m_ObjectHideFlags: 0
