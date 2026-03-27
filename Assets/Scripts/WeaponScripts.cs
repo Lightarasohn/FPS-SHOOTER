@@ -5,11 +5,16 @@ public class Weapon : NetworkBehaviour
 {
     public Transform firePoint;
     public float range = 100f;
-    private bool isShooting = false;
+
+    // Anlık true/false yerine, çizimin ne zamana kadar ekranda kalacağını tutacağımız değişken
+    private float _gizmoHideTime = 0f;
 
     public void Shoot(NetworkRunner runner, PlayerRef player)
     {
-        isShooting = true;
+        // Ateş edildiğinde, şimdiki zamana 0.1 saniye ekleyip hafızaya alıyoruz.
+        // Bu sayede sarı çizgi ekranda 0.1 saniye boyunca görünür kalacak.
+        _gizmoHideTime = Time.time + 0.1f;
+
         if (runner.LagCompensation.Raycast(
             firePoint.position,
             firePoint.forward,
@@ -26,18 +31,22 @@ public class Weapon : NetworkBehaviour
                 health.TakeDamage(10);
             }
         }
-        isShooting = false;
     }
 
     public void OnDrawGizmos()
     {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(firePoint.position, firePoint.position + (firePoint.forward * range));
+        if (firePoint == null) return;
 
-        if (isShooting)
+        // Geçerli zaman, belirlediğimiz gizlenme zamanından küçükse (yani ateş edeli 0.1 saniye geçmediyse)
+        if (Time.time < _gizmoHideTime)
         {
-            Debug.Log("Shooting Gizmos");
             Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(firePoint.position, firePoint.position + (firePoint.forward * range));
+        }
+        else
+        {
+            // Ateş edilmiyorsa standart kırmızı çizgi
+            Gizmos.color = Color.red;
             Gizmos.DrawLine(firePoint.position, firePoint.position + (firePoint.forward * range));
         }
     }
