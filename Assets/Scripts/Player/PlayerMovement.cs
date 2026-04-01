@@ -1,10 +1,9 @@
 using Fusion;
 using UnityEngine;
+using static GlobalVariables;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    [SerializeField] private Weapon weapon;
-
     [Header("Hareket Ayarları (CS:GO Değerleri)")]
     public float MaxGroundSpeed = 5f;
     public float MaxAirSpeed = 0.5f;
@@ -20,20 +19,13 @@ public class PlayerMovement : NetworkBehaviour
     public float CrouchHeight = 1f;
     public float CrouchSpeedMultiplier = 0.5f; // Eğilirken hızımız yarıya düşsün
     public float CrouchTransitionSpeed = 10f; // Eğilme/Kalkma hızı (Yumuşaklık)
-    public float StandingCameraHeight = 1.6f; // Kameranın normal yüksekliği
-    public float CrouchingCameraHeight = 0.8f; // Eğilirken kameranın yüksekliği
+    
 
     // Koşma ve koşarken kamera sallanması
     [Header("Koşma (Sprint) Ayarları")]
     public float SprintSpeedMultiplier = 1.5f; // %50 hız artışı (5 * 1.5 = 7.5 hız)
     public float SprintGracePeriod = 1f; // YENİ: Shift bırakıldıktan sonra koşmanın devam edeceği süre
-
-    [Header("Kamera Sallanma (Head Bob)")]
-    public float BobSpeed = 14f; // Adım atma (sallanma) hızı
-    public float BobAmount = 0.08f; // Kameranın ne kadar aşağı/yukarı ineceği
-    private float _bobTimer = 0f;
-    private float _baseCameraHeight; // Kameranın eğilme/kalkma sırasındaki temiz yüksekliği
-    // --------------
+    public bool IsSprinting = false;
 
     // Kayma Ayarları (Slide)
     [Header("Kayma (Slide) Ayarları")]
@@ -41,7 +33,6 @@ public class PlayerMovement : NetworkBehaviour
     public float SlideSpeedMultiplier = 2f; // Yürüme hızının 2 katı (5 * 2 = 10 hız)
 
     [Header("Referanslar")]
-    public Transform CameraPivot;
     public Transform PlayerPivot;
 
     [Networked] public Vector3 Velocity { get; set; }
@@ -58,59 +49,17 @@ public class PlayerMovement : NetworkBehaviour
     private float _capsuleHeight;
     private float _capsuleRadius = 0.35f;
 
-    // ------  volkan degisiklik ------ //
-
-    private ChangeDetector _changeDetector;
     public override void Spawned()
     {
         _capsuleHeight = StandingHeight;
-        _baseCameraHeight = StandingCameraHeight; // Başlangıç değerini veriyoruz kamera sallanması için
-        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState); // fusion get ve setleri oto olarak kendi kodlariyla degistiriyo ve erisimimiz olmadigi icin degisiklik yapabilmek adina bunu yapiyoruz
-
-        bool isLocal = Object.HasInputAuthority;
-
-        if (!isLocal)
-        {
-            Camera playerLocalCamera = GetComponentInChildren<Camera>();
-            if (playerLocalCamera != null)
-                playerLocalCamera.enabled = false;
-
-            AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
-            if (playerLocalAudioListener != null)
-                playerLocalAudioListener.enabled = false;
-        }
     }
-    [Networked] public bool spawnedProjectile { get; set; }
-   
-    public Material _material;
-    private void Awake()
-    {
-        _material = GetComponent<PlayerColor>().playerMeshRenderer.material;
-    }
-    public override void Render()
-    {
-        foreach (var change in _changeDetector.DetectChanges(this)) //DetectChanges ile nesnedeki değişiklikleri izleyip spawnedProjectile değiştiğinde _material rengini beyaza ayarlar.
-        {
-            switch (change)
-            {
-                case nameof(spawnedProjectile):
-                    _material.color = Color.white;
-                    break;
-            }
-        }
-        _material.color = Color.Lerp(_material.color, Color.blue, Time.deltaTime);
-    }
+
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
         {
             // --- KAMERA VE DÖNÜŞ (Look) ---
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
-
-            if (CameraPivot != null)
-            {
-                CameraPivot.localRotation = Quaternion.Euler(input.LookPitch, 0, 0);
-            }
 
             // --- YENİ: GİRDİLER VE KOŞMA TOLERANSI (GRACE PERIOD) ---
             bool wantsToCrouch = input.Buttons.IsSet(PlayerAction.Crouch);
@@ -123,12 +72,12 @@ public class PlayerMovement : NetworkBehaviour
             }
 
             // Karakter şu an koşuyor mu? (Ya tuşa basılıyordur, ya da tuş bırakılmış ama 1 saniye henüz dolmamıştır)
-            bool isSprinting = sprintInput || !SprintGraceTimer.ExpiredOrNotRunning(Runner);
+            IsSprinting = sprintInput || !SprintGraceTimer.ExpiredOrNotRunning(Runner);
             // ---------------------------------------------------------
 
             // --- KAYMA (SLIDE) BAŞLATMA MANTIĞI ---
             // Yerdeysek, koşuyorsak (artık 1 saniye toleranslı), ŞU AN eğilme tuşuna bastıysak (!IsCrouching) ve zaten kaymıyorsak
-            if (IsGrounded && isSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
+            if (IsGrounded && IsSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
             {
                 IsSliding = true;
                 SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration);
@@ -164,31 +113,6 @@ public class PlayerMovement : NetworkBehaviour
             float targetHeight = IsCrouching ? CrouchHeight : StandingHeight;
             _capsuleHeight = Mathf.Lerp(_capsuleHeight, targetHeight, Runner.DeltaTime * CrouchTransitionSpeed);
 
-            // --- KAMERA SALLANMA (HEAD BOB) ---
-            float targetCamHeight = IsCrouching ? CrouchingCameraHeight : StandingCameraHeight;
-            _baseCameraHeight = Mathf.Lerp(_baseCameraHeight, targetCamHeight, Runner.DeltaTime * CrouchTransitionSpeed);
-
-            float bobOffset = 0f;
-            float currentSpeed = new Vector3(Velocity.x, 0, Velocity.z).magnitude;
-
-            // Sadece yerdeysek, koşuyorsak, eğilmiyorsak (kaymıyorsak) ve hareket ediyorsak salla
-            if (IsGrounded && isSprinting && !IsCrouching && currentSpeed > 0.5f)
-            {
-                _bobTimer += Runner.DeltaTime * BobSpeed;
-                bobOffset = Mathf.Sin(_bobTimer) * BobAmount;
-            }
-            else
-            {
-                _bobTimer = 0f;
-            }
-
-            if (CameraPivot != null)
-            {
-                Vector3 camPos = CameraPivot.localPosition;
-                camPos.y = Mathf.Lerp(camPos.y, _baseCameraHeight + bobOffset, Runner.DeltaTime * 15f);
-                CameraPivot.localPosition = camPos;
-            }
-
             // --- FİZİK VE HAREKET HESAPLAMASI ---
             Vector3 currentVelocity = Velocity;
             CheckGrounded(ref currentVelocity);
@@ -217,7 +141,7 @@ public class PlayerMovement : NetworkBehaviour
                 {
                     currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
                 }
-                else if (isSprinting) // Artık bu da 1 saniye toleranslı çalışıyor
+                else if (IsSprinting) // Artık bu da 1 saniye toleranslı çalışıyor
                 {
                     currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
                 }
@@ -251,14 +175,6 @@ public class PlayerMovement : NetworkBehaviour
 
             transform.position = newPosition;
             Velocity = currentVelocity;
-        }
-        // --- ATEŞ ETME ---
-        if (input.Buttons.IsSet(PlayerAction.Fire) && Object.HasStateAuthority)
-        {
-            weapon.Shoot(Runner, Object.InputAuthority);
-
-            // mevcut efekt sistemin
-            spawnedProjectile = !spawnedProjectile;
         }
     }
 

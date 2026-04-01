@@ -2,16 +2,6 @@ using Fusion;
 using System;
 using UnityEngine;
 
-// Hangi tuşların basıldığını bit seviyesinde tutacağımız Enum (Bitmask için)
-public enum PlayerAction
-{
-    Jump = 0,
-    Crouch = 1,
-    sprint = 2,      // CS:GO'daki Shift ile yürüme (sessiz/yavaş)
-    Fire = 3,      // Sol tık (Ateş)
-    Reload = 4     // R tuşu
-}
-
 // İstemciden sunucuya her tick'te gönderilecek olan veri paketi (Struct)
 public struct NetworkInput : INetworkInput
 {

@@ -1,7 +1,8 @@
 using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using UnityEngine;
-using UnityEngine.InputSystem; // YENİ GİRDİ SİSTEMİ KÜTÜPHANESİ EKLENDİ
+using UnityEngine.InputSystem;
+using static GlobalVariables; // YENİ GİRDİ SİSTEMİ KÜTÜPHANESİ EKLENDİ
 
 public class PlayerInputHandler : NetworkBehaviour
 {
@@ -25,10 +26,10 @@ public class PlayerInputHandler : NetworkBehaviour
             Camera mainCam = Camera.main;
             if (mainCam != null)
             {
-                var movementScript = GetComponent<PlayerMovement>();
-                if (movementScript != null && movementScript.CameraPivot != null)
+                var cameraScript = GetComponent<PlayerCamera>();
+                if (cameraScript != null && cameraScript.CameraPivot != null)
                 {
-                    Transform pivot = movementScript.CameraPivot;
+                    Transform pivot = cameraScript.CameraPivot;
                     mainCam.transform.SetParent(pivot);
                     mainCam.transform.localPosition = Vector3.zero;
                     mainCam.transform.localRotation = Quaternion.identity;

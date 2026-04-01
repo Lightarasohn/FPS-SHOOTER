@@ -179,10 +179,13 @@ GameObject:
   - component: {fileID: 3038835889970171474}
   - component: {fileID: 730285384368354800}
   - component: {fileID: 4887730609226669028}
-  - component: {fileID: 5785439196981720267}
+  - component: {fileID: 7589884387633427419}
   - component: {fileID: -3815586937935660039}
-  - component: {fileID: 1222551383270606451}
-  - component: {fileID: 2895699454607688894}
+  - component: {fileID: 5785439196981720267}
+  - component: {fileID: 922559007248211671}
+  - component: {fileID: 3790330187941791761}
+  - component: {fileID: 7816357872795022238}
+  - component: {fileID: 31252547800330459}
   m_Layer: 7
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -227,10 +230,12 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 4887730609226669028}
-  - {fileID: 5785439196981720267}
+  - {fileID: 7589884387633427419}
   - {fileID: -3815586937935660039}
-  - {fileID: 1222551383270606451}
-  - {fileID: 2895699454607688894}
+  - {fileID: 5785439196981720267}
+  - {fileID: 922559007248211671}
+  - {fileID: 3790330187941791761}
+  - {fileID: 31252547800330459}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4887730609226669028
 MonoBehaviour:
@@ -249,7 +254,7 @@ MonoBehaviour:
   SyncParent: 0
   _autoAOIOverride: 1
   DisableSharedModeInterpolation: 1
---- !u!114 &5785439196981720267
+--- !u!114 &7589884387633427419
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -258,39 +263,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3945300782290713166}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9116708e9ff14c54e8e90e61ed238dcb, type: 3}
+  m_Script: {fileID: 11500000, guid: c96e78e9cb02fc9408a9324f6b026d48, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
-  weapon: {fileID: 2895699454607688894}
-  MaxGroundSpeed: 5
-  MaxAirSpeed: 3
-  MaxFallingSpeed: -32
-  GroundAcceleration: 10
-  AirAcceleration: 1
-  Friction: 8
-  Gravity: 18
-  JumpForce: 7.8
-  StandingHeight: 2
-  CrouchHeight: 1.5
-  CrouchSpeedMultiplier: 0.5
-  CrouchTransitionSpeed: 10
-  StandingCameraHeight: 0.7
-  CrouchingCameraHeight: 0.25
-  SprintSpeedMultiplier: 1.5
-  SprintGracePeriod: 1
-  BobSpeed: 14
-  BobAmount: 0.08
-  SlideDuration: 1
-  SlideSpeedMultiplier: 2
-  CameraPivot: {fileID: 1510667664030838850}
-  PlayerPivot: {fileID: 5590398794584657195}
-  _Velocity: {x: 0, y: 0, z: 0}
-  _IsGrounded: 0
-  _IsCrouching: 0
-  _IsSliding: 0
-  _SlideDirection: {x: 0, y: 0, z: 0}
-  _spawnedProjectile: 0
-  _material: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::Player
+  _Health: 100
+  MaxHealth: 500
+  MinHealth: 0
+  DefaultColor: {r: 0, g: 0, b: 1, a: 1}
 --- !u!114 &-3815586937935660039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,7 +283,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
   MouseSensitivity: 0.4
---- !u!114 &1222551383270606451
+--- !u!114 &5785439196981720267
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -313,11 +292,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 3945300782290713166}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0b248005a5a5ad46987fcc5fb7a3041, type: 3}
+  m_Script: {fileID: 11500000, guid: 9116708e9ff14c54e8e90e61ed238dcb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerColor
-  playerMeshRenderer: {fileID: 56267249448732040}
---- !u!114 &2895699454607688894
+  m_EditorClassIdentifier: '::'
+  MaxGroundSpeed: 5
+  MaxAirSpeed: 3
+  MaxFallingSpeed: -32
+  GroundAcceleration: 10
+  AirAcceleration: 1
+  Friction: 8
+  Gravity: 18
+  JumpForce: 7.8
+  StandingHeight: 2
+  CrouchHeight: 1.5
+  CrouchSpeedMultiplier: 0.5
+  CrouchTransitionSpeed: 10
+  SprintSpeedMultiplier: 1.5
+  SprintGracePeriod: 1
+  IsSprinting: 0
+  SlideDuration: 1
+  SlideSpeedMultiplier: 2
+  PlayerPivot: {fileID: 5590398794584657195}
+  _Velocity: {x: 0, y: 0, z: 0}
+  _IsGrounded: 0
+  _IsCrouching: 0
+  _IsSliding: 0
+  _SlideDirection: {x: 0, y: 0, z: 0}
+--- !u!114 &922559007248211671
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -326,11 +327,68 @@ MonoBehaviour:
   m_GameObject: {fileID: 3945300782290713166}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2bdc0601aedec640811d5484d85f7b7, type: 3}
+  m_Script: {fileID: 11500000, guid: 0953ed15a1762424da6d8e11962dcb40, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Weapon
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCamera
+  BobSpeed: 14
+  BobAmount: 0.08
+  StandingCameraHeight: 0.8
+  CrouchingCameraHeight: 0.4
+  CameraPivot: {fileID: 1510667664030838850}
+  PlayerMovementScript: {fileID: 5785439196981720267}
+--- !u!114 &3790330187941791761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3945300782290713166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd8a7e5427fad04996710f793319d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerWeapon
   firePoint: {fileID: 6404338809728762269}
-  range: 100
+  _spawnedProjectile: 0
+  _BurstShotsLeft: 0
+--- !u!114 &7816357872795022238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3945300782290713166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.505
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 2
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 31252547800330459}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &31252547800330459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3945300782290713166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
+  Config: 3
+  BroadRadius: 1
+  Offset: {x: 0, y: 0, z: 0}
+  GizmosColor: {r: 0, g: 1, b: 1, a: 1}
+  Hitboxes:
+  - {fileID: 7816357872795022238}
 --- !u!1 &4380245097861798978
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,7 +598,7 @@ Transform:
   m_GameObject: {fileID: 8149161382242161845}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.6, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
