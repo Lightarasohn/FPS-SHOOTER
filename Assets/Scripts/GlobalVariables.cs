@@ -28,4 +28,12 @@ public class GlobalVariables
         Triple = 1,
         Auto = 2
     }
+
+    // Crosshair türleri
+    public enum CrosshairType
+    {
+        Default = 0,
+        X = 1,
+        Triangle = 2
+    }
 }
