@@ -20,9 +20,9 @@ public class CrosshairManager : MonoBehaviour
         if (data == null) return;
 
         // --- MATEMATİK: Normalizasyonu Piksele Çevir ---
-        float lengthPx = data.Length * BaseScale;
-        float widthPx = data.Width * BaseScale;
-        float spacePx = data.Space * BaseScale;
+        float lengthPx = data.Length * data.Scale;
+        float widthPx = data.Width * data.Scale;
+        float spacePx = data.Space * data.Scale;
 
         // 1. ŞEKİL (Döndürme İşlemleri)
         CrosshairRoot.localRotation = Quaternion.identity;

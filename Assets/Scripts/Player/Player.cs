@@ -17,7 +17,7 @@ public class Player : NetworkBehaviour
     public void Awake()
     {
         PlayerWeapon = new MG48();
-        PlayerCrosshair = new Crosshair(CrosshairType.X, 0.2f, 0.06f, 0.03f);
+        PlayerCrosshair = new Crosshair(CrosshairType.X, 0.2f, 0.06f, 0.03f, 0.3f);
     }
 
     public override void Spawned()
