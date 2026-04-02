@@ -12,6 +12,23 @@ public class DesertEagle : Weapon
         this.FireRate = 0.1f;
         this.FireRange = 150f;
         this.Damage = 35f;
+        this.RecoilData = WeaponRecoil.DesertEagle;
+    }
+}
+
+public class M4A1 : Weapon
+{
+    public M4A1() : base(20)
+    {
+        this.Name = "M4A1";
+        this.Description = "SWAT's Favorite";
+        this.MagAmount = 3;
+        this.WeaponType = WeaponType.Rifle;
+        this.WeaponFireType = WeaponFireType.Auto;
+        this.FireRate = 0.07f;
+        this.FireRange = 150f;
+        this.Damage = 30f;
+        this.RecoilData = WeaponRecoil.M4A1;
     }
 }
 
@@ -24,9 +41,10 @@ public class AK47 : Weapon
         this.MagAmount = 3;
         this.WeaponType = WeaponType.Rifle;
         this.WeaponFireType = WeaponFireType.Auto;
-        this.FireRate = 0.06f;
+        this.FireRate = 0.15f;
         this.FireRange = 200f;
         this.Damage = 32f;
+        this.RecoilData = WeaponRecoil.AK47;
     }
 }
 
@@ -42,5 +60,6 @@ public class MG48 : Weapon
         this.FireRate = 0.05f;
         this.FireRange = 120f;
         this.Damage = 20f;
+        this.RecoilData = WeaponRecoil.MG48;
     }
 }

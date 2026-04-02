@@ -1,0 +1,167 @@
+AK47 = [(0,0), (0, 0.5), (0.25, 1), (0, 1.6), (-0.25, 2.15), (-0.3, 3.1), (-0.5, 4.4), (-0.7, 5.8),
+(-1.1, 7.3), (-2, 9.2), (-2.5, 9.8), (-2.1, 9.9), (-1.6, 9.8), (-0.9, 9.7), (0.2, 9.4), (1.2, 9.6),
+(2, 9.8), (1, 10), (0, 9.8), (-1, 10), (-1.4, 9.6), (-0.5999, 9.4975), (0.2, 9.6), (1, 9.6), (1.8, 9.6),
+(2.6, 9.8), (2.2, 10), (1.6024, 9.9232), (0.8596, 9.7972), (0.2427, 9.9145)]
+
+DEAGLE= [(0, 0), (0.2586, 0.9896), (-0.2545, 0.3122), (0.089, 0.9854), (-0.613, 0.8981), (0.9684, 1.3488), (-1.5065, 2.0666)]
+
+M4A1 = [(0, 0), (0.0924, 0.5436), (0.3393, 1.0382), (-0.015, 1.6358), (-0.1959, 2.2311), (-0.357, 3.2015), (-0.4675, 4.6316), (-0.7642, 6.0245), (-1.1025, 7.6695), (-2.0087, 9.7117), (-2.5471, 10.369), (-2.236, 10.5295), (-1.7632, 10.4815), (-0.9157, 10.3964), (0.1187, 10.1167), (1.3097, 10.3915), (2.366, 10.6371), (0.9563, 10.914), (0.1543, 10.7361), (-1.0521, 11.026)]
+
+MG48 = [(0, 0), (0.247, 0.517), (-0.0078, 1.036), (0.274, 1.7495), (-0.2745, 2.3226), (-0.139, 3.1618), (-0.2189, 4.593), (-0.6565, 5.9406), (-1.2889, 7.5123), (-2.1414, 9.4918), (-2.4409, 10.2636), (-1.9529, 10.3725), (-1.8645, 10.3078), (-0.9043, 10.3166), (0.0133, 9.906), (1.2595, 10.1112), (2.0501, 10.4858), (1.2291, 10.6191), (0.1612, 10.5453), (-1.2846, 10.7491), (-1.5755, 10.4257), (-0.3789, 10.3659), (0.126, 10.4195), (0.7849, 10.3859), (1.6291, 10.4169), (2.5323, 10.8298), (2.2617, 10.8837), (1.7272, 10.8314), (0.7127, 10.8245), (0.3399, 11.017), (-0.0021, 10.9669), (-0.0082, 11.1472), (0.2417, 10.9982), (0.0137, 11.0312), (0.2005, 11.1608), (0.3172, 11.1238), (-0.0006, 11.1258), (0.2509, 11.2988), (0.3048, 11.2665), (-0.0154, 11.4356), (0.3086, 11.2502), (0.2477, 11.4876), (0.3757, 11.4558), (0.5753, 11.573), (0.0662, 11.5818), (0.0023, 11.555), (0.2634, 11.6743), (0.6103, 11.6419), (0.2503, 11.6923), (0.422, 11.735), (0.4988, 11.7691), (0.2899, 11.8425), (0.0906, 11.8105), (0.6334, 11.909), (0.0759, 11.76), (0.5514, 11.8394), (0.6361, 11.9001), (0.4227, 11.9299), (0.6333, 11.8761), (0.5876, 12.1024), (0.5704, 11.9454), (0.2657, 12.1477), (0.3477, 12.1832), (0.3831, 12.1047), (0.5526, 12.1396), (0.0705, 12.1268), (0.4085, 12.2869), (0.061, 12.3319), (0.3075, 12.3074), (0.027, 12.3927), (0.5905, 12.2888), (0.5796, 12.4944), (-0.0063, 12.5411), (0.4817, 12.4388), (0.0781, 12.3964), (0.0826, 12.5494), (0.2234, 12.5558), (0.1947, 12.4997), (0.2334, 12.6627), (0.2693, 12.5515), (0.5064, 12.6389), (0.5764, 12.7319), (0.2234, 12.8087), (0.4419, 12.7696), (0.4827, 12.9087), (0.4254, 12.8322), (0.6879, 13.031), (0.0053, 13.0401), (0.3364, 12.9206), (0.3369, 13.0012), (0.4745, 13.1104), (0.4817, 12.9697), (0.1631, 13.003), (0.5778, 13.0136), (-0.359, 13.0826), (0.6239, 13.1195), (0.1657, 13.1443), (-0.3017, 13.2166), (-0.0057, 13.2568), (-0.4443, 13.2515), (0.5855, 13.3359), (0.552, 13.3677), (-0.301, 13.3995), (0.4443, 13.3421), (1.1939, 13.3829), (0.9719, 13.4976), (0.9747, 13.4503), (0.3717, 13.5405), (1.1357, 13.601), (0.6674, 13.5676), (1.128, 13.6506), (0.5558, 13.6288), (0.4753, 13.6596), (1.1005, 13.747), (-0.4237, 13.795), (0.7781, 13.7742), (-0.1541, 13.8554), (0.9617, 13.8928), (0.8625, 13.8796), (0.5699, 13.9477), (-0.5224, 13.9165), (-0.1842, 13.9862), (0.717, 13.9994), (-0.4438, 14.086), (0.4882, 14.1153), (0.9614, 14.079), (0.1694, 14.1274), (-0.3891, 14.1497), (0.8282, 14.252), (1.1756, 14.2475), (0.8532, 14.2557), (0.4989, 14.285), (-0.5957, 14.3248), (0.6097, 14.4114), (1.1942, 14.4491), (0.2978, 14.4189), (1.1993, 14.4817), (-0.4982, 14.5304), (0.5759, 14.527), (0.6939, 14.6294), (0.0332, 14.6003), (0.2979, 14.6552), (0.422, 14.7106), (0.434, 14.7606), (0.911, 14.79), (0.6725, 14.7502), (0.056, 14.8022), (0.0419, 14.8392), (0.8986, 14.871), (-0.6432, 14.9415)]
+
+
+
+Yeni Recoil'ler oluşturmak için python kodu
+
+ÖNEMLİ NOTLAR
+1-) GlobalVariables.cs dosyasına csharp kodlarını uygun isimlerde yapıştır ve Weapons.cs içerisinde uygun silahın sınıfını yaz
+2-) KOD İÇERİSİNDEKİ "data" DEĞERİNİ DEĞİŞTİRME. BÜTÜN ÇIKTILAR AK47 RECOİL'LERİNE UYGUN OLARAK ÜRETİLMEKTE.
+###############################################
+import random
+
+def create_recoil(recoil_template_data, recoil_length, max_x_offset, max_y_offset, max_scale):
+    new_recoil = []
+    template_len = len(recoil_template_data)
+    
+    # Mermilerin yüzde kaçından sonra yatay sekmenin ağırlık kazanacağını belirliyoruz (örn. %60)
+    horizontal_threshold = int(recoil_length * 0.6)
+
+    for i in range(recoil_length):
+        # Eğer istenilen uzunluk (recoil_length) şablondan büyükse, şablonun son noktasını baz al
+        base_idx = min(i, template_len - 1)
+        base_x, base_y = recoil_template_data[base_idx]
+        
+        # 1. Adım adım artan scale hesabı (1.0'dan max_scale değerine doğru)
+        # progress: 0.0 (ilk mermi) ile 1.0 (son mermi) arasında bir oran
+        progress = i / max(1, (recoil_length - 1)) 
+        current_scale = 1.0 + (max_scale - 1.0) * progress
+        
+        # 2. Rastgele offsetler oluştur
+        rand_x = random.uniform(-max_x_offset, max_x_offset)
+        rand_y = random.uniform(0, max_y_offset) # Silah genelde yukarı sektiği için y pozitif
+        
+        # 3. Belli bir yerden sonra yatay uzaklık çoğunluğu sağla
+        if i > horizontal_threshold:
+            # Yatay sapmayı arttır (progress arttıkça daha da yayılsın)
+            rand_x *= 1.5 + progress  
+            # Dikey sapmayı baskıla (artık çok yukarı gitmesin)
+            rand_y *= 0.5 - (progress * 0.2) 
+        
+        # 4. Base koordinatları scale ile büyüt ve offsetleri ekle
+        # Hem ana deseni hem de rastgele sapmaları current_scale oranında büyütüyoruz
+        new_x = (base_x * current_scale) + (rand_x * current_scale)
+        new_y = (base_y * current_scale) + (rand_y * current_scale)
+        
+        # Hassasiyet için değerleri virgülden sonra 4 basamak olacak şekilde yuvarla
+        if i != 0:
+            new_recoil.append((round(new_x, 4), round(new_y, 4)))
+        else:
+            new_recoil.append((0, 0))
+        
+    return new_recoil
+
+# --- KULLANIM ÖRNEĞİ ---
+data = [(0,0), (0, 0.5), (0.25, 1), (0, 1.6), (-0.25, 2.15), (-0.3, 3.1), (-0.5, 4.4), (-0.7, 5.8),
+(-1.1, 7.3), (-2, 9.2), (-2.5, 9.8), (-2.1, 9.9), (-1.6, 9.8), (-0.9, 9.7), (0.2, 9.4), (1.2, 9.6),
+(2, 9.8), (1, 10), (0, 9.8), (-1, 10), (-1.4, 9.6), (-0.5999, 9.4975), (0.2, 9.6), (1, 9.6), (1.8, 9.6),
+(2.6, 9.8), (2.2, 10), (1.6024, 9.9232), (0.8596, 9.7972), (0.2427, 9.9145)]
+
+# 40 mermilik (recoil_length), 
+# max x/y offsetleri olan ve max 1.5 kat büyüyen yeni bir recoil üretelim:
+yeni_silah_recoil = create_recoil(data, recoil_length=7, max_x_offset=0.5, max_y_offset=0.7, max_scale=1.1)
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+def showrecoil(recoil_data):
+    # Verilen (x, y) ikililerinden x ve y listelerini ayır
+    x_coords = [point[0] for point in recoil_data]
+    y_coords = [point[1] for point in recoil_data]
+
+    # Grafiğin boyutunu ayarla (Silahlar genelde yukarı sektiği için dikey uzunluk daha fazla)
+    plt.figure(figsize=(6, 8))
+
+    # Tüm sprey yolunu çiz (mavi çizgi ve noktalar)
+    plt.plot(x_coords, y_coords, marker='o', linestyle='-', color='blue', markersize=4, alpha=0.7, label='Sprey Yolu')
+
+    # İlk merminin düştüğü yeri yeşil büyük bir nokta ile göster
+    plt.plot(x_coords[0], y_coords[0], marker='o', color='green', markersize=8, label='Başlangıç (1. Mermi)')
+    
+    # Son merminin düştüğü yeri kırmızı büyük bir nokta ile göster
+    plt.plot(x_coords[-1], y_coords[-1], marker='o', color='red', markersize=8, label='Bitiş (Son Mermi)')
+
+    # Merkez noktalarını (crosshair'in olduğu yer) referans için kesik çizgilerle çiz
+    plt.axvline(x=0, color='gray', linestyle='--', linewidth=1)
+    plt.axhline(y=0, color='gray', linestyle='--', linewidth=1)
+
+    # Grafiği isimlendir ve biçimlendir
+    plt.title('Silah Recoil (Sekme) Deseni')
+    plt.xlabel('Yatay Sapma (X)')
+    plt.ylabel('Dikey Sapma (Y)')
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.legend()
+
+    # Ekrandaki orantısızlığı önlemek için X ve Y eksenlerini aynı ölçeğe getir
+    # plt.axis('equal') # Eğer grafiğin çok dar/geniş görünürse başındaki '#' işaretini kaldırabilirsin
+
+    # Grafiği ekranda göster
+    plt.show()
+
+def get_gap_between_recoil_datas(recoil_data):
+    # Eğer liste boşsa hata vermemesi için boş liste döndür
+    if not recoil_data:
+        return []
+
+    gaps = []
+    
+    # İlk merminin "farkı", merkezden (0,0) olan kendi uzaklığıdır, onu direkt ekliyoruz
+    gaps.append((round(recoil_data[0][0], 4), round(recoil_data[0][1], 4)))
+
+    # İkinci mermiden (index 1) başlayarak son mermiye kadar döngüye gir
+    for i in range(1, len(recoil_data)):
+        current_x, current_y = recoil_data[i]
+        prev_x, prev_y = recoil_data[i-1]
+
+        # Mevcut konumdan bir önceki konumu çıkararak aradaki farkı (delta) bul
+        gap_x = current_x - prev_x
+        gap_y = current_y - prev_y
+
+        # Daha temiz görünmesi için değerleri yuvarlayarak listeye ekle
+        gaps.append((round(gap_x, 4), round(gap_y, 4)))
+
+    return gaps
+
+
+farklar = get_gap_between_recoil_datas(yeni_silah_recoil)
+
+def FormatToInıt(recoil_gap_data):
+    if not recoil_gap_data:
+        return "this.RecoilData = new Vector2[]\n{\n};"
+
+    output = "this.RecoilData = new Vector2[]\n{\n"
+    
+    formatted_points = []
+    for x, y in recoil_gap_data:
+        # C# float yapısı için sayıların sonuna 'f' eklenir
+        formatted_points.append(f"new({x}f, {y}f)")
+    
+    # Kodun IDE (Visual Studio/Rider) içinde okunabilir olması için 
+    # her 5 elemanı bir satıra yazdırıyoruz.
+    for i in range(0, len(formatted_points), 5):
+        chunk = formatted_points[i:i+5]
+        # Elemanları aralarına virgül koyarak birleştir ve sonuna virgül + alt satır ekle
+        output += "    " + ", ".join(chunk) + ",\n"
+        
+    output += "};"
+    
+    return output
+
+csharp_kodu_farklar = FormatToInıt(farklar)
+csharp_kodu_yeni_silah_recoil = FormatToInıt(yeni_silah_recoil)
+
+print(yeni_silah_recoil)
+print(farklar)
+print(csharp_kodu_farklar)
+print(csharp_kodu_yeni_silah_recoil)
+showrecoil(yeni_silah_recoil)
