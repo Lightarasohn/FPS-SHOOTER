@@ -14,21 +14,28 @@ public class Weapon
     public float FireRate; // Mermiler arası bekleme süresi (Saniye cinsinden, örn: 0.1f)
     public float FireRange;
     public float Damage;
+    public Vector2[] RecoilData;
+    public float RecoilResetTime = 0.5f;
 
     public Weapon(int magCapacity)
     {
         this.MagCapacity = magCapacity;
         this.BulletInMag = this.MagCapacity;
     }
-
-    // Void yerine bool dönüyoruz ki isabet durumunu bilelim
-    public bool Shoot(NetworkRunner runner, PlayerRef player, Vector3 firePointPosition, Vector3 firePointDirection)
+    
+    public bool CanShoot()
     {
         if (this.BulletInMag == 0)
         {
             Debug.Log("Weapon.cs: No More Bullet In The Mag. RELOAD!");
             return false;
         }
+        return true;
+    }
+
+    // Void yerine bool dönüyoruz ki isabet durumunu bilelim
+    public bool Shoot(NetworkRunner runner, PlayerRef player, Vector3 firePointPosition, Vector3 firePointDirection)
+    {
         this.BulletInMag -= 1;
         if (runner.LagCompensation.Raycast(
             firePointPosition,

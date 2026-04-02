@@ -12,6 +12,10 @@ public class PlayerWeapon : NetworkBehaviour
     [Networked] public NetworkButtons PreviousButtons { get; set; } // Bir önceki karenin tuşları (Single atış için)
     [Networked] public byte BurstShotsLeft { get; set; } // Triple (Burst) atış sayacı
 
+    [Networked] public int CurrentBulletIndex { get; set; }
+    [Networked] public TickTimer RecoilResetTimer { get; set; }
+    public Vector2 CurrentShotRecoil;
+
     private ChangeDetector _changeDetector;
     private Material _material;
     private Weapon _playerWeapon;
@@ -41,6 +45,12 @@ public class PlayerWeapon : NetworkBehaviour
             bool firePressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Fire); // Tıklandı mı?
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire); // Basılı mı tutuluyor?
             bool shouldShoot = false;
+
+            if (RecoilResetTimer.Expired(Runner))
+            {
+                CurrentBulletIndex = 0;
+                RecoilResetTimer = TickTimer.None;
+            }
 
             // 1. COOLDOWN KONTROLÜ: Süre dolduysa veya hiç başlamadıysa atışa izin ver
             if (FireCooldown.ExpiredOrNotRunning(Runner))
@@ -73,10 +83,37 @@ public class PlayerWeapon : NetworkBehaviour
                 }
 
                 // 3. ATIŞ İŞLEMİ
-                if (shouldShoot && Object.HasStateAuthority)
+                if (shouldShoot && Object.HasStateAuthority && _playerWeapon.CanShoot())
                 {
-                    // Ateş et ve isabet edip etmediğini al
-                    bool hit = _playerWeapon.Shoot(Runner, Object.InputAuthority, firePoint.position, firePoint.forward);
+                    // 1. ÖNCE RECOIL'I HESAPLA (Merminin yönünü etkileyeceği için)
+                    if (_playerWeapon.RecoilData != null && _playerWeapon.RecoilData.Length > 0)
+                    {
+
+                        CurrentShotRecoil = _playerWeapon.RecoilData[CurrentBulletIndex];
+                        // YENİ: Kamerayı bul ve sekmeyi uygula
+                        var playerCamera = GetComponent<PlayerCamera>();
+                        if (playerCamera != null)
+                        {
+                            playerCamera.ApplyRecoil(CurrentShotRecoil);
+                        }
+
+                        if (CurrentBulletIndex < _playerWeapon.RecoilData.Length - 1)
+                            CurrentBulletIndex++;
+                    }
+
+                    // 2. YENİ: MERMİ YÖNÜNÜ KAMERADAN İSTE
+                    // Artık dümdüz firePoint.forward atmıyoruz, kameranın sekme dahil yönünü alıyoruz.
+                    Vector3 shootDirection = firePoint.forward; // Varsayılan
+                    var camScript = GetComponent<PlayerCamera>();
+                    if (camScript != null)
+                    {
+                        shootDirection = camScript.GetShootDirection(transform);
+                    }
+
+                    // 3. ATEŞ ET
+                    bool hit = _playerWeapon.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
+
+                    RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, _playerWeapon.RecoilResetTime);
 
                     // Efektleri tetikle
                     spawnedProjectile = !spawnedProjectile;
