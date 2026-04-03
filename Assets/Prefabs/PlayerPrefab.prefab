@@ -330,12 +330,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0953ed15a1762424da6d8e11962dcb40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCamera
-  BobSpeed: 14
-  BobAmount: 0.08
+  BobSpeed: 0
+  BobAmount: 0
   StandingCameraHeight: 0.8
   CrouchingCameraHeight: 0.4
   CameraPivot: {fileID: 1510667664030838850}
   PlayerMovementScript: {fileID: 5785439196981720267}
+  RecoilSmoothness: 0
+  RecoilScale: 0
 --- !u!114 &3790330187941791761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,6 +353,8 @@ MonoBehaviour:
   firePoint: {fileID: 6404338809728762269}
   _spawnedProjectile: 0
   _BurstShotsLeft: 0
+  _CurrentBulletIndex: 0
+  CurrentShotRecoil: {x: 0, y: 0}
 --- !u!114 &7816357872795022238
 MonoBehaviour:
   m_ObjectHideFlags: 0
