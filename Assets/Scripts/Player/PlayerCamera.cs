@@ -17,10 +17,6 @@ public class PlayerCamera : NetworkBehaviour
 
     private float _currentPitch;
 
-    [Header("Recoil (Sekme) Ayarları")]
-    public float RecoilSmoothness = 15f;
-    public float RecoilScale = 2f;
-
     // Asıl ulaşmamız gereken sekme (Ağdan/Weapon'dan gelecek)
     private Vector2 _targetRecoil;
     // Ekranda anlık olarak görünen (Lerp edilen) yumuşak sekme
@@ -31,12 +27,7 @@ public class PlayerCamera : NetworkBehaviour
         // Artık Camera kapatma işlemleri yok, PlayerInputHandler zaten Camera.main'i bize bağlıyor.
         _baseCameraHeight = StandingCameraHeight;
     }
-
-    // PlayerWeapon ateş ettiğinde bu metodu çağıracak
-    public void ApplyRecoil(Vector2 recoilOffset)
-    {
-        _targetRecoil += recoilOffset * RecoilScale;
-    }
+  
 
     // BACKEND (Saniyede 64 kez - Ağdan gelen güncel pitch (yukarı/aşağı) bilgisini al)
     public override void FixedUpdateNetwork()
@@ -57,17 +48,20 @@ public class PlayerCamera : NetworkBehaviour
     {
         // Kameramız yoksa veya bizim karakterimiz değilse animasyonları boşuna hesaplama
         if (!HasInputAuthority || CameraPivot == null) return;
+        _visualRecoil = Vector2.Lerp(_visualRecoil, _targetRecoil, Time.deltaTime * 15f);
+        float noiseStrength = 0.4f; // ANA KONTROL NOKTASI
 
-        // 1. ROTASYON (Pürüzsüz dönüş - Ağdan alınan LookPitch değeriyle)
-        // 1. RECOIL'İ YUMUŞAT
-        _visualRecoil = Vector2.Lerp(_visualRecoil, _targetRecoil, Time.deltaTime * RecoilSmoothness);
-
+        float noiseX = (Mathf.PerlinNoise(Time.time * 10f, 0f) - 0.5f) * _visualRecoil.magnitude * noiseStrength;
+        float noiseY = (Mathf.PerlinNoise(0f, Time.time * 10f) - 0.5f) * _visualRecoil.magnitude * noiseStrength;
         // 2. AÇILARI BİRLEŞTİR VE KAMERAYI DÖNDÜR
         // Farenin saf açısına, görsel sekmenin Y eksenini (Yukarı tepme) ekliyoruz.
         // Eksi (-) kullanıyoruz çünkü Pitch'te eksi değerler yukarı bakmayı sağlar.
-        float finalPitch = _currentPitch - _visualRecoil.y;
+        float finalPitch = _currentPitch;
 
-        CameraPivot.localRotation = Quaternion.Euler(finalPitch, _visualRecoil.x, 0);
+        float shakeX = _visualRecoil.y * 0.2f; // küçük dikey titreme
+        float shakeY = _visualRecoil.x;        // sağ-sol
+
+        CameraPivot.localRotation = Quaternion.Euler(finalPitch + noiseX,noiseY,0);
 
         // 2. EĞİLME YÜKSEKLİĞİ
         float targetCamHeight = PlayerMovementScript.IsCrouching ? CrouchingCameraHeight : StandingCameraHeight;
@@ -92,19 +86,11 @@ public class PlayerCamera : NetworkBehaviour
         camPos.y = Mathf.Lerp(camPos.y, _baseCameraHeight + bobOffset, Time.deltaTime * 15f);
         CameraPivot.localPosition = camPos;
     }
-
-    // YENİ: PlayerWeapon mermiyi fırlatırken kameranın TAM olarak nereye baktığını bilmek ister.
-    // Raycast için gerekli olan "Sekme Dahil" yönü hesaplar.
-    public Vector3 GetShootDirection(Transform characterTransform)
+    public void AddRecoil(Vector2 recoil)
     {
-        // Farenin pitch'i + hedeflenen recoil.
-        // Burada görsel (visual) recoil değil, target recoil kullanıyoruz ki sunucu gecikmesiz hesaplayabilsin.
-        float finalPitch = _currentPitch - _targetRecoil.y;
+        // Yukarı recoil'i azalt, daha çok jitter yap
+        recoil.y *= 0.3f;
 
-        // Karakterin Y eksenindeki dönüşü (sağ/sol) + Recoil'in X ekseni
-        float finalYaw = characterTransform.eulerAngles.y + _targetRecoil.x;
-
-        // Bu Euler açılarını bir yön vektörüne (forward) çevir
-        return Quaternion.Euler(finalPitch, finalYaw, 0) * Vector3.forward;
+        _targetRecoil += recoil;
     }
 }

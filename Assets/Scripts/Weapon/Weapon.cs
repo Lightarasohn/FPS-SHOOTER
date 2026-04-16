@@ -17,10 +17,6 @@ public class Weapon
     public Vector2[] RecoilData;
     public float RecoilResetTime = 0.5f;
 
-    // 🔥 YENİ EKLENENLER
-    private int shotIndex = 0;
-    private float lastShotTime;
-    private float recoilScale = 0.01f;
 
     public Weapon(int magCapacity)
     {
@@ -45,43 +41,9 @@ public class Weapon
 
         this.BulletInMag--;
 
-        // 🔴 Spray reset
-        if (Time.time - lastShotTime > RecoilResetTime)
-        {
-            shotIndex = 0;
-        }
-
-        lastShotTime = Time.time;
-
-        // 🔥 Recoil hesapla
-        Vector2 recoil = Vector2.zero;
-
-        if (RecoilData != null && RecoilData.Length > 0)
-        {
-            recoil = RecoilData[Mathf.Min(shotIndex, RecoilData.Length - 1)];
-        }
-
-        Vector3 finalDirection;
-
-        // 🎯 First shot accurate
-        if (shotIndex == 0)
-        {
-            finalDirection = firePointDirection;
-        }
-        else
-        {
-            finalDirection = (
-                firePointDirection +
-                new Vector3(recoil.x * recoilScale, recoil.y * recoilScale, 0f)
-            ).normalized;
-        }
-
-        shotIndex++;
-        Debug.DrawRay(firePointPosition, finalDirection * FireRange, Color.red, 1f);
-        // 🔥 HITSCAN
         if (runner.LagCompensation.Raycast(
             firePointPosition,
-            finalDirection,
+            firePointDirection,
             this.FireRange,
             player,
             out var hit,
@@ -105,9 +67,6 @@ public class Weapon
     {
         this.BulletInMag = this.MagCapacity;
         this.MagAmount -= 1;
-
-        // 🔥 reload sonrası recoil reset
-        shotIndex = 0;
 
         Debug.Log($"Weapon.cs: Bullet Amount: {this.BulletInMag} || Mag Amount: {this.MagAmount}");
     }

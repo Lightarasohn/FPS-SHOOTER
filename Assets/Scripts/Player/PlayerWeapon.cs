@@ -20,16 +20,19 @@ public class PlayerWeapon : NetworkBehaviour
     private Material _material;
     private Weapon _playerWeapon;
     private Color _playerDefaultColor;
+    private PlayerCamera _playerCamera;
 
     // --- GIZMO İÇİN YEREL DEĞİŞKENLER (Ağa gitmez) ---
     private float _gizmoHideTime;
     private bool _lastShotHit;
+    private Vector3 _lastShootDirection;
 
     private void Awake()
     {
         _material = GetComponentInChildren<MeshRenderer>().material;
         _playerWeapon = GetComponent<Player>().PlayerWeapon;
         _playerDefaultColor = GetComponent<Player>().DefaultColor;
+        _playerCamera = GetComponent<PlayerCamera>();
     }
 
     public override void Spawned()
@@ -81,7 +84,7 @@ public class PlayerWeapon : NetworkBehaviour
                         }
                         break;
                 }
-
+                Vector3 shootDirection = firePoint.forward;
                 // 3. ATIŞ İŞLEMİ
                 if (shouldShoot && Object.HasStateAuthority && _playerWeapon.CanShoot())
                 {
@@ -90,12 +93,12 @@ public class PlayerWeapon : NetworkBehaviour
                     {
 
                         CurrentShotRecoil = _playerWeapon.RecoilData[CurrentBulletIndex];
-                        // YENİ: Kamerayı bul ve sekmeyi uygula
-                        var playerCamera = GetComponent<PlayerCamera>();
-                        if (playerCamera != null)
-                        {
-                            playerCamera.ApplyRecoil(CurrentShotRecoil);
-                        }
+
+                        // Yukarı (pitch) ve sağ-sol (yaw) recoil uygula
+                        Quaternion recoilRotation = Quaternion.Euler(CurrentShotRecoil.y, CurrentShotRecoil.x, 0);
+
+                        shootDirection = recoilRotation * shootDirection;
+
 
                         if (CurrentBulletIndex < _playerWeapon.RecoilData.Length - 1)
                             CurrentBulletIndex++;
@@ -103,15 +106,15 @@ public class PlayerWeapon : NetworkBehaviour
 
                     // 2. YENİ: MERMİ YÖNÜNÜ KAMERADAN İSTE
                     // Artık dümdüz firePoint.forward atmıyoruz, kameranın sekme dahil yönünü alıyoruz.
-                    Vector3 shootDirection = firePoint.forward; // Varsayılan
-                    var camScript = GetComponent<PlayerCamera>();
-                    if (camScript != null)
-                    {
-                        shootDirection = camScript.GetShootDirection(transform);
-                    }
+                    // Varsayılan
 
+                    if (_playerCamera != null && Object.HasInputAuthority)
+                    {
+                        _playerCamera.AddRecoil(CurrentShotRecoil);
+                    }
                     // 3. ATEŞ ET
                     bool hit = _playerWeapon.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
+                    _lastShootDirection = shootDirection;
 
                     RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, _playerWeapon.RecoilResetTime);
 
@@ -150,21 +153,19 @@ public class PlayerWeapon : NetworkBehaviour
     {
         if (firePoint == null) return;
 
-        // Oyun çalışmıyorken (Editörde) range okunamayabileceği için ufak bir güvenlik kontrolü
         float range = _playerWeapon != null ? _playerWeapon.FireRange : 100f;
 
-        // Zamanlayıcı dolmadıysa (Ateş edildiyse)
+        Vector3 direction = _lastShootDirection == Vector3.zero ? firePoint.forward : _lastShootDirection;
+
         if (Time.time < _gizmoHideTime)
         {
-            // Vurduysak Yeşil, Karavanaysa Sarı
             Gizmos.color = _lastShotHit ? Color.green : Color.yellow;
-            Gizmos.DrawLine(firePoint.position, firePoint.position + (firePoint.forward * range));
+            Gizmos.DrawLine(firePoint.position, firePoint.position + (direction * range));
         }
         else
         {
-            // Ateş edilmiyorsa Standart Kırmızı
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(firePoint.position, firePoint.position + (firePoint.forward * range));
+            Gizmos.DrawLine(firePoint.position, firePoint.position + (direction * range));
         }
     }
 }
