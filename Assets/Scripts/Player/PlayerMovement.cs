@@ -4,12 +4,12 @@ using static GlobalVariables;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    [Header("Hareket Ayarları (CS:GO Değerleri)")]
+    [Header("Hareket Ayarları (CS:GO Strafe Değerleri)")]
     public float MaxGroundSpeed = 5f;
-    public float MaxAirSpeed = 0.5f;
+    public float MaxAirSpeed = 5f; // Havada yerdeki kadar hızlı gidebilsin
+    public float AirAcceleration = 25f; // ESKİSİ 5'Tİ. Şimdi havada anında yön değiştirecek!
     public float MaxFallingSpeed = -32f;
     public float GroundAcceleration = 10f;
-    public float AirAcceleration = 2f;
     public float Friction = 5f;
     public float Gravity = 20f;
     public float JumpForce = 6f;
@@ -17,33 +17,30 @@ public class PlayerMovement : NetworkBehaviour
     [Header("Eğilme (Crouch) Ayarları")]
     public float StandingHeight = 2f;
     public float CrouchHeight = 1f;
-    public float CrouchSpeedMultiplier = 0.5f; // Eğilirken hızımız yarıya düşsün
-    public float CrouchTransitionSpeed = 10f; // Eğilme/Kalkma hızı (Yumuşaklık)
-    
+    public float CrouchSpeedMultiplier = 0.5f;
+    public float CrouchTransitionSpeed = 10f;
 
-    // Koşma ve koşarken kamera sallanması
+    // Koşma Ayarları
     [Header("Koşma (Sprint) Ayarları")]
-    public float SprintSpeedMultiplier = 1.5f; // %50 hız artışı (5 * 1.5 = 7.5 hız)
-    public float SprintGracePeriod = 1f; // YENİ: Shift bırakıldıktan sonra koşmanın devam edeceği süre
+    public float SprintSpeedMultiplier = 1.5f;
     public bool IsSprinting = false;
 
     // Kayma Ayarları (Slide)
     [Header("Kayma (Slide) Ayarları")]
-    public float SlideDuration = 1f; // Ne kadar süre kayacak
-    public float SlideSpeedMultiplier = 2f; // Yürüme hızının 2 katı (5 * 2 = 10 hız)
+    public float SlideDuration = 1f;
+    public float SlideSpeedMultiplier = 2f;
 
     [Header("Referanslar")]
     public Transform PlayerPivot;
 
     [Networked] public Vector3 Velocity { get; set; }
     [Networked] public bool IsGrounded { get; set; }
-    [Networked] public bool IsCrouching { get; set; } // Animasyonlar veya diğer oyuncuların görmesi için
-    [Networked] public TickTimer SprintGraceTimer { get; set; } // Koşma tolerans sayacı oyuncu shifte basmayı bıraktığında 1 sanye tolerans tanıycak
+    [Networked] public bool IsCrouching { get; set; }
 
     // Ağ üzerinden senkronize edilecek kayma değişkenleri
     [Networked] public bool IsSliding { get; set; }
-    [Networked] public TickTimer SlideTimer { get; set; } // Fusion'ın zamanlayıcısı
-    [Networked] public Vector3 SlideDirection { get; set; } // Kaydığımız kilitli yön
+    [Networked] public TickTimer SlideTimer { get; set; }
+    [Networked] public Vector3 SlideDirection { get; set; }
 
     // Kapsül boyutunu artık sabit değil, dinamik yapıyoruz
     private float _capsuleHeight;
@@ -61,22 +58,11 @@ public class PlayerMovement : NetworkBehaviour
             // --- KAMERA VE DÖNÜŞ (Look) ---
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
-            // --- YENİ: GİRDİLER VE KOŞMA TOLERANSI (GRACE PERIOD) ---
+            // --- GİRDİLER ---
             bool wantsToCrouch = input.Buttons.IsSet(PlayerAction.Crouch);
-            bool sprintInput = input.Buttons.IsSet(PlayerAction.sprint);
-
-            // Eğer Shift tuşuna basılıyorsa sayacı 1 saniye olarak sürekli kur/yenile
-            if (sprintInput)
-            {
-                SprintGraceTimer = TickTimer.CreateFromSeconds(Runner, SprintGracePeriod);
-            }
-
-            // Karakter şu an koşuyor mu? (Ya tuşa basılıyordur, ya da tuş bırakılmış ama 1 saniye henüz dolmamıştır)
-            IsSprinting = sprintInput || !SprintGraceTimer.ExpiredOrNotRunning(Runner);
-            // ---------------------------------------------------------
+            IsSprinting = input.Buttons.IsSet(PlayerAction.sprint);
 
             // --- KAYMA (SLIDE) BAŞLATMA MANTIĞI ---
-            // Yerdeysek, koşuyorsak (artık 1 saniye toleranslı), ŞU AN eğilme tuşuna bastıysak (!IsCrouching) ve zaten kaymıyorsak
             if (IsGrounded && IsSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
             {
                 IsSliding = true;
@@ -89,13 +75,11 @@ public class PlayerMovement : NetworkBehaviour
                     SlideDirection = transform.forward;
             }
 
-            // Kayma süresi dolduysa kaymayı bitir
             if (IsSliding && SlideTimer.Expired(Runner))
             {
                 IsSliding = false;
             }
 
-            // Kayıyorsak zorla eğik kal
             if (IsSliding)
             {
                 wantsToCrouch = true;
@@ -117,10 +101,20 @@ public class PlayerMovement : NetworkBehaviour
             Vector3 currentVelocity = Velocity;
             CheckGrounded(ref currentVelocity);
 
-            Vector3 wishDir = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
-            wishDir.Normalize();
+            // YENİ HATA ÇÖZÜMÜ: Eğer kayarken uçurumdan düşersek veya zıplarsak havada yön kilidini kır!
+            if (!IsGrounded && IsSliding)
+            {
+                IsSliding = false;
+                SlideTimer = TickTimer.None;
+            }
 
-            // Kayarken yönü kilitle
+            // Ham yön bilgisini (oyuncunun bastığı tuşları) alıyoruz
+            Vector3 rawInputDirection = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
+            rawInputDirection.Normalize();
+
+            Vector3 wishDir = rawInputDirection;
+
+            // Kayarken normal yönü kilitliyoruz (Artık sadece yerdeysek çalışacak)
             if (IsSliding)
             {
                 wishDir = SlideDirection;
@@ -130,7 +124,6 @@ public class PlayerMovement : NetworkBehaviour
             {
                 ApplyFriction(ref currentVelocity, Runner.DeltaTime);
 
-                // Hız Önceliği Mantığı
                 float currentMaxSpeed = MaxGroundSpeed;
 
                 if (IsSliding)
@@ -141,23 +134,36 @@ public class PlayerMovement : NetworkBehaviour
                 {
                     currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
                 }
-                else if (IsSprinting) // Artık bu da 1 saniye toleranslı çalışıyor
+                else if (IsSprinting)
                 {
                     currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
                 }
 
                 Accelerate(ref currentVelocity, wishDir, currentMaxSpeed, GroundAcceleration, Runner.DeltaTime);
 
-                // Zıplama
-                if (input.Buttons.IsSet(PlayerAction.Jump) && !IsSliding)
+                // Zıplama ve Momentum Yönlendirmesi
+                if (input.Buttons.IsSet(PlayerAction.Jump))
                 {
+                    if (IsSliding)
+                    {
+                        IsSliding = false;
+                        SlideTimer = TickTimer.None;
+
+                        if (rawInputDirection.magnitude > 0.1f)
+                        {
+                            float slideSpeed = new Vector3(currentVelocity.x, 0, currentVelocity.z).magnitude;
+                            currentVelocity.x = rawInputDirection.x * slideSpeed;
+                            currentVelocity.z = rawInputDirection.z * slideSpeed;
+                        }
+                    }
+
                     currentVelocity.y = JumpForce;
                     IsGrounded = false;
                 }
             }
             else
             {
-                // Havadayken
+                // Havadayken (Artık yüksek MaxAirSpeed ve AirAcceleration sayesinde çok daha rahat kontrol edilecek)
                 Accelerate(ref currentVelocity, wishDir, MaxAirSpeed, AirAcceleration, Runner.DeltaTime);
 
                 // Yerçekimi
@@ -178,10 +184,9 @@ public class PlayerMovement : NetworkBehaviour
         }
     }
 
-    // --- YENİ: TAVAN KONTROLÜ (Kafayı vurmamak için) ---
+    // --- TAVAN KONTROLÜ (Kafayı vurmamak için) ---
     private bool CheckCeiling()
     {
-        // Karakterin mevcut boyundan yukarıya doğru bir küre fırlatarak tavan var mı diye bakıyoruz
         Vector3 origin = PlayerPivot.position + Vector3.up * _capsuleHeight;
         float distanceToStand = StandingHeight - _capsuleHeight;
 
@@ -278,7 +283,6 @@ public class PlayerMovement : NetworkBehaviour
 
         Gizmos.color = Color.blue;
         Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
-        // Gizmos'ta da dinamik boyu kullanıyoruz ki küçüldüğümüzü görebilelim
         Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
         Gizmos.DrawWireSphere(p1, _capsuleRadius);
         Gizmos.DrawWireSphere(p2, _capsuleRadius);

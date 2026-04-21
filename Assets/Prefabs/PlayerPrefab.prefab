@@ -296,10 +296,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   MaxGroundSpeed: 5
-  MaxAirSpeed: 3
+  MaxAirSpeed: 5
+  AirAcceleration: 25
   MaxFallingSpeed: -32
   GroundAcceleration: 10
-  AirAcceleration: 1
   Friction: 8
   Gravity: 18
   JumpForce: 7.8
@@ -308,7 +308,6 @@ MonoBehaviour:
   CrouchSpeedMultiplier: 0.5
   CrouchTransitionSpeed: 10
   SprintSpeedMultiplier: 1.5
-  SprintGracePeriod: 1
   IsSprinting: 0
   SlideDuration: 1
   SlideSpeedMultiplier: 2
@@ -336,6 +335,8 @@ MonoBehaviour:
   CrouchingCameraHeight: 0.4
   CameraPivot: {fileID: 1510667664030838850}
   PlayerMovementScript: {fileID: 5785439196981720267}
+  RecoilSmoothness: 15
+  RecoilScale: 2
 --- !u!114 &3790330187941791761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,6 +352,8 @@ MonoBehaviour:
   firePoint: {fileID: 6404338809728762269}
   _spawnedProjectile: 0
   _BurstShotsLeft: 0
+  _CurrentBulletIndex: 0
+  CurrentShotRecoil: {x: 0, y: 0}
 --- !u!114 &7816357872795022238
 MonoBehaviour:
   m_ObjectHideFlags: 0
