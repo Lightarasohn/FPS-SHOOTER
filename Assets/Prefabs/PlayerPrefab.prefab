@@ -296,10 +296,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   MaxGroundSpeed: 5
-  MaxAirSpeed: 3
+  MaxAirSpeed: 5
+  AirAcceleration: 25
   MaxFallingSpeed: -32
   GroundAcceleration: 10
-  AirAcceleration: 1
   Friction: 8
   Gravity: 18
   JumpForce: 7.8
@@ -308,7 +308,6 @@ MonoBehaviour:
   CrouchSpeedMultiplier: 0.5
   CrouchTransitionSpeed: 10
   SprintSpeedMultiplier: 1.5
-  SprintGracePeriod: 1
   IsSprinting: 0
   SlideDuration: 1
   SlideSpeedMultiplier: 2
