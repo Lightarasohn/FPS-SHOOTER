@@ -37,6 +37,11 @@ public class GlobalVariables
         Triangle = 2
     }
 
+    // Takım Türleri
+    public enum Team {
+        Spectator, Red, Blue 
+    }
+
     public static class WeaponRecoil
     {
         public static Vector2[] DesertEagle = new Vector2[]
