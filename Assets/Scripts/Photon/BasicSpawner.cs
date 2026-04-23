@@ -4,18 +4,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static GlobalVariables;
+
 
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     private NetworkRunner _runner;
-    [SerializeField] private NetworkPrefabRef _playerPrefab;
-    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-    
+
+    [Header("Prefabs")]
+    // Kapsül değil, görünmez temsilci prefabını (PlayerState) buraya koyacağız
+    [SerializeField] private NetworkPrefabRef _playerStatePrefab;
+
     async void StartGame(GameMode mode)
     {
         _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
-
         _runner.AddCallbacks(this);
 
         var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
@@ -43,110 +46,61 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 StartGame(GameMode.Client);
         }
     }
-    public void OnConnectedToServer(NetworkRunner runner)
-    {
-    }
-
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
-    {
-    }
-
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
-    {
-    }
-
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
-    {
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-    }
-
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
-    {
-    }
-
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.Log($"[BasicSpawner] OnPlayerJoined called. Runner.IsServer={runner.IsServer}, player={player.RawEncoded}");
+
         if (runner.IsServer)
         {
-            Vector3 spawnPosition = new Vector3((player.RawEncoded % runner.Config.Simulation.PlayerCount) * 3, 1, 0);
-
-            NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
-
-            if (networkPlayerObject == null)
-            {
-                Debug.LogError("[BasicSpawner] Spawn returned null. Prefab registered in NetworkProjectConfig?");
-                return;
-            }
-
-            _spawnedCharacters.Add(player, networkPlayerObject);
-            runner.SetPlayerObject(player, networkPlayerObject);
-
-            Debug.Log($"[BasicSpawner] Spawned player object for {player.RawEncoded} id={networkPlayerObject.Id}");
+            // Sadece oyuncunun ağdaki işlemlerini yönetecek olan PlayerState prefabını doğuruyoruz.
+            runner.Spawn(_playerStatePrefab, Vector3.zero, Quaternion.identity, player);
         }
     }
 
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    public void OnInput(NetworkRunner runner, NetworkInput input)
     {
-        Debug.Log($"[BasicSpawner] OnPlayerLeft called player={player.RawEncoded}");
-        if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
+        var localPlayerObject = runner.GetPlayerObject(runner.LocalPlayer);
+        if (localPlayerObject != null)
         {
-            runner.Despawn(networkObject);
-            _spawnedCharacters.Remove(player);
-            Debug.Log($"[BasicSpawner] Despawned and removed player {player.RawEncoded}");
+            var inputHandler = localPlayerObject.GetComponent<PlayerInputHandler>();
+            if (inputHandler != null)
+            {
+                input.Set(inputHandler.CurrentInput);
+            }
         }
     }
 
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
-    {
-    }
-
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
-    {
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-    }
-
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-    }
-
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
-    {
-    }
-
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
-    {
-    }
-    
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
-    {
-    }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+    public void OnConnectedToServer(NetworkRunner runner) { }
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
+    public void OnSceneLoadDone(NetworkRunner runner) { }
+    public void OnSceneLoadStart(NetworkRunner runner) { }
 
     public void OnInput(NetworkRunner runner, Fusion.NetworkInput input)
     {
+        // Kendi karakterimizi (InputAuthority bizde olan objeyi) buluyoruz
         var localPlayerObject = runner.GetPlayerObject(runner.LocalPlayer);
 
         if (localPlayerObject != null)
         {
-            // Kendi karakterimizin üzerindeki InputHandler'ı buluyoruz
+            // Karakterin üzerindeki kendi yazdığımız PlayerInputHandler scriptini alıyoruz
             var inputHandler = localPlayerObject.GetComponent<PlayerInputHandler>();
             if (inputHandler != null)
             {
-                // Update() içinde biriktirdiğimiz veriyi Fusion'ın ağına besliyoruz!
+                // Verileri Fusion ağına iletiyoruz
                 input.Set(inputHandler.CurrentInput);
             }
         }
@@ -154,5 +108,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input)
     {
+        throw new NotImplementedException();
     }
 }

@@ -11,18 +11,19 @@ public class Weapon
     public int BulletInMag;
     public WeaponType WeaponType;
     public WeaponFireType WeaponFireType;
-    public float FireRate; // Mermiler arası bekleme süresi (Saniye cinsinden, örn: 0.1f)
+    public float FireRate;
     public float FireRange;
     public float Damage;
     public Vector2[] RecoilData;
     public float RecoilResetTime = 0.5f;
+
 
     public Weapon(int magCapacity)
     {
         this.MagCapacity = magCapacity;
         this.BulletInMag = this.MagCapacity;
     }
-    
+
     public bool CanShoot()
     {
         if (this.BulletInMag == 0)
@@ -33,10 +34,13 @@ public class Weapon
         return true;
     }
 
-    // Void yerine bool dönüyoruz ki isabet durumunu bilelim
     public bool Shoot(NetworkRunner runner, PlayerRef player, Vector3 firePointPosition, Vector3 firePointDirection)
     {
-        this.BulletInMag -= 1;
+        if (!CanShoot())
+            return false;
+
+        this.BulletInMag--;
+
         if (runner.LagCompensation.Raycast(
             firePointPosition,
             firePointDirection,
@@ -50,20 +54,20 @@ public class Weapon
             var playerScript = hit.Hitbox.GetComponent<Player>();
             if (playerScript != null)
             {
-                playerScript.TakeDamage(10);
+                playerScript.TakeDamage(this.Damage);
             }
-            return true; // Vurduk!
+            return true;
         }
 
-        Debug.Log($"Weapon.cs: Bullet Amount: {this.BulletInMag} || Mag Amount: {this.MagAmount}");
-
-        return false; // Karavana
+        Debug.Log($"MISS | Ammo: {this.BulletInMag} || Mag: {this.MagAmount}");
+        return false;
     }
 
     public void Reload()
     {
         this.BulletInMag = this.MagCapacity;
         this.MagAmount -= 1;
+
         Debug.Log($"Weapon.cs: Bullet Amount: {this.BulletInMag} || Mag Amount: {this.MagAmount}");
     }
 }

@@ -7,7 +7,7 @@ using static GlobalVariables;
 
 public class Player : NetworkBehaviour
 {
-    [Networked] public int Health { get; set; } = 100;
+    [Networked] public float Health { get; set; } = 100;
     public int MaxHealth = 500;
     public int MinHealth = 0;
     public Color DefaultColor = Color.blue;
@@ -44,7 +44,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
         if (Object.HasStateAuthority)
         {
