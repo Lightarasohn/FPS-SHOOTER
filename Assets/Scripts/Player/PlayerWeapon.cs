@@ -47,6 +47,20 @@ public class PlayerWeapon : NetworkBehaviour
             // O anki butona basılma durumları
             bool firePressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Fire); // Tıklandı mı?
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire); // Basılı mı tutuluyor?
+
+            // --- YENİ: RELOAD (ŞARJÖR DEĞİŞTİRME) KONTROLÜ ---
+            bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
+
+            // Eğer R tuşuna basıldıysa, yetkimiz varsa, yedek şarjörümüz varsa ve mermi ful değilse şarjör değiştir
+            if (reloadPressed && Object.HasStateAuthority)
+            {
+                if (_playerWeapon.MagAmount > 0 && _playerWeapon.BulletInMag < _playerWeapon.MagCapacity)
+                {
+                    _playerWeapon.Reload();
+                }
+            }
+            // ------------------------------------------------
+
             bool shouldShoot = false;
 
             if (RecoilResetTimer.Expired(Runner))
@@ -84,14 +98,15 @@ public class PlayerWeapon : NetworkBehaviour
                         }
                         break;
                 }
+
                 Vector3 shootDirection = firePoint.forward;
+
                 // 3. ATIŞ İŞLEMİ
                 if (shouldShoot && Object.HasStateAuthority && _playerWeapon.CanShoot())
                 {
                     // 1. ÖNCE RECOIL'I HESAPLA (Merminin yönünü etkileyeceği için)
                     if (_playerWeapon.RecoilData != null && _playerWeapon.RecoilData.Length > 0)
                     {
-
                         CurrentShotRecoil = _playerWeapon.RecoilData[CurrentBulletIndex];
 
                         // Yukarı (pitch) ve sağ-sol (yaw) recoil uygula
@@ -99,19 +114,17 @@ public class PlayerWeapon : NetworkBehaviour
 
                         shootDirection = recoilRotation * shootDirection;
 
-
                         if (CurrentBulletIndex < _playerWeapon.RecoilData.Length - 1)
                             CurrentBulletIndex++;
                     }
 
                     // 2. YENİ: MERMİ YÖNÜNÜ KAMERADAN İSTE
                     // Artık dümdüz firePoint.forward atmıyoruz, kameranın sekme dahil yönünü alıyoruz.
-                    // Varsayılan
-
                     if (_playerCamera != null && Object.HasInputAuthority)
                     {
                         _playerCamera.AddRecoil(CurrentShotRecoil);
                     }
+
                     // 3. ATEŞ ET
                     bool hit = _playerWeapon.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
                     _lastShootDirection = shootDirection;

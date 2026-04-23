@@ -81,7 +81,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
@@ -104,10 +104,5 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 input.Set(inputHandler.CurrentInput);
             }
         }
-    }
-
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input)
-    {
-        throw new NotImplementedException();
     }
 }

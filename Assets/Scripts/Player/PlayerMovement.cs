@@ -7,7 +7,7 @@ public class PlayerMovement : NetworkBehaviour
     [Header("Hareket Ayarları (CS:GO Strafe Değerleri)")]
     public float MaxGroundSpeed = 5f;
     public float MaxAirSpeed = 5f; // Havada yerdeki kadar hızlı gidebilsin
-    public float AirAcceleration = 25f; // ESKİSİ 5'Tİ. Şimdi havada anında yön değiştirecek!
+    public float AirAcceleration = 5f; // ESKİSİ 5'Tİ. Şimdi havada anında yön değiştirecek!
     public float MaxFallingSpeed = -32f;
     public float GroundAcceleration = 10f;
     public float Friction = 5f;

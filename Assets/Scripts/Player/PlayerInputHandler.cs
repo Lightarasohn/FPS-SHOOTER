@@ -22,19 +22,6 @@ public class PlayerInputHandler : NetworkBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-
-            Camera mainCam = Camera.main;
-            if (mainCam != null)
-            {
-                var cameraScript = GetComponent<PlayerCamera>();
-                if (cameraScript != null && cameraScript.CameraPivot != null)
-                {
-                    Transform pivot = cameraScript.CameraPivot;
-                    mainCam.transform.SetParent(pivot);
-                    mainCam.transform.localPosition = Vector3.zero;
-                    mainCam.transform.localRotation = Quaternion.identity;
-                }
-            }
         }
     }
 
