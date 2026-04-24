@@ -297,7 +297,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   MaxGroundSpeed: 5
   MaxAirSpeed: 5
-  AirAcceleration: 25
+  AirAcceleration: 5
   MaxFallingSpeed: -32
   GroundAcceleration: 10
   Friction: 8
@@ -335,8 +335,6 @@ MonoBehaviour:
   CrouchingCameraHeight: 0.4
   CameraPivot: {fileID: 1510667664030838850}
   PlayerMovementScript: {fileID: 5785439196981720267}
-  RecoilSmoothness: 0
-  RecoilScale: 0
 --- !u!114 &3790330187941791761
 MonoBehaviour:
   m_ObjectHideFlags: 0
