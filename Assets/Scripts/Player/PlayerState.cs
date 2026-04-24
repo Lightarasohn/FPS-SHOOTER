@@ -1,6 +1,6 @@
 using Fusion;
 using UnityEngine;
-using static GlobalVariables; // Team enum'u için
+using static GlobalVariables; 
 
 public class PlayerState : NetworkBehaviour
 {
@@ -15,6 +15,11 @@ public class PlayerState : NetworkBehaviour
         if (Object.HasInputAuthority)
         {
             Local = this;
+
+            if (TeamSelectUI.Instance != null)
+            {
+                TeamSelectUI.Instance.ShowMenu();
+            }
         }
     }
 
@@ -23,8 +28,18 @@ public class PlayerState : NetworkBehaviour
     {
         if (Object.HasStateAuthority)
         {
-            // Takıma göre pozisyon veriyoruz (Test için direkt koordinat yazdım)
-            Vector3 spawnPos = (team == Team.Red) ? new Vector3(-5, 1, 0) : new Vector3(5, 1, 0);
+            Vector3 spawnPos = Vector3.zero;
+            // Sahnedeki SpawnManager'a ulaşıp noktaları alıyoruz
+            if (SpawnManager.Instance != null)
+            {
+                spawnPos = (team == Team.Red)
+                    ? SpawnManager.Instance.redSpawnPoint.position
+                    : SpawnManager.Instance.blueSpawnPoint.position;
+            }
+            else
+            {
+                Debug.LogError("[PlayerState] Sahnede SpawnManager bulunamadı! Lütfen sahneye ekleyin.");
+            }
 
             // Karakteri doğur ve yetkiyi isteği gönderen oyuncuya ver
             NetworkObject character = Runner.Spawn(_characterPrefab, spawnPos, Quaternion.identity, Object.InputAuthority);
