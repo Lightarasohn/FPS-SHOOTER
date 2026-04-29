@@ -41,6 +41,14 @@ public class GlobalVariables
     public enum Team {
         Spectator, Red, Blue 
     }
+    public enum RoundState
+    {
+        WaitingForPlayers, // Yeterli oyuncu bekleniyor (Warmup)
+        PreRound,          // Freeze time (Satın alma evresi, hareket kapalı)
+        Playing,           // Round oynanıyor
+        RoundEnd,          // Round bitti, skor dağıtıldı
+        MatchEnd           // Maç bitti (örn. 16'ya ulaşan kazandı)
+    }
 
     public static class WeaponRecoil
     {

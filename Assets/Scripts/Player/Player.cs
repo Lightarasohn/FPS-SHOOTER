@@ -2,19 +2,20 @@ using Fusion;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Windows;
-using static Fusion.NetworkBehaviour;
 using static GlobalVariables;
 
 public class Player : NetworkBehaviour
 {
     [Networked] public float Health { get; set; } = 100;
+    [Networked] public bool IsAlive { get; set; }
+    [Networked] public Team PlayerTeam { get; set; }
+
     public int MaxHealth = 500;
     public int MinHealth = 0;
     public Color DefaultColor = Color.blue;
     public Weapon PlayerWeapon;
     public Crosshair PlayerCrosshair;
 
-    // YENİ: Arayüz (HUD) Referansını buraya ekliyoruz
     public PlayerHUD LocalHUD;
 
     public void Awake()
@@ -25,11 +26,23 @@ public class Player : NetworkBehaviour
 
     public override void Spawned()
     {
+        // KONSOLA 
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddPlayer(this);
+
+        }
         bool isLocal = Object.HasInputAuthority;
+  
+        // 1. DÜZELTME: Sadece sunucu (kurucu) doğan oyuncuyu hayatta olarak işaretler
+        if (Object.HasStateAuthority)
+        {
+            IsAlive = true;
+        }
 
         if (!isLocal)
         {
-            // 1. BAŞKA OYUNCU: Kamerasını ve sesini kapatıyoruz (Canvas'a dokunmuyoruz!)
             Camera playerLocalCamera = GetComponentInChildren<Camera>();
             if (playerLocalCamera != null)
                 playerLocalCamera.enabled = false;
@@ -40,28 +53,46 @@ public class Player : NetworkBehaviour
         }
         else
         {
-            // 2. BİZİM OYUNCUMUZ: Sahnede duran PlayerHUD scriptini otomatik bul ve eşle
             LocalHUD = FindFirstObjectByType<PlayerHUD>();
         }
 
         CrosshairManager crosshairManager = FindFirstObjectByType<CrosshairManager>();
 
-        // 3. CROSSHAIR: Sadece bizim oyuncumuz doğduğunda ekrandaki crosshair güncellensin
         if (crosshairManager != null && isLocal)
         {
             crosshairManager.ApplyCrosshairSettings(PlayerCrosshair);
         }
     }
 
-    public void TakeDamage(float damage)
+    // 2. DÜZELTME: Oyuncu sunucudan koparsa (veya silinirse) listeden adını çıkar
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        if (Object.HasStateAuthority)
+        if (GameManager.Instance != null)
         {
-            Health -= damage;
+            GameManager.Instance.RemovePlayer(this);
         }
     }
 
-    // YENİ: Arayüzü (Can ve Mermi) her karede güncelleme işlemi
+    public void TakeDamage(float damage)
+    {
+        // Ölü birine hasar vurulmasını engellemek için IsAlive kontrolü eklendi
+        if (Object.HasStateAuthority && IsAlive)
+        {
+            Health -= damage;
+            if (Health <= 0)
+            {
+                Health = 0;
+                IsAlive = false;
+
+                // 3. DÜZELTME: Biri öldüğünde GameManager'a kazanan var mı diye kontrol etmesini söyle
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.CheckWinCondition();
+                }
+            }
+        }
+    }
+
     public override void Render()
     {
         if (Object.HasInputAuthority && LocalHUD != null)
@@ -69,7 +100,6 @@ public class Player : NetworkBehaviour
             int currentAmmo = PlayerWeapon != null ? PlayerWeapon.BulletInMag : 0;
             int totalMags = PlayerWeapon != null ? PlayerWeapon.MagAmount : 0;
 
-            // Health float olduğu için arayüze gönderirken (int) ile tam sayıya çeviriyoruz
             LocalHUD.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
     }

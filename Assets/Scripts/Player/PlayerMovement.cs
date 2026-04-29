@@ -55,15 +55,22 @@ public class PlayerMovement : NetworkBehaviour
     {
         if (GetInput(out NetworkInput input))
         {
-            // --- KAMERA VE DÖNÜŞ (Look) ---
+            // --- KAMERA VE DÖNÜŞ (Look) : Her zaman çalışır (Freeze time'da etrafa bakabiliriz) ---
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
-            // --- GİRDİLER ---
-            bool wantsToCrouch = input.Buttons.IsSet(PlayerAction.Crouch);
-            IsSprinting = input.Buttons.IsSet(PlayerAction.sprint);
+            // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
+            bool canMove = true;
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
+            {
+                canMove = false; // Freeze Time! Sadece etrafa bakabilir, hareket edemez.
+            }
+
+            // Girdileri canMove kontrolüne bağlıyoruz
+            bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
+            IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint);
 
             // --- KAYMA (SLIDE) BAŞLATMA MANTIĞI ---
-            if (IsGrounded && IsSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
+            if (canMove && IsGrounded && IsSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
             {
                 IsSliding = true;
                 SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration);
@@ -101,20 +108,22 @@ public class PlayerMovement : NetworkBehaviour
             Vector3 currentVelocity = Velocity;
             CheckGrounded(ref currentVelocity);
 
-            // YENİ HATA ÇÖZÜMÜ: Eğer kayarken uçurumdan düşersek veya zıplarsak havada yön kilidini kır!
             if (!IsGrounded && IsSliding)
             {
                 IsSliding = false;
                 SlideTimer = TickTimer.None;
             }
 
-            // Ham yön bilgisini (oyuncunun bastığı tuşları) alıyoruz
-            Vector3 rawInputDirection = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
-            rawInputDirection.Normalize();
+            // Eğer hareket izni yoksa, oyuncunun basılı tuttuğu tuşları yoksay ve sıfırla
+            Vector3 rawInputDirection = Vector3.zero;
+            if (canMove)
+            {
+                rawInputDirection = transform.forward * input.MoveDirection.y + transform.right * input.MoveDirection.x;
+                rawInputDirection.Normalize();
+            }
 
             Vector3 wishDir = rawInputDirection;
 
-            // Kayarken normal yönü kilitliyoruz (Artık sadece yerdeysek çalışacak)
             if (IsSliding)
             {
                 wishDir = SlideDirection;
@@ -126,23 +135,14 @@ public class PlayerMovement : NetworkBehaviour
 
                 float currentMaxSpeed = MaxGroundSpeed;
 
-                if (IsSliding)
-                {
-                    currentMaxSpeed = MaxGroundSpeed * SlideSpeedMultiplier;
-                }
-                else if (IsCrouching)
-                {
-                    currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
-                }
-                else if (IsSprinting)
-                {
-                    currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
-                }
+                if (IsSliding) currentMaxSpeed = MaxGroundSpeed * SlideSpeedMultiplier;
+                else if (IsCrouching) currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
+                else if (IsSprinting) currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
 
                 Accelerate(ref currentVelocity, wishDir, currentMaxSpeed, GroundAcceleration, Runner.DeltaTime);
 
-                // Zıplama ve Momentum Yönlendirmesi
-                if (input.Buttons.IsSet(PlayerAction.Jump))
+                // Zıplama kontrolünü canMove ile sınırlandırıyoruz
+                if (canMove && input.Buttons.IsSet(PlayerAction.Jump))
                 {
                     if (IsSliding)
                     {
@@ -163,10 +163,10 @@ public class PlayerMovement : NetworkBehaviour
             }
             else
             {
-                // Havadayken (Artık yüksek MaxAirSpeed ve AirAcceleration sayesinde çok daha rahat kontrol edilecek)
+                // Havadayken
                 Accelerate(ref currentVelocity, wishDir, MaxAirSpeed, AirAcceleration, Runner.DeltaTime);
 
-                // Yerçekimi
+                // Yerçekimi her zaman uygulanır (Freeze time'da havada doğarsa yere düşsün diye)
                 if (currentVelocity.y <= MaxFallingSpeed)
                     currentVelocity.y = MaxFallingSpeed;
                 else
