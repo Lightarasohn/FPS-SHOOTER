@@ -31,8 +31,16 @@ public class CrosshairManager : MonoBehaviour
         switch (data.CrosshairType)
         {
             case CrosshairType.Default:
+                TopLine.gameObject.SetActive(true);
+                BottomLine.gameObject.SetActive(true);
+                LeftLine.gameObject.SetActive(true);
+                RightLine.gameObject.SetActive(true);
                 break;
             case CrosshairType.X:
+                TopLine.gameObject.SetActive(true);
+                BottomLine.gameObject.SetActive(true);
+                LeftLine.gameObject.SetActive(true);
+                RightLine.gameObject.SetActive(true);
                 CrosshairRoot.localRotation = Quaternion.Euler(0, 0, 45);
                 break;
             case CrosshairType.Triangle:

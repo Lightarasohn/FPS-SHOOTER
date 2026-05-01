@@ -21,7 +21,7 @@ public class Player : NetworkBehaviour
     public void Awake()
     {
         PlayerWeapon = new DesertEagle();
-        PlayerCrosshair = new Crosshair(CrosshairType.X, 0.2f, 0.06f, 0.03f, 0.3f);
+        PlayerCrosshair = PlayerSaveManager.LoadCrosshair();
     }
 
     public override void Spawned()
@@ -90,6 +90,23 @@ public class Player : NetworkBehaviour
                     GameManager.Instance.CheckWinCondition();
                 }
             }
+        }
+    }
+
+    // Bu metodu Player sınıfının içine ekle (örneğin Render metodunun üstüne)
+    public void UpdateLocalCrosshair(Crosshair newCrosshair)
+    {
+        // Eğer bu karakter bizim kontrolümüzde değilse (başka bir oyuncuysa) hiçbir şey yapma
+        if (!Object.HasInputAuthority) return;
+
+        // Kendi verimizi yeni verilerle güncelle
+        PlayerCrosshair = newCrosshair;
+
+        // Sahnedeki (oyun içindeki) asıl CrosshairManager'ı bulup yeni ayarları uygulat
+        CrosshairManager crosshairManager = FindFirstObjectByType<CrosshairManager>();
+        if (crosshairManager != null)
+        {
+            crosshairManager.ApplyCrosshairSettings(PlayerCrosshair);
         }
     }
 

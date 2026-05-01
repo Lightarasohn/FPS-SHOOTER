@@ -13,5 +13,6 @@ public class SpawnManager : MonoBehaviour
     {
         // Oyun başladığında kendini her yerden ulaşılabilir yap
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 }

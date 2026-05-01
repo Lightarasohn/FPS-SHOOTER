@@ -1,25 +1,73 @@
 using Fusion;
+using System.Threading.Tasks; // async/await kullanabilmek için gerekli
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static GlobalVariables;
 
 public class PauseMenu : MonoBehaviour
 {
     [Header("UI Referansları")]
     public GameObject pauseMenuPanel;
     public Button disconnectButton;
+    public TMP_Dropdown typeDropdown;
+    public Slider widthSlider;
+    public Slider lengthSlider;
+    public Slider spaceSlider;
+    public Slider scaleSlider;
+    public CrosshairManager crosshairTemplateManager;
 
     [Header("Ayarlar")]
-    public int mainMenuSceneIndex = 0; // Disconnect olunca dönülecek sahnenin Build Index'i
+    public int mainMenuSceneIndex = 0;
 
     private bool _isMenuOpen = false;
 
     void Start()
-    {   
+    {
         pauseMenuPanel.SetActive(false);
- 
+
         disconnectButton.onClick.AddListener(DisconnectFromGame);
+        Crosshair currentSettings = PlayerSaveManager.LoadCrosshair();
+
+        typeDropdown.value = (int)currentSettings.CrosshairType;
+        widthSlider.value = currentSettings.Width;
+        lengthSlider.value = currentSettings.Length;
+        spaceSlider.value = currentSettings.Space;
+        scaleSlider.value = currentSettings.Scale / 100f; // Scale'i kurucuda 100 ile çarptığın için burada bölüyoruz
+        crosshairTemplateManager.ApplyCrosshairSettings(currentSettings);
+    }
+
+    public void SaveSettingsFromUI()
+    {
+        Crosshair newSettings = new Crosshair(
+            (CrosshairType)typeDropdown.value,
+            lengthSlider.value,
+            widthSlider.value,
+            spaceSlider.value,
+            scaleSlider.value
+        );
+
+        // 1. Cihaza kaydet
+        PlayerSaveManager.SaveCrosshair(newSettings);
+
+        // 2. Pause menüsündeki önizlemeyi (template) güncelle
+        crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
+
+        // 3. YENİ EKLENEN: Sahnede kendi karakterimizi bul ve oyun içi nişangahı anında güncelle
+        Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+        foreach (Player p in allPlayers)
+        {
+            // Eğer oyuncunun objesi varsa ve "InputAuthority" bizdeyse (yani bizim karakterimizse)
+            if (p.Object != null && p.HasInputAuthority)
+            {
+                p.UpdateLocalCrosshair(newSettings);
+                break; // Kendi karakterimizi bulduğumuz için döngüyü sonlandır
+            }
+        }
+
+        Debug.Log("Nişangah ayarları kaydedildi ve anında uygulandı!");
     }
 
     void Update()
@@ -32,7 +80,7 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
-    void ToggleMenu()
+    public void ToggleMenu()
     {
         _isMenuOpen = !_isMenuOpen;
         pauseMenuPanel.SetActive(_isMenuOpen);
@@ -49,22 +97,25 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
-    void DisconnectFromGame()
+    // Metodu 'async void' yaparak bekletme (await) özelliği kazandırıyoruz
+    async void DisconnectFromGame()
     {
-        // 1. Sahnede aktif olan NetworkRunner'ı bul
+        // Butona art arda basılmasını engellemek için menüyü gizle veya butonu deaktif et
+        pauseMenuPanel.SetActive(false);
+        disconnectButton.interactable = false;
+
         NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
 
         if (runner != null)
         {
-            // 2. Fusion bağlantısını kapat (Host isen odayı kapatır, Client isen odadan çıkar)
-            runner.Shutdown();
+            // Fusion'ın tüm ağ işlemlerini ve objeleri güvenle temizlemesini bekle
+            await runner.Shutdown();
         }
 
-        // 3. Fareyi normal ayarlarına döndür ki ana menüde kullanabilelim
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // 4. Ana menü sahnesini yükle (Normal Unity sahne yükleme işlemi)
+        // Fusion tamamen kapandıktan sonra temiz bir şekilde ana menüye dön
         SceneManager.LoadScene(mainMenuSceneIndex);
     }
 }

@@ -33,8 +33,8 @@ public class GlobalVariables
     public enum CrosshairType
     {
         Default = 0,
-        X = 1,
-        Triangle = 2
+        Triangle = 1,
+        X = 2
     }
 
     // Takım Türleri

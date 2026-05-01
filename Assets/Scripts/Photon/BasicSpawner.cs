@@ -10,10 +10,24 @@ using static GlobalVariables;
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     private NetworkRunner _runner;
+    private static BasicSpawner _instance;
 
     [Header("Prefabs")]
     // Kapsül değil, görünmez temsilci prefabını (PlayerState) buraya koyacağız
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
+
+
+    void Awake()
+    {
+        // Eğer sahnede halihazırda bir BasicSpawner varsa, sonradan geleni yok et.
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject);
+    }
 
     async void StartGame(GameMode mode)
     {
@@ -21,23 +35,29 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
 
-        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
+        //FIX: EĞER SCENE INDEX DEĞİŞİRSE BURAYI DA DEĞİŞTİR. UNUTMA!
+        var scene = SceneRef.FromIndex(1);
         var sceneInfo = new NetworkSceneInfo();
         if (scene.IsValid)
-            sceneInfo.AddSceneRef(scene, LoadSceneMode.Additive);
+            sceneInfo.AddSceneRef(scene, LoadSceneMode.Single);
 
         await _runner.StartGame(new StartGameArgs
         {
             GameMode = mode,
-            Scene = scene,
+            Scene = sceneInfo,
             SessionName = "TestSession",
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
+
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            _ = SceneManager.UnloadSceneAsync(0);
+        }
     }
 
     private void OnGUI()
     {
-        if (_runner == null)
+        if (_runner == null && SceneManager.GetActiveScene().buildIndex != 0)
         {
             if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
                 StartGame(GameMode.Host);
@@ -45,6 +65,16 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
                 StartGame(GameMode.Client);
         }
+    }
+    
+    public void StartGameAsHost()
+    {
+        StartGame(GameMode.Host);
+    }
+
+    public void JoinGameAsClient()
+    {
+        StartGame(GameMode.Client);
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)

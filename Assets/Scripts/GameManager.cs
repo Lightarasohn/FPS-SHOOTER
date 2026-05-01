@@ -18,6 +18,7 @@ public class GameManager : NetworkBehaviour
     private void Awake()
     {
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     public void AddPlayer(Player player)
