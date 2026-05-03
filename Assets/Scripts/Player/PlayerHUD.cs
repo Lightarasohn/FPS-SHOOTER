@@ -3,22 +3,35 @@ using TMPro;
 
 public class PlayerHUD : MonoBehaviour
 {
-    [Header("UI Referansları")]
-    public TextMeshProUGUI CanText;      // Sahnendeki "Health" objesi
-    public TextMeshProUGUI MermiText;    // Sahnendeki "CurrentAmmo" objesi (Artık ikisini de tutacak)
+    public static PlayerHUD Instance; // Her yerden erişim için
 
-    // Player.cs içindeki Render() fonksiyonu her karede burayı çağırır
+    [Header("UI Referansları")]
+    public TextMeshProUGUI CanText;
+    public TextMeshProUGUI MermiText;
+
+    // YENİ: Asıl nişangah yöneticimizi buraya sürüklüyoruz
+    public CrosshairManager HudCrosshair;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Start()
+    {
+        // YENİ: Oyun başladığında takım seçme ekranı geleceği için HUD kendi kendini kapatsın.
+        SetVisible(false);
+    }
+
     public void ArayuzuGuncelle(int can, int mevcutMermi, int yedekMermi)
     {
-        if (CanText != null)
-        {
-            CanText.text = "+" + can.ToString();
-        }
+        if (CanText != null) CanText.text = "+" + can.ToString();
+        if (MermiText != null) MermiText.text = mevcutMermi.ToString() + " / " + yedekMermi.ToString();
+    }
 
-        if (MermiText != null)
-        {
-            // İki değeri arasına " / " koyarak tek bir yazıda birleştiriyoruz
-            MermiText.text = mevcutMermi.ToString() + " / " + yedekMermi.ToString();
-        }
+    // YENİ: HUD'un tamamını açıp kapatacak metod
+    public void SetVisible(bool isVisible)
+    {
+        gameObject.SetActive(isVisible);
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using static GlobalVariables;
 
+[System.Serializable] // Bu etiket JSON'a dönüştürmek için zorunludur
 public class Crosshair
 {
     public CrosshairType CrosshairType;
@@ -21,6 +22,7 @@ public class Crosshair
         this.CrosshairType = crosshairType;
         this.Length = length;
         this.Width = width;
+        this.Space = space;
         this.Scale = scale * 100;
     }
 }

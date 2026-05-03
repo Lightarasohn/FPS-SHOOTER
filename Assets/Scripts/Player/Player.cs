@@ -1,76 +1,110 @@
 using Fusion;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Windows;
-using static Fusion.NetworkBehaviour;
 using static GlobalVariables;
 
 public class Player : NetworkBehaviour
 {
     [Networked] public float Health { get; set; } = 100;
+    [Networked] public bool IsAlive { get; set; }
+    [Networked] public Team PlayerTeam { get; set; }
+
     public int MaxHealth = 500;
     public int MinHealth = 0;
     public Color DefaultColor = Color.blue;
-    public Weapon PlayerWeapon;
     public Crosshair PlayerCrosshair;
 
-    // YENİ: Arayüz (HUD) Referansını buraya ekliyoruz
-    public PlayerHUD LocalHUD;
+    // YENİ: Sadece Weapon nesnesi değil, sahnedeki ağ silahımız (Component)
+    public PlayerWeapon EquippedWeapon;
 
     public void Awake()
     {
-        PlayerWeapon = new DesertEagle();
-        PlayerCrosshair = new Crosshair(CrosshairType.X, 0.2f, 0.06f, 0.03f, 0.3f);
+        EquippedWeapon = GetComponent<PlayerWeapon>();
+        PlayerCrosshair = PlayerSaveManager.LoadCrosshair();
     }
 
     public override void Spawned()
     {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddPlayer(this);
+        }
+
         bool isLocal = Object.HasInputAuthority;
+
+        if (Object.HasStateAuthority)
+        {
+            IsAlive = true;
+            // YENİ: Doğduğunda silaha "Sen bir Desert Eagle'sın, mermilerini ona göre ayarla" diyoruz.
+            if (EquippedWeapon != null)
+            {
+                EquippedWeapon.InitializeWeapon(new DesertEagle());
+            }
+        }
 
         if (!isLocal)
         {
-            // 1. BAŞKA OYUNCU: Kamerasını ve sesini kapatıyoruz (Canvas'a dokunmuyoruz!)
             Camera playerLocalCamera = GetComponentInChildren<Camera>();
-            if (playerLocalCamera != null)
-                playerLocalCamera.enabled = false;
+            if (playerLocalCamera != null) playerLocalCamera.enabled = false;
 
             AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
-            if (playerLocalAudioListener != null)
-                playerLocalAudioListener.enabled = false;
+            if (playerLocalAudioListener != null) playerLocalAudioListener.enabled = false;
         }
         else
         {
-            // 2. BİZİM OYUNCUMUZ: Sahnede duran PlayerHUD scriptini otomatik bul ve eşle
-            LocalHUD = FindFirstObjectByType<PlayerHUD>();
+            if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
+            {
+                PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
+            }
         }
+    }
 
-        CrosshairManager crosshairManager = FindFirstObjectByType<CrosshairManager>();
-
-        // 3. CROSSHAIR: Sadece bizim oyuncumuz doğduğunda ekrandaki crosshair güncellensin
-        if (crosshairManager != null && isLocal)
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (GameManager.Instance != null)
         {
-            crosshairManager.ApplyCrosshairSettings(PlayerCrosshair);
+            GameManager.Instance.RemovePlayer(this);
         }
     }
 
     public void TakeDamage(float damage)
     {
-        if (Object.HasStateAuthority)
+        if (Object.HasStateAuthority && IsAlive)
         {
             Health -= damage;
+            if (Health <= 0)
+            {
+                Health = 0;
+                IsAlive = false;
+
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.CheckWinCondition();
+                }
+            }
         }
     }
 
-    // YENİ: Arayüzü (Can ve Mermi) her karede güncelleme işlemi
+    public void UpdateLocalCrosshair(Crosshair newCrosshair)
+    {
+        if (!Object.HasInputAuthority) return;
+
+        PlayerCrosshair = newCrosshair;
+
+        if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
+        {
+            PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
+        }
+    }
+
     public override void Render()
     {
-        if (Object.HasInputAuthority && LocalHUD != null)
+        if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {
-            int currentAmmo = PlayerWeapon != null ? PlayerWeapon.BulletInMag : 0;
-            int totalMags = PlayerWeapon != null ? PlayerWeapon.MagAmount : 0;
+            // YENİ: Artık ağ silahımız olan EquippedWeapon üzerinden GÜNCEL AĞ verilerini alıyoruz
+            int currentAmmo = EquippedWeapon != null ? EquippedWeapon.CurrentAmmo : 0;
+            int totalMags = EquippedWeapon != null ? EquippedWeapon.CurrentMags : 0;
 
-            // Health float olduğu için arayüze gönderirken (int) ile tam sayıya çeviriyoruz
-            LocalHUD.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
+            PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
     }
 }

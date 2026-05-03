@@ -8,7 +8,6 @@ public class Weapon
     public string Description;
     public int MagCapacity;
     public int MagAmount;
-    public int BulletInMag;
     public WeaponType WeaponType;
     public WeaponFireType WeaponFireType;
     public float FireRate;
@@ -17,30 +16,14 @@ public class Weapon
     public Vector2[] RecoilData;
     public float RecoilResetTime = 0.5f;
 
-
     public Weapon(int magCapacity)
     {
         this.MagCapacity = magCapacity;
-        this.BulletInMag = this.MagCapacity;
     }
 
-    public bool CanShoot()
-    {
-        if (this.BulletInMag == 0)
-        {
-            Debug.Log("Weapon.cs: No More Bullet In The Mag. RELOAD!");
-            return false;
-        }
-        return true;
-    }
-
+    // YENİ: Shoot metodu artık mermi eksiltmiyor, sadece hasar vurma işini yapıyor.
     public bool Shoot(NetworkRunner runner, PlayerRef player, Vector3 firePointPosition, Vector3 firePointDirection)
     {
-        if (!CanShoot())
-            return false;
-
-        this.BulletInMag--;
-
         if (runner.LagCompensation.Raycast(
             firePointPosition,
             firePointDirection,
@@ -59,15 +42,6 @@ public class Weapon
             return true;
         }
 
-        Debug.Log($"MISS | Ammo: {this.BulletInMag} || Mag: {this.MagAmount}");
         return false;
-    }
-
-    public void Reload()
-    {
-        this.BulletInMag = this.MagCapacity;
-        this.MagAmount -= 1;
-
-        Debug.Log($"Weapon.cs: Bullet Amount: {this.BulletInMag} || Mag Amount: {this.MagAmount}");
     }
 }

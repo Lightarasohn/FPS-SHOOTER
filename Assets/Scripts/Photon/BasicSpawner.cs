@@ -10,10 +10,24 @@ using static GlobalVariables;
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     private NetworkRunner _runner;
+    private static BasicSpawner _instance;
 
     [Header("Prefabs")]
     // Kapsül değil, görünmez temsilci prefabını (PlayerState) buraya koyacağız
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
+
+
+    void Awake()
+    {
+        // Eğer sahnede halihazırda bir BasicSpawner varsa, sonradan geleni yok et.
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(gameObject);
+    }
 
     async void StartGame(GameMode mode)
     {
@@ -21,23 +35,29 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
 
-        var scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex);
+        //FIX: EĞER SCENE INDEX DEĞİŞİRSE BURAYI DA DEĞİŞTİR. UNUTMA!
+        var scene = SceneRef.FromIndex(1);
         var sceneInfo = new NetworkSceneInfo();
         if (scene.IsValid)
-            sceneInfo.AddSceneRef(scene, LoadSceneMode.Additive);
+            sceneInfo.AddSceneRef(scene, LoadSceneMode.Single);
 
         await _runner.StartGame(new StartGameArgs
         {
             GameMode = mode,
-            Scene = scene,
+            Scene = sceneInfo,
             SessionName = "TestSession",
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
+
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            _ = SceneManager.UnloadSceneAsync(0);
+        }
     }
 
     private void OnGUI()
     {
-        if (_runner == null)
+        if (_runner == null && SceneManager.GetActiveScene().buildIndex != 0)
         {
             if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
                 StartGame(GameMode.Host);
@@ -45,6 +65,16 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
                 StartGame(GameMode.Client);
         }
+    }
+    
+    public void StartGameAsHost()
+    {
+        StartGame(GameMode.Host);
+    }
+
+    public void JoinGameAsClient()
+    {
+        StartGame(GameMode.Client);
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
@@ -71,7 +101,42 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        Debug.Log($"[BasicSpawner] Oyuncu {player.RawEncoded} oyundan ayrıldı. Temizlik yapılıyor...");
+
+        // Bu temizlik işlemini SADECE sunucu (Host/Server) yapabilir
+        if (runner.IsServer)
+        {
+            // Ayrılan oyuncunun ağdaki ana temsilcisini (PlayerState) bul
+            NetworkObject playerObj = runner.GetPlayerObject(player);
+
+            if (playerObj != null)
+            {
+                // DİKKAT: Senin mimarinde asıl "Fiziksel Karakter"i PlayerState doğuruyordu.
+                // Oyuncu çıkmadan hemen önce GameManager'dan çıkarılması için Player nesnesini bulmalıyız.
+
+                // NOT: Eğer karakter ile PlayerState farklı objelerse (ki senin mimarinde öyle), 
+                // sahnedeki tüm fiziksel karakterleri tarayıp InputAuthority'si bu çıkan oyuncuya ait olanı bulup silmeliyiz.
+
+                NetworkObject[] allNetworkObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
+                foreach (var no in allNetworkObjects)
+                {
+                    // Eğer sahnedeki obje çıkan oyuncuya aitse ve karakter/state ise
+                    if (no.InputAuthority == player)
+                    {
+                        runner.Despawn(no);
+                    }
+                }
+
+                // En son, ana temsilciyi (PlayerState) de yok et
+                runner.Despawn(playerObj);
+
+                // Hafızadan da sil
+                runner.SetPlayerObject(player, null);
+            }
+        }
+    }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
