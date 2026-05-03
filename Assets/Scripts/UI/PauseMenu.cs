@@ -85,6 +85,9 @@ public class PauseMenu : MonoBehaviour
         _isMenuOpen = !_isMenuOpen;
         pauseMenuPanel.SetActive(_isMenuOpen);
 
+        // YENİ: Menü açıksa HUD'u gizle, menü kapalıysa HUD'u göster
+        if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(!_isMenuOpen);
+
         if (_isMenuOpen)
         {
             Cursor.lockState = CursorLockMode.None;

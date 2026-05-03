@@ -16,8 +16,6 @@ public class Player : NetworkBehaviour
     public Weapon PlayerWeapon;
     public Crosshair PlayerCrosshair;
 
-    public PlayerHUD LocalHUD;
-
     public void Awake()
     {
         PlayerWeapon = new DesertEagle();
@@ -26,16 +24,13 @@ public class Player : NetworkBehaviour
 
     public override void Spawned()
     {
-        // KONSOLA 
-
         if (GameManager.Instance != null)
         {
             GameManager.Instance.AddPlayer(this);
-
         }
+
         bool isLocal = Object.HasInputAuthority;
-  
-        // 1. DÜZELTME: Sadece sunucu (kurucu) doğan oyuncuyu hayatta olarak işaretler
+
         if (Object.HasStateAuthority)
         {
             IsAlive = true;
@@ -44,23 +39,18 @@ public class Player : NetworkBehaviour
         if (!isLocal)
         {
             Camera playerLocalCamera = GetComponentInChildren<Camera>();
-            if (playerLocalCamera != null)
-                playerLocalCamera.enabled = false;
+            if (playerLocalCamera != null) playerLocalCamera.enabled = false;
 
             AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
-            if (playerLocalAudioListener != null)
-                playerLocalAudioListener.enabled = false;
+            if (playerLocalAudioListener != null) playerLocalAudioListener.enabled = false;
         }
         else
         {
-            LocalHUD = FindFirstObjectByType<PlayerHUD>();
-        }
-
-        CrosshairManager crosshairManager = FindFirstObjectByType<CrosshairManager>();
-
-        if (crosshairManager != null && isLocal)
-        {
-            crosshairManager.ApplyCrosshairSettings(PlayerCrosshair);
+            // YENİ: FindFirstObjectByType saçmalığını sildik, direkt Instance'dan gidiyoruz.
+            if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
+            {
+                PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
+            }
         }
     }
 
@@ -96,28 +86,28 @@ public class Player : NetworkBehaviour
     // Bu metodu Player sınıfının içine ekle (örneğin Render metodunun üstüne)
     public void UpdateLocalCrosshair(Crosshair newCrosshair)
     {
-        // Eğer bu karakter bizim kontrolümüzde değilse (başka bir oyuncuysa) hiçbir şey yapma
         if (!Object.HasInputAuthority) return;
 
-        // Kendi verimizi yeni verilerle güncelle
         PlayerCrosshair = newCrosshair;
 
-        // Sahnedeki (oyun içindeki) asıl CrosshairManager'ı bulup yeni ayarları uygulat
-        CrosshairManager crosshairManager = FindFirstObjectByType<CrosshairManager>();
-        if (crosshairManager != null)
+        // YENİ: Sahneyi aramak yerine doğrudan kendi HUD referansımıza gidiyoruz
+        if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
         {
-            crosshairManager.ApplyCrosshairSettings(PlayerCrosshair);
+            PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
         }
+
     }
 
     public override void Render()
     {
-        if (Object.HasInputAuthority && LocalHUD != null)
+        // YENİ: LocalHUD yerine doğrudan PlayerHUD.Instance var mı diye soruyoruz
+        if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {
             int currentAmmo = PlayerWeapon != null ? PlayerWeapon.BulletInMag : 0;
             int totalMags = PlayerWeapon != null ? PlayerWeapon.MagAmount : 0;
 
-            LocalHUD.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
+            // Veriyi doğrudan gönderiyoruz
+            PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
     }
 }
