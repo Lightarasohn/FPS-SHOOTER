@@ -101,7 +101,42 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        Debug.Log($"[BasicSpawner] Oyuncu {player.RawEncoded} oyundan ayrıldı. Temizlik yapılıyor...");
+
+        // Bu temizlik işlemini SADECE sunucu (Host/Server) yapabilir
+        if (runner.IsServer)
+        {
+            // Ayrılan oyuncunun ağdaki ana temsilcisini (PlayerState) bul
+            NetworkObject playerObj = runner.GetPlayerObject(player);
+
+            if (playerObj != null)
+            {
+                // DİKKAT: Senin mimarinde asıl "Fiziksel Karakter"i PlayerState doğuruyordu.
+                // Oyuncu çıkmadan hemen önce GameManager'dan çıkarılması için Player nesnesini bulmalıyız.
+
+                // NOT: Eğer karakter ile PlayerState farklı objelerse (ki senin mimarinde öyle), 
+                // sahnedeki tüm fiziksel karakterleri tarayıp InputAuthority'si bu çıkan oyuncuya ait olanı bulup silmeliyiz.
+
+                NetworkObject[] allNetworkObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
+                foreach (var no in allNetworkObjects)
+                {
+                    // Eğer sahnedeki obje çıkan oyuncuya aitse ve karakter/state ise
+                    if (no.InputAuthority == player)
+                    {
+                        runner.Despawn(no);
+                    }
+                }
+
+                // En son, ana temsilciyi (PlayerState) de yok et
+                runner.Despawn(playerObj);
+
+                // Hafızadan da sil
+                runner.SetPlayerObject(player, null);
+            }
+        }
+    }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }

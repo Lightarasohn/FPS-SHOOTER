@@ -1,7 +1,5 @@
 using Fusion;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Windows;
 using static GlobalVariables;
 
 public class Player : NetworkBehaviour
@@ -13,12 +11,14 @@ public class Player : NetworkBehaviour
     public int MaxHealth = 500;
     public int MinHealth = 0;
     public Color DefaultColor = Color.blue;
-    public Weapon PlayerWeapon;
     public Crosshair PlayerCrosshair;
+
+    // YENİ: Sadece Weapon nesnesi değil, sahnedeki ağ silahımız (Component)
+    public PlayerWeapon EquippedWeapon;
 
     public void Awake()
     {
-        PlayerWeapon = new DesertEagle();
+        EquippedWeapon = GetComponent<PlayerWeapon>();
         PlayerCrosshair = PlayerSaveManager.LoadCrosshair();
     }
 
@@ -34,6 +34,11 @@ public class Player : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             IsAlive = true;
+            // YENİ: Doğduğunda silaha "Sen bir Desert Eagle'sın, mermilerini ona göre ayarla" diyoruz.
+            if (EquippedWeapon != null)
+            {
+                EquippedWeapon.InitializeWeapon(new DesertEagle());
+            }
         }
 
         if (!isLocal)
@@ -46,7 +51,6 @@ public class Player : NetworkBehaviour
         }
         else
         {
-            // YENİ: FindFirstObjectByType saçmalığını sildik, direkt Instance'dan gidiyoruz.
             if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
             {
                 PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
@@ -54,7 +58,6 @@ public class Player : NetworkBehaviour
         }
     }
 
-    // 2. DÜZELTME: Oyuncu sunucudan koparsa (veya silinirse) listeden adını çıkar
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         if (GameManager.Instance != null)
@@ -65,7 +68,6 @@ public class Player : NetworkBehaviour
 
     public void TakeDamage(float damage)
     {
-        // Ölü birine hasar vurulmasını engellemek için IsAlive kontrolü eklendi
         if (Object.HasStateAuthority && IsAlive)
         {
             Health -= damage;
@@ -74,7 +76,6 @@ public class Player : NetworkBehaviour
                 Health = 0;
                 IsAlive = false;
 
-                // 3. DÜZELTME: Biri öldüğünde GameManager'a kazanan var mı diye kontrol etmesini söyle
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.CheckWinCondition();
@@ -83,30 +84,26 @@ public class Player : NetworkBehaviour
         }
     }
 
-    // Bu metodu Player sınıfının içine ekle (örneğin Render metodunun üstüne)
     public void UpdateLocalCrosshair(Crosshair newCrosshair)
     {
         if (!Object.HasInputAuthority) return;
 
         PlayerCrosshair = newCrosshair;
 
-        // YENİ: Sahneyi aramak yerine doğrudan kendi HUD referansımıza gidiyoruz
         if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
         {
             PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
         }
-
     }
 
     public override void Render()
     {
-        // YENİ: LocalHUD yerine doğrudan PlayerHUD.Instance var mı diye soruyoruz
         if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {
-            int currentAmmo = PlayerWeapon != null ? PlayerWeapon.BulletInMag : 0;
-            int totalMags = PlayerWeapon != null ? PlayerWeapon.MagAmount : 0;
+            // YENİ: Artık ağ silahımız olan EquippedWeapon üzerinden GÜNCEL AĞ verilerini alıyoruz
+            int currentAmmo = EquippedWeapon != null ? EquippedWeapon.CurrentAmmo : 0;
+            int totalMags = EquippedWeapon != null ? EquippedWeapon.CurrentMags : 0;
 
-            // Veriyi doğrudan gönderiyoruz
             PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
     }
