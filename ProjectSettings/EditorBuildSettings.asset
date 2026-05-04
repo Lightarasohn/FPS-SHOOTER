@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: 75379eff1ad41294aa3b0cb3b31c1a72
   - enabled: 1
-    path: Assets/Scenes/Onur2.unity
-    guid: 226983034bcfc814c8dd9c676b851312
+    path: Assets/Scenes/Volkan.unity
+    guid: 1e3a5dde0a2919f44915eb26c05dee93
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
