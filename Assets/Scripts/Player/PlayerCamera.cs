@@ -17,6 +17,13 @@ public class PlayerCamera : NetworkBehaviour
 
     private float _currentPitch;
 
+    [Header("Recoil (Sekme) Ayarları")]
+    public float RecoilSmoothness = 15f;
+
+    // YENİDEN EKLENDİ: Kameranın sarsıntıyı hissetme oranı. 
+    // Örneğin 0.3 yaparsan mermi çok sapar ama kamera az oynar (CS:GO tarzı)
+    public float RecoilScale = 2f;
+
     // Asıl ulaşmamız gereken sekme (Ağdan/Weapon'dan gelecek)
     private Vector2 _targetRecoil;
     // Ekranda anlık olarak görünen (Lerp edilen) yumuşak sekme
@@ -24,50 +31,44 @@ public class PlayerCamera : NetworkBehaviour
 
     public override void Spawned()
     {
-        // Artık Camera kapatma işlemleri yok, PlayerInputHandler zaten Camera.main'i bize bağlıyor.
         _baseCameraHeight = StandingCameraHeight;
     }
-  
 
-    // BACKEND (Saniyede 64 kez - Ağdan gelen güncel pitch (yukarı/aşağı) bilgisini al)
+    // YENİDEN EKLENDİ: PlayerWeapon ateş ettiğinde kameraya sekmeyi bildirir
+    public void ApplyRecoil(Vector2 recoilOffset)
+    {
+        // Kameraya sadece Scale kadarını (Örn: %30'unu) hissettir.
+        _targetRecoil += recoilOffset * RecoilScale;
+    }
+
     public override void FixedUpdateNetwork()
     {
-        // Not: Otorite kontrolüne gerek yok, GetInput sadece Input Authority'ye sahipsen true döner.
         if (GetInput(out NetworkInput input))
         {
             _currentPitch = input.LookPitch;
         }
 
-        // --- RECOIL SIFIRLANMASI (Sadece ateş edilmediğinde yavaşça merkeze dön) ---
-        // Not: Bu sıfırlama hızını (5f) silahın özelliğine göre değiştirebilirsin
+        // Sekmeyi zamanla sıfıra çek
         _targetRecoil = Vector2.Lerp(_targetRecoil, Vector2.zero, Runner.DeltaTime * 5f);
     }
 
-    // FRONTEND (Monitörün Hz hızında, örn: Saniyede 144 kez - Pürüzsüz görsel işlemler)
     public override void Render()
     {
-        // Kameramız yoksa veya bizim karakterimiz değilse animasyonları boşuna hesaplama
         if (!HasInputAuthority || CameraPivot == null) return;
-        _visualRecoil = Vector2.Lerp(_visualRecoil, _targetRecoil, Time.deltaTime * 15f);
-        float noiseStrength = 0.4f; // ANA KONTROL NOKTASI
 
-        float noiseX = (Mathf.PerlinNoise(Time.time * 10f, 0f) - 0.5f) * _visualRecoil.magnitude * noiseStrength;
-        float noiseY = (Mathf.PerlinNoise(0f, Time.time * 10f) - 0.5f) * _visualRecoil.magnitude * noiseStrength;
+        // 1. RECOIL'İ YUMUŞAT
+        _visualRecoil = Vector2.Lerp(_visualRecoil, _targetRecoil, Time.deltaTime * RecoilSmoothness);
+
         // 2. AÇILARI BİRLEŞTİR VE KAMERAYI DÖNDÜR
-        // Farenin saf açısına, görsel sekmenin Y eksenini (Yukarı tepme) ekliyoruz.
-        // Eksi (-) kullanıyoruz çünkü Pitch'te eksi değerler yukarı bakmayı sağlar.
-        float finalPitch = _currentPitch;
+        float finalPitch = _currentPitch - _visualRecoil.y;
 
-        float shakeX = _visualRecoil.y * 0.2f; // küçük dikey titreme
-        float shakeY = _visualRecoil.x;        // sağ-sol
+        CameraPivot.localRotation = Quaternion.Euler(finalPitch, _visualRecoil.x, 0);
 
-        CameraPivot.localRotation = Quaternion.Euler(finalPitch + noiseX,noiseY,0);
-
-        // 2. EĞİLME YÜKSEKLİĞİ
+        // 3. EĞİLME YÜKSEKLİĞİ
         float targetCamHeight = PlayerMovementScript.IsCrouching ? CrouchingCameraHeight : StandingCameraHeight;
         _baseCameraHeight = Mathf.Lerp(_baseCameraHeight, targetCamHeight, Time.deltaTime * PlayerMovementScript.CrouchTransitionSpeed);
 
-        // 3. HEAD BOB (Sallanma animasyonu)
+        // 4. HEAD BOB
         float bobOffset = 0f;
         float currentSpeed = new Vector3(PlayerMovementScript.Velocity.x, 0, PlayerMovementScript.Velocity.z).magnitude;
 
@@ -81,16 +82,23 @@ public class PlayerCamera : NetworkBehaviour
             _bobTimer = 0f;
         }
 
-        // 4. POZİSYON UYGULAMA
+        // 5. POZİSYON UYGULAMA
         Vector3 camPos = CameraPivot.localPosition;
         camPos.y = Mathf.Lerp(camPos.y, _baseCameraHeight + bobOffset, Time.deltaTime * 15f);
         CameraPivot.localPosition = camPos;
     }
-    public void AddRecoil(Vector2 recoil)
-    {
-        // Yukarı recoil'i azalt, daha çok jitter yap
-        recoil.y *= 0.3f;
 
-        _targetRecoil += recoil;
+    // YENİDEN EKLENDİ: Merminin TAM olarak nereye (Crosshair'in üstüne vs.) gideceğini hesaplar.
+    // Bu metodda RecoilScale kullanılmaz, çünkü mermiler desenin saf (raw) noktalarına gitmelidir.
+    public Vector3 GetShootDirection(Transform characterTransform)
+    {
+        // Farenin pitch'i + hedeflenen recoil.
+        float finalPitch = _currentPitch - _targetRecoil.y;
+
+        // Karakterin Y eksenindeki dönüşü (sağ/sol) + Recoil'in X ekseni
+        float finalYaw = characterTransform.eulerAngles.y + _targetRecoil.x;
+
+        // Euler açılarını bir yön vektörüne (forward) çevir
+        return Quaternion.Euler(finalPitch, finalYaw, 0) * Vector3.forward;
     }
 }

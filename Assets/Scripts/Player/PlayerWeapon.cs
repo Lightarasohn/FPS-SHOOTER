@@ -41,11 +41,10 @@ public class PlayerWeapon : NetworkBehaviour
     }
 
     // YENİ: Silahı ilk ele aldığımızda çalışacak inisiyalizasyon
-    public void InitializeWeapon(Weapon weaponModel)
+    public void EquipWeapon(Weapon newWeaponModel)
     {
-        WeaponData = weaponModel;
+        WeaponData = newWeaponModel;
 
-        // Doğduğumuzda şarjörleri ağa tam olarak bildiriyoruz (Sadece sunucu yapar)
         if (Object != null && Object.HasStateAuthority)
         {
             CurrentAmmo = WeaponData.MagCapacity;
@@ -56,12 +55,6 @@ public class PlayerWeapon : NetworkBehaviour
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
-        // Güvenlik önlemi: Eğer Initialize çalışmadıysa varsayılan atayalım
-        if (WeaponData == null)
-        {
-            InitializeWeapon(new DesertEagle());
-        }
     }
 
     public override void FixedUpdateNetwork()
@@ -72,7 +65,7 @@ public class PlayerWeapon : NetworkBehaviour
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
 
-            // --- RELOAD İŞLEMİ (Ağ değişkenlerini güncelliyoruz) ---
+            // --- RELOAD İŞLEMİ (Mevcut, sağlam kodun) ---
             if (reloadPressed && Object.HasStateAuthority)
             {
                 if (CurrentMags > 0 && CurrentAmmo < WeaponData.MagCapacity)
@@ -110,29 +103,36 @@ public class PlayerWeapon : NetworkBehaviour
                         break;
                 }
 
-                Vector3 shootDirection = firePoint.forward;
-
-                // --- ATIŞ İŞLEMİ (Artık WeaponData.CanShoot yerine ağ değişkenini kontrol ediyoruz) ---
+                // --- GÜNCELLENEN KISIM: ATIŞ İŞLEMİ VE CS:GO RECOIL ---
                 if (shouldShoot && Object.HasStateAuthority && CurrentAmmo > 0)
                 {
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
                         CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
-                        Quaternion recoilRotation = Quaternion.Euler(CurrentShotRecoil.y, CurrentShotRecoil.x, 0);
-                        shootDirection = recoilRotation * shootDirection;
+
+                        // KAMERAYI SARS (ApplyRecoil içinde RecoilScale ile çarpılıyor)
+                        if (_playerCamera != null && Object.HasInputAuthority)
+                        {
+                            _playerCamera.ApplyRecoil(CurrentShotRecoil);
+                        }
 
                         if (CurrentBulletIndex < WeaponData.RecoilData.Length - 1)
                             CurrentBulletIndex++;
                     }
 
-                    if (_playerCamera != null && Object.HasInputAuthority)
+                    // CS:GO MANTIĞI: MERMİ YÖNÜNÜ KAMERADAN İSTE
+                    // Artık Quaterion.Euler ile zorla döndürmüyoruz. 
+                    // Kameranın "Gerçek Sekme" açısını alıyoruz.
+                    Vector3 shootDirection = firePoint.forward; // Varsayılan
+                    if (_playerCamera != null)
                     {
-                        _playerCamera.AddRecoil(CurrentShotRecoil);
+                        shootDirection = _playerCamera.GetShootDirection(transform);
                     }
 
-                    // YENİ: Ateş ettik, Mermiyi Eksilt!
+                    // Mermiyi Eksilt!
                     CurrentAmmo--;
 
+                    // Ateş Et!
                     bool hit = WeaponData.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
                     _lastShootDirection = shootDirection;
 
