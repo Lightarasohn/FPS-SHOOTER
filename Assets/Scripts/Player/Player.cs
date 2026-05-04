@@ -34,10 +34,11 @@ public class Player : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             IsAlive = true;
-            // YENİ: Doğduğunda silaha "Sen bir Desert Eagle'sın, mermilerini ona göre ayarla" diyoruz.
+
+            // YENİ: Patron (Player), doğrudan Silah Slotuna (PlayerWeapon) emri veriyor!
             if (EquippedWeapon != null)
             {
-                EquippedWeapon.InitializeWeapon(new DesertEagle());
+                EquippedWeapon.EquipWeapon(new AK47());
             }
         }
 

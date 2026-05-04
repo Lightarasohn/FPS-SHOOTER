@@ -28,6 +28,7 @@ public class PlayerWeapon : NetworkBehaviour
 
     private Color _playerDefaultColor;
     private PlayerCamera _playerCamera;
+    private PlayerMovement _playerMovement;
 
     private float _gizmoHideTime;
     private bool _lastShotHit;
@@ -38,14 +39,14 @@ public class PlayerWeapon : NetworkBehaviour
         _material = GetComponentInChildren<MeshRenderer>().material;
         _playerDefaultColor = GetComponent<Player>().DefaultColor;
         _playerCamera = GetComponent<PlayerCamera>();
+        _playerMovement = GetComponent<PlayerMovement>();
     }
 
     // YENİ: Silahı ilk ele aldığımızda çalışacak inisiyalizasyon
-    public void InitializeWeapon(Weapon weaponModel)
+    public void EquipWeapon(Weapon newWeaponModel)
     {
-        WeaponData = weaponModel;
+        WeaponData = newWeaponModel;
 
-        // Doğduğumuzda şarjörleri ağa tam olarak bildiriyoruz (Sadece sunucu yapar)
         if (Object != null && Object.HasStateAuthority)
         {
             CurrentAmmo = WeaponData.MagCapacity;
@@ -56,12 +57,6 @@ public class PlayerWeapon : NetworkBehaviour
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
-
-        // Güvenlik önlemi: Eğer Initialize çalışmadıysa varsayılan atayalım
-        if (WeaponData == null)
-        {
-            InitializeWeapon(new DesertEagle());
-        }
     }
 
     public override void FixedUpdateNetwork()
@@ -72,7 +67,7 @@ public class PlayerWeapon : NetworkBehaviour
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
 
-            // --- RELOAD İŞLEMİ (Ağ değişkenlerini güncelliyoruz) ---
+            // --- RELOAD İŞLEMİ (Mevcut, sağlam kodun) ---
             if (reloadPressed && Object.HasStateAuthority)
             {
                 if (CurrentMags > 0 && CurrentAmmo < WeaponData.MagCapacity)
@@ -110,31 +105,59 @@ public class PlayerWeapon : NetworkBehaviour
                         break;
                 }
 
-                Vector3 shootDirection = firePoint.forward;
-
-                // --- ATIŞ İŞLEMİ (Artık WeaponData.CanShoot yerine ağ değişkenini kontrol ediyoruz) ---
+                // --- GÜNCELLENEN KISIM: ATIŞ İŞLEMİ VE CS:GO RECOIL ---
                 if (shouldShoot && Object.HasStateAuthority && CurrentAmmo > 0)
                 {
+                    // 1. RECOIL HESAPLA (Kamera sarsıntısı)
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
                         CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
-                        Quaternion recoilRotation = Quaternion.Euler(CurrentShotRecoil.y, CurrentShotRecoil.x, 0);
-                        shootDirection = recoilRotation * shootDirection;
+
+                        if (_playerCamera != null && Object.HasInputAuthority)
+                        {
+                            _playerCamera.ApplyRecoil(CurrentShotRecoil);
+                        }
 
                         if (CurrentBulletIndex < WeaponData.RecoilData.Length - 1)
                             CurrentBulletIndex++;
                     }
 
-                    if (_playerCamera != null && Object.HasInputAuthority)
+                    // 2. TEMEL YÖNÜ AL (Kameranın gerçek sekme açısından)
+                    Vector3 shootDirection = firePoint.forward;
+                    if (_playerCamera != null)
                     {
-                        _playerCamera.AddRecoil(CurrentShotRecoil);
+                        shootDirection = _playerCamera.GetShootDirection(transform);
                     }
 
-                    // YENİ: Ateş ettik, Mermiyi Eksilt!
+                    // 3. YENİ: SPREAD (DAĞILMA) HESAPLAMASI VE UYGULANMASI
+                    // Karakterin hareket hızını al (Zıplama/düşme dahil)
+                    float currentSpeed = _playerMovement != null ? _playerMovement.Velocity.magnitude : 0f;
+
+                    // Hıza göre dağılma miktarını hesapla (BaseSpread + Hız Etkisi)
+                    float currentSpread = WeaponData.BaseSpread + (currentSpeed * WeaponData.MovementSpreadMultiplier);
+
+                    // Dağılmayı MaxSpread ile sınırla (Capped)
+                    currentSpread = Mathf.Clamp(currentSpread, WeaponData.BaseSpread, WeaponData.MaxSpread);
+
+                    //TODO: BUFF/DEBUFF OLARAK DAĞILMA AYARINDA (currentspread *= spreadScale) yap
+
+                    // Eğer dağılma sıfırdan büyükse sapma ekle
+                    if (currentSpread > 0f)
+                    {
+                        // Random.insideUnitSphere bize rastgele bir 3D yön verir. 
+                        // Bunu hesapladığımız spread faktörü ile çarpıp ana yöne ekliyoruz.
+                        Vector3 randomSpreadOffset = Random.insideUnitSphere * currentSpread;
+                        shootDirection += randomSpreadOffset;
+
+                        // Yön vektörünü tekrar normalize et (Uzunluğu 1 birim olsun)
+                        shootDirection.Normalize();
+                    }
+
+                    // 4. MERMİYİ EKSİLT VE ATEŞ ET
                     CurrentAmmo--;
 
                     bool hit = WeaponData.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
-                    _lastShootDirection = shootDirection;
+                    _lastShootDirection = shootDirection; // Gizmo için sapmış yönü kaydet
 
                     RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, WeaponData.RecoilResetTime);
                     spawnedProjectile = !spawnedProjectile;
