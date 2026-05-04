@@ -267,9 +267,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   _Health: 100
+  _IsAlive: 0
+  _PlayerTeam: 0
   MaxHealth: 500
   MinHealth: 0
   DefaultColor: {r: 0, g: 0, b: 1, a: 1}
+  PlayerCrosshair:
+    CrosshairType: 0
+    Length: 0
+    Width: 0
+    Space: 0
+    Scale: 0
+  EquippedWeapon: {fileID: 0}
 --- !u!114 &-3815586937935660039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,6 +344,8 @@ MonoBehaviour:
   CrouchingCameraHeight: 0.4
   CameraPivot: {fileID: 1510667664030838850}
   PlayerMovementScript: {fileID: 5785439196981720267}
+  RecoilSmoothness: 15
+  RecoilScale: 0.5
 --- !u!114 &3790330187941791761
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,6 +362,8 @@ MonoBehaviour:
   _spawnedProjectile: 0
   _BurstShotsLeft: 0
   _CurrentBulletIndex: 0
+  _CurrentAmmo: 0
+  _CurrentMags: 0
   CurrentShotRecoil: {x: 0, y: 0}
 --- !u!114 &7816357872795022238
 MonoBehaviour:

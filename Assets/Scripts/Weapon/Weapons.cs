@@ -13,6 +13,7 @@ public class DesertEagle : Weapon
         this.FireRange = 150f;
         this.Damage = 35f;
         this.RecoilData = WeaponRecoil.DesertEagle;
+        this.MaxSpread = 0.3f;
     }
 }
 
@@ -29,6 +30,7 @@ public class M4A1 : Weapon
         this.FireRange = 150f;
         this.Damage = 30f;
         this.RecoilData = WeaponRecoil.M4A1;
+        this.MaxSpread = 0.15f;
     }
 }
 
@@ -45,6 +47,7 @@ public class AK47 : Weapon
         this.FireRange = 200f;
         this.Damage = 32f;
         this.RecoilData = WeaponRecoil.AK47;
+        this.MaxSpread = 0.25f;
     }
 }
 
@@ -61,5 +64,6 @@ public class MG48 : Weapon
         this.FireRange = 120f;
         this.Damage = 20f;
         this.RecoilData = WeaponRecoil.MG48;
+        this.MaxSpread = 0.1f;
     }
 }
