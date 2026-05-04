@@ -15,6 +15,9 @@ public class Weapon
     public float Damage;
     public Vector2[] RecoilData;
     public float RecoilResetTime = 0.5f;
+    public float BaseSpread = 0f;      // Dururken bile olan minimum dağılma (0 yaparsan lazer olur)
+    public float MaxSpread;       // Zıplarken/Koşarken çıkabileceği maksimum dağılma
+    public float MovementSpreadMultiplier = 0.05f; // Hızın dağılmaya olan etkisi (Çarpan)
 
     public Weapon(int magCapacity)
     {

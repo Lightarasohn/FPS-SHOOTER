@@ -28,6 +28,7 @@ public class PlayerWeapon : NetworkBehaviour
 
     private Color _playerDefaultColor;
     private PlayerCamera _playerCamera;
+    private PlayerMovement _playerMovement;
 
     private float _gizmoHideTime;
     private bool _lastShotHit;
@@ -38,6 +39,7 @@ public class PlayerWeapon : NetworkBehaviour
         _material = GetComponentInChildren<MeshRenderer>().material;
         _playerDefaultColor = GetComponent<Player>().DefaultColor;
         _playerCamera = GetComponent<PlayerCamera>();
+        _playerMovement = GetComponent<PlayerMovement>();
     }
 
     // YENİ: Silahı ilk ele aldığımızda çalışacak inisiyalizasyon
@@ -106,11 +108,11 @@ public class PlayerWeapon : NetworkBehaviour
                 // --- GÜNCELLENEN KISIM: ATIŞ İŞLEMİ VE CS:GO RECOIL ---
                 if (shouldShoot && Object.HasStateAuthority && CurrentAmmo > 0)
                 {
+                    // 1. RECOIL HESAPLA (Kamera sarsıntısı)
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
                         CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
 
-                        // KAMERAYI SARS (ApplyRecoil içinde RecoilScale ile çarpılıyor)
                         if (_playerCamera != null && Object.HasInputAuthority)
                         {
                             _playerCamera.ApplyRecoil(CurrentShotRecoil);
@@ -120,21 +122,42 @@ public class PlayerWeapon : NetworkBehaviour
                             CurrentBulletIndex++;
                     }
 
-                    // CS:GO MANTIĞI: MERMİ YÖNÜNÜ KAMERADAN İSTE
-                    // Artık Quaterion.Euler ile zorla döndürmüyoruz. 
-                    // Kameranın "Gerçek Sekme" açısını alıyoruz.
-                    Vector3 shootDirection = firePoint.forward; // Varsayılan
+                    // 2. TEMEL YÖNÜ AL (Kameranın gerçek sekme açısından)
+                    Vector3 shootDirection = firePoint.forward;
                     if (_playerCamera != null)
                     {
                         shootDirection = _playerCamera.GetShootDirection(transform);
                     }
 
-                    // Mermiyi Eksilt!
+                    // 3. YENİ: SPREAD (DAĞILMA) HESAPLAMASI VE UYGULANMASI
+                    // Karakterin hareket hızını al (Zıplama/düşme dahil)
+                    float currentSpeed = _playerMovement != null ? _playerMovement.Velocity.magnitude : 0f;
+
+                    // Hıza göre dağılma miktarını hesapla (BaseSpread + Hız Etkisi)
+                    float currentSpread = WeaponData.BaseSpread + (currentSpeed * WeaponData.MovementSpreadMultiplier);
+
+                    // Dağılmayı MaxSpread ile sınırla (Capped)
+                    currentSpread = Mathf.Clamp(currentSpread, WeaponData.BaseSpread, WeaponData.MaxSpread);
+
+                    //TODO: BUFF/DEBUFF OLARAK DAĞILMA AYARINDA (currentspread *= spreadScale) yap
+
+                    // Eğer dağılma sıfırdan büyükse sapma ekle
+                    if (currentSpread > 0f)
+                    {
+                        // Random.insideUnitSphere bize rastgele bir 3D yön verir. 
+                        // Bunu hesapladığımız spread faktörü ile çarpıp ana yöne ekliyoruz.
+                        Vector3 randomSpreadOffset = Random.insideUnitSphere * currentSpread;
+                        shootDirection += randomSpreadOffset;
+
+                        // Yön vektörünü tekrar normalize et (Uzunluğu 1 birim olsun)
+                        shootDirection.Normalize();
+                    }
+
+                    // 4. MERMİYİ EKSİLT VE ATEŞ ET
                     CurrentAmmo--;
 
-                    // Ateş Et!
                     bool hit = WeaponData.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
-                    _lastShootDirection = shootDirection;
+                    _lastShootDirection = shootDirection; // Gizmo için sapmış yönü kaydet
 
                     RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, WeaponData.RecoilResetTime);
                     spawnedProjectile = !spawnedProjectile;
