@@ -60,7 +60,7 @@ public class PlayerWeapon : NetworkBehaviour
         // Güvenlik önlemi: Eğer Initialize çalışmadıysa varsayılan atayalım
         if (WeaponData == null)
         {
-            InitializeWeapon(new DesertEagle());
+            InitializeWeapon(new AK47());
         }
     }
 
