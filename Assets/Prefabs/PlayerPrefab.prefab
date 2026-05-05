@@ -272,6 +272,7 @@ MonoBehaviour:
   MaxHealth: 500
   MinHealth: 0
   DefaultColor: {r: 0, g: 0, b: 1, a: 1}
+  PlayerBodyRenderer: {fileID: 56267249448732040}
   PlayerCrosshair:
     CrosshairType: 0
     Length: 0
