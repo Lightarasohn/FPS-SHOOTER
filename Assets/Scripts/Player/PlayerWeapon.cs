@@ -51,6 +51,9 @@ public class PlayerWeapon : NetworkBehaviour
     private bool _lastShotHit;
     private Vector3 _lastShootDirection;
 
+    public Player Owner { get; set; }
+
+
     // YENİ: Silahı ilk ele aldığımızda çalışacak inisiyalizasyon
     public void EquipWeapon(Weapon newWeaponModel)
     {
@@ -62,6 +65,13 @@ public class PlayerWeapon : NetworkBehaviour
             CurrentMags = WeaponData.MagAmount;
         }
     }
+    public void ResetAmmo()
+    {
+        if (WeaponData == null) return;
+
+        CurrentAmmo = WeaponData.MagCapacity;
+        CurrentMags = WeaponData.MagAmount;
+    }
 
     public override void Spawned()
     {
@@ -70,12 +80,24 @@ public class PlayerWeapon : NetworkBehaviour
         // GÜVENLİK AĞI: Eğer Inspector'dan sürüklemeyi unutursan, SADECE DOĞDUĞUNDA 1 KERE ara.
         if (playerCamera == null) playerCamera = GetComponent<PlayerCamera>();
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
+        Owner= GetComponent<Player>();
     }
 
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
         {
+            if (Owner != null && !Owner.IsAlive)
+            {
+                PreviousButtons = input.Buttons;
+                return;
+            }
+
+            if (GameManager.Instance == null  || GameManager.Instance.CurrentState == RoundState.PreRound)
+            {
+                PreviousButtons = input.Buttons;
+                return;
+            }
             bool firePressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Fire);
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);

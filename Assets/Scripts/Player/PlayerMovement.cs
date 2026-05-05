@@ -45,28 +45,35 @@ public class PlayerMovement : NetworkBehaviour
     // Kapsül boyutunu artık sabit değil, dinamik yapıyoruz
     private float _capsuleHeight;
     private float _capsuleRadius = 0.35f;
+    private Player _playerScript;
+
 
     public override void Spawned()
     {
         _capsuleHeight = StandingHeight;
+        _playerScript = GetComponent<Player>();
+
     }
 
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
         {
+            bool isAlive = _playerScript != null && _playerScript.IsAlive;
             // --- KAMERA VE DÖNÜŞ (Look) : Her zaman çalışır (Freeze time'da etrafa bakabiliriz) ---
-            transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
-
-            // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
-            bool canMove = true;
-            if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
+            if (isAlive)
             {
-                canMove = false; // Freeze Time! Sadece etrafa bakabilir, hareket edemez.
+                transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
             }
 
-            // Girdileri canMove kontrolüne bağlıyoruz
-            bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
+            // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
+            bool canMove = isAlive;
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
+                canMove = false;
+                            
+
+                // Girdileri canMove kontrolüne bağlıyoruz
+                bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
             IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint);
 
             // --- KAYMA (SLIDE) BAŞLATMA MANTIĞI ---

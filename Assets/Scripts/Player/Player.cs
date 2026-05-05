@@ -125,4 +125,8 @@ public class Player : NetworkBehaviour
             PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
     }
+    public bool CanAct()
+    {
+        return IsAlive && GameManager.Instance != null;
+    }
 }
