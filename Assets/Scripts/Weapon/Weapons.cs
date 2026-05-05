@@ -19,7 +19,7 @@ public class DesertEagle : Weapon
 
 public class M4A1 : Weapon
 {
-    public M4A1() : base(20)
+    public M4A1(): base(20)
     {
         this.Name = "M4A1";
         this.Description = "SWAT's Favorite";
@@ -36,7 +36,7 @@ public class M4A1 : Weapon
 
 public class AK47 : Weapon
 {
-    public AK47() : base(30)
+    public AK47(): base(30)
     {
         this.Name = "AK-47";
         this.Description = "Russian Death Machine, Made By Kalashnikov.";

@@ -358,13 +358,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bd8a7e5427fad04996710f793319d82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerWeapon
-  firePoint: {fileID: 6404338809728762269}
   _spawnedProjectile: 0
   _BurstShotsLeft: 0
   _CurrentBulletIndex: 0
   _CurrentAmmo: 0
   _CurrentMags: 0
+  _LastHitPosition: {x: 0, y: 0, z: 0}
+  _LastHitNormal: {x: 0, y: 0, z: 0}
+  _LastShotDidHit: 0
+  firePoint: {fileID: 6404338809728762269}
   CurrentShotRecoil: {x: 0, y: 0}
+  BulletTrailPrefab: {fileID: 3024503204202054061, guid: be6e3873526a0d547b4f2054d6af7ce1, type: 3}
+  ImpactParticlePrefab: {fileID: 3925436347142707583, guid: c3943d59b1740304caf61d1eaaf7549a, type: 3}
+  MuzzleFlashParticle: {fileID: 198234346748616026, guid: ad2ab49d0a2a17148bd51c93d977bdbc, type: 3}
+  BulletTrailSpeed: 100
 --- !u!114 &7816357872795022238
 MonoBehaviour:
   m_ObjectHideFlags: 0

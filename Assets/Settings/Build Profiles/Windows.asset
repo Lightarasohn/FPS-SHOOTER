@@ -982,7 +982,7 @@ MonoBehaviour:
     - line: '|   framebufferDepthMemorylessMode: 0'
     - line: '|   qualitySettingsNames: []'
     - line: '|   projectName: FPS-SHOOTER'
-    - line: '|   organizationId: project-fps-5594e556-01d3-41b4-a512-fd0ebf85962c'
+    - line: '|   organizationId: '
     - line: '|   cloudEnabled: 0'
     - line: '|   legacyClampBlendShapeWeights: 0'
     - line: '|   hmiLoadingImage: {instanceID: 0}'
