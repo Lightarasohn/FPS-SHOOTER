@@ -23,28 +23,4 @@ public class Weapon
     {
         this.MagCapacity = magCapacity;
     }
-
-    // YENİ: Shoot metodu artık mermi eksiltmiyor, sadece hasar vurma işini yapıyor.
-    public bool Shoot(NetworkRunner runner, PlayerRef player, Vector3 firePointPosition, Vector3 firePointDirection)
-    {
-        if (runner.LagCompensation.Raycast(
-            firePointPosition,
-            firePointDirection,
-            this.FireRange,
-            player,
-            out var hit,
-            LayerMask.GetMask("Player")))
-        {
-            Debug.Log("HIT: " + hit.Hitbox.name);
-
-            var playerScript = hit.Hitbox.GetComponent<Player>();
-            if (playerScript != null)
-            {
-                playerScript.TakeDamage(this.Damage);
-            }
-            return true;
-        }
-
-        return false;
-    }
 }

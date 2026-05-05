@@ -1,10 +1,10 @@
 using Fusion;
+using System.Collections;
 using UnityEngine;
 using static GlobalVariables;
 
 public class PlayerWeapon : NetworkBehaviour
 {
-    public Transform firePoint;
     [Networked] public bool spawnedProjectile { get; set; }
 
     [Networked] public TickTimer FireCooldown { get; set; }
@@ -18,13 +18,29 @@ public class PlayerWeapon : NetworkBehaviour
     [Networked] public int CurrentAmmo { get; set; }
     [Networked] public int CurrentMags { get; set; }
 
-    public Vector2 CurrentShotRecoil;
-
-    private ChangeDetector _changeDetector;
-    private Material _material;
+    // Çarpışma bilgisini ağda taşımak için struct
+    [Networked] public Vector3 LastHitPosition { get; set; }
+    [Networked] public Vector3 LastHitNormal { get; set; }
+    [Networked] public bool LastShotDidHit { get; set; }
 
     // Silahın kalıcı/sabit özelliklerini tutan model
     public Weapon WeaponData { get; private set; }
+
+    [Header("Gerekli Referanslar (Inspector'dan Sürükle!)")]
+    public Transform firePoint;
+    public PlayerCamera playerCamera;     // YENİ: Awake'te aramak yerine Inspector'dan ver
+    public PlayerMovement playerMovement; // YENİ: Awake'te aramak yerine Inspector'dan ver
+
+    public Vector2 CurrentShotRecoil;
+
+    [Header("Görsel Efektler (VFX)")]
+    public TrailRenderer BulletTrailPrefab;       // Mermi izi prefabı
+    public ParticleSystem ImpactParticlePrefab;   // Duvara çarpınca çıkacak toz/kıvılcım
+    public ParticleSystem MuzzleFlashParticle;    // Namlu ucu alevi (Opsiyonel)
+    public float BulletTrailSpeed = 100f;         // Mermi izinin gidiş hızı
+
+    private ChangeDetector _changeDetector;
+    private Material _material;
 
     private Color _playerDefaultColor;
     private PlayerCamera _playerCamera;
@@ -33,14 +49,6 @@ public class PlayerWeapon : NetworkBehaviour
     private float _gizmoHideTime;
     private bool _lastShotHit;
     private Vector3 _lastShootDirection;
-
-    private void Awake()
-    {
-        _material = GetComponentInChildren<MeshRenderer>().material;
-        _playerDefaultColor = GetComponent<Player>().DefaultColor;
-        _playerCamera = GetComponent<PlayerCamera>();
-        _playerMovement = GetComponent<PlayerMovement>();
-    }
 
     // YENİ: Silahı ilk ele aldığımızda çalışacak inisiyalizasyon
     public void EquipWeapon(Weapon newWeaponModel)
@@ -57,6 +65,10 @@ public class PlayerWeapon : NetworkBehaviour
     public override void Spawned()
     {
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
+        // GÜVENLİK AĞI: Eğer Inspector'dan sürüklemeyi unutursan, SADECE DOĞDUĞUNDA 1 KERE ara.
+        if (playerCamera == null) playerCamera = GetComponent<PlayerCamera>();
+        if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
     }
 
     public override void FixedUpdateNetwork()
@@ -67,7 +79,6 @@ public class PlayerWeapon : NetworkBehaviour
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
 
-            // --- RELOAD İŞLEMİ (Mevcut, sağlam kodun) ---
             if (reloadPressed && Object.HasStateAuthority)
             {
                 if (CurrentMags > 0 && CurrentAmmo < WeaponData.MagCapacity)
@@ -87,78 +98,89 @@ public class PlayerWeapon : NetworkBehaviour
 
             if (FireCooldown.ExpiredOrNotRunning(Runner))
             {
-                switch (WeaponData.WeaponFireType)
+                if (WeaponData != null)
                 {
-                    case WeaponFireType.Single:
-                        if (firePressed) shouldShoot = true;
-                        break;
-                    case WeaponFireType.Auto:
-                        if (fireHeld) shouldShoot = true;
-                        break;
-                    case WeaponFireType.Triple:
-                        if (firePressed && BurstShotsLeft == 0) BurstShotsLeft = 3;
-                        if (BurstShotsLeft > 0)
-                        {
-                            shouldShoot = true;
-                            BurstShotsLeft--;
-                        }
-                        break;
+                    switch (WeaponData.WeaponFireType)
+                    {
+                        case WeaponFireType.Single:
+                            if (firePressed) shouldShoot = true;
+                            break;
+                        case WeaponFireType.Auto:
+                            if (fireHeld) shouldShoot = true;
+                            break;
+                        case WeaponFireType.Triple:
+                            if (firePressed && BurstShotsLeft == 0) BurstShotsLeft = 3;
+                            if (BurstShotsLeft > 0)
+                            {
+                                shouldShoot = true;
+                                BurstShotsLeft--;
+                            }
+                            break;
+                    }
                 }
 
-                // --- GÜNCELLENEN KISIM: ATIŞ İŞLEMİ VE CS:GO RECOIL ---
                 if (shouldShoot && Object.HasStateAuthority && CurrentAmmo > 0)
                 {
-                    // 1. RECOIL HESAPLA (Kamera sarsıntısı)
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
                         CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
 
-                        if (_playerCamera != null && Object.HasInputAuthority)
+                        if (playerCamera != null && Object.HasInputAuthority)
                         {
-                            _playerCamera.ApplyRecoil(CurrentShotRecoil);
+                            playerCamera.ApplyRecoil(CurrentShotRecoil);
                         }
 
                         if (CurrentBulletIndex < WeaponData.RecoilData.Length - 1)
                             CurrentBulletIndex++;
                     }
 
-                    // 2. TEMEL YÖNÜ AL (Kameranın gerçek sekme açısından)
                     Vector3 shootDirection = firePoint.forward;
-                    if (_playerCamera != null)
+                    if (playerCamera != null)
                     {
-                        shootDirection = _playerCamera.GetShootDirection(transform);
+                        shootDirection = playerCamera.GetShootDirection(transform);
                     }
 
-                    // 3. YENİ: SPREAD (DAĞILMA) HESAPLAMASI VE UYGULANMASI
-                    // Karakterin hareket hızını al (Zıplama/düşme dahil)
-                    float currentSpeed = _playerMovement != null ? _playerMovement.Velocity.magnitude : 0f;
-
-                    // Hıza göre dağılma miktarını hesapla (BaseSpread + Hız Etkisi)
+                    float currentSpeed = playerMovement != null ? playerMovement.Velocity.magnitude : 0f;
                     float currentSpread = WeaponData.BaseSpread + (currentSpeed * WeaponData.MovementSpreadMultiplier);
-
-                    // Dağılmayı MaxSpread ile sınırla (Capped)
                     currentSpread = Mathf.Clamp(currentSpread, WeaponData.BaseSpread, WeaponData.MaxSpread);
 
-                    //TODO: BUFF/DEBUFF OLARAK DAĞILMA AYARINDA (currentspread *= spreadScale) yap
-
-                    // Eğer dağılma sıfırdan büyükse sapma ekle
                     if (currentSpread > 0f)
                     {
-                        // Random.insideUnitSphere bize rastgele bir 3D yön verir. 
-                        // Bunu hesapladığımız spread faktörü ile çarpıp ana yöne ekliyoruz.
                         Vector3 randomSpreadOffset = Random.insideUnitSphere * currentSpread;
                         shootDirection += randomSpreadOffset;
-
-                        // Yön vektörünü tekrar normalize et (Uzunluğu 1 birim olsun)
                         shootDirection.Normalize();
                     }
 
-                    // 4. MERMİYİ EKSİLT VE ATEŞ ET
                     CurrentAmmo--;
 
-                    bool hit = WeaponData.Shoot(Runner, Object.InputAuthority, firePoint.position, shootDirection);
-                    _lastShootDirection = shootDirection; // Gizmo için sapmış yönü kaydet
+                    bool hit = false;
+                    Vector3 hitPosition = firePoint.position + (shootDirection * WeaponData.FireRange);
+                    Vector3 hitNormal = Vector3.up;
 
+                    if (Runner.LagCompensation.Raycast(
+                        firePoint.position,
+                        shootDirection,
+                        WeaponData.FireRange,
+                        Object.InputAuthority,
+                        out var hitResult,
+                        LayerMask.GetMask("Player", "Default", "Ground")))
+                    {
+                        hit = true;
+                        hitPosition = hitResult.Point;
+                        hitNormal = hitResult.Normal;
+
+                        var playerScript = hitResult.Hitbox != null ? hitResult.Hitbox.GetComponent<Player>() : null;
+                        if (playerScript != null)
+                        {
+                            playerScript.TakeDamage(WeaponData.Damage);
+                        }
+                    }
+
+                    LastHitPosition = hitPosition;
+                    LastHitNormal = hitNormal;
+                    LastShotDidHit = hit;
+
+                    _lastShootDirection = shootDirection;
                     RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, WeaponData.RecoilResetTime);
                     spawnedProjectile = !spawnedProjectile;
                     FireCooldown = TickTimer.CreateFromSeconds(Runner, WeaponData.FireRate);
@@ -174,16 +196,70 @@ public class PlayerWeapon : NetworkBehaviour
 
     public override void Render()
     {
+        // ESKİDEN BURADA OLAN GEREKSİZ RENG DEĞİŞTİRME KODLARINI SİLDİK (FPS KATİLİ)
         foreach (var change in _changeDetector.DetectChanges(this))
         {
             switch (change)
             {
                 case nameof(spawnedProjectile):
-                    _material.color = Color.white;
+                    PlayVisualEffects();
                     break;
             }
         }
-        _material.color = Color.Lerp(_material.color, _playerDefaultColor, Time.deltaTime);
+    }
+
+    // YENİ: Efekt Oynatma Fonksiyonu
+    private void PlayVisualEffects()
+    {
+        if (MuzzleFlashParticle != null)
+        {
+            if (MuzzleFlashParticle.gameObject.scene.name == null)
+            {
+                ParticleSystem flash = Instantiate(MuzzleFlashParticle, firePoint.position, firePoint.rotation, firePoint);
+                flash.Play();
+                Destroy(flash.gameObject, 1f);
+            }
+            else
+            {
+                MuzzleFlashParticle.Play();
+            }
+        }
+
+        if (BulletTrailPrefab != null && firePoint != null)
+        {
+            TrailRenderer trail = Instantiate(BulletTrailPrefab, firePoint.position, Quaternion.identity);
+            StartCoroutine(SpawnTrailRoutine(trail, LastHitPosition, LastHitNormal, LastShotDidHit));
+        }
+    }
+
+    // YENİ: Videodaki Coroutine'in Güvenli (Performanslı) hali
+    private IEnumerator SpawnTrailRoutine(TrailRenderer trail, Vector3 hitPoint, Vector3 hitNormal, bool madeImpact)
+    {
+        Vector3 startPosition = trail.transform.position;
+        float distance = Vector3.Distance(startPosition, hitPoint);
+
+        if (distance < 0.1f) distance = 0.1f;
+
+        float remainingDistance = distance;
+
+        while (remainingDistance > 0)
+        {
+            if (trail == null) yield break; // GÜVENLİK
+
+            trail.transform.position = Vector3.Lerp(startPosition, hitPoint, 1 - (remainingDistance / distance));
+            remainingDistance -= BulletTrailSpeed * Time.deltaTime;
+            yield return null;
+        }
+
+        if (trail != null) trail.transform.position = hitPoint;
+
+        if (madeImpact && ImpactParticlePrefab != null)
+        {
+            ParticleSystem impact = Instantiate(ImpactParticlePrefab, hitPoint, Quaternion.LookRotation(hitNormal));
+            Destroy(impact.gameObject, 2f);
+        }
+
+        if (trail != null) Destroy(trail.gameObject, trail.time);
     }
 
     public void OnDrawGizmos()
