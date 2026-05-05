@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
     public int MaxHealth = 500;
     public int MinHealth = 0;
     public Color DefaultColor = Color.blue;
+    public MeshRenderer PlayerBodyRenderer; // YENİ: Kapsülün rengini değiştireceğimiz materyal
     public Crosshair PlayerCrosshair;
 
     // YENİ: Sadece Weapon nesnesi değil, sahnedeki ağ silahımız (Component)
@@ -99,9 +100,25 @@ public class Player : NetworkBehaviour
 
     public override void Render()
     {
+        // 1. RENGİ GÜNCELLE (Herkes Herkesi Kırmızı/Mavi Görsün Diye InputAuthority Sormuyoruz)
+        if (PlayerBodyRenderer != null)
+        {
+            // Eğer takımı Blue ise mavi, Red ise kırmızı yap
+            if (PlayerTeam == Team.Blue)
+            {
+                PlayerBodyRenderer.material.color = Color.blue;
+                DefaultColor = Color.blue; // Başka scriptler okuyacaksa diye güncel tut
+            }
+            else if (PlayerTeam == Team.Red)
+            {
+                PlayerBodyRenderer.material.color = Color.red;
+                DefaultColor = Color.red;
+            }
+        }
+
+        // 2. ARAYÜZÜ GÜNCELLE (Sadece kendi ekranımızda canı ve mermiyi görelim diye)
         if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {
-            // YENİ: Artık ağ silahımız olan EquippedWeapon üzerinden GÜNCEL AĞ verilerini alıyoruz
             int currentAmmo = EquippedWeapon != null ? EquippedWeapon.CurrentAmmo : 0;
             int totalMags = EquippedWeapon != null ? EquippedWeapon.CurrentMags : 0;
 
