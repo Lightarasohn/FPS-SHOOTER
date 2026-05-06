@@ -35,6 +35,7 @@ public class TeamSelectUI : MonoBehaviour
 
         // YENİ: Takım seçme ekranı gelince HUD'u gizle
         if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(false);
+        if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(false);
 
         // Fareyi görünür yap 
         Cursor.lockState = CursorLockMode.None;
@@ -52,6 +53,7 @@ public class TeamSelectUI : MonoBehaviour
 
             // YENİ: Takım seçildiğinde (oyuna girildiğinde) HUD'u göster
             if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(true);
+            if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(true);
         }
     }
 }
