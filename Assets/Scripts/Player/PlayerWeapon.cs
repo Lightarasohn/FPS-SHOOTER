@@ -195,7 +195,7 @@ public class PlayerWeapon : NetworkBehaviour
                         var playerScript = hitResult.Hitbox != null ? hitResult.Hitbox.GetComponent<Player>() : null;
                         if (playerScript != null)
                         {
-                            playerScript.TakeDamage(WeaponData.Damage);
+                            playerScript.TakeDamage(WeaponData.Damage, Owner);
                         }
                     }
 

@@ -14,6 +14,7 @@ public class GameManager : NetworkBehaviour
 
     // Oyundaki tüm oyuncuları tutacağımız liste
     private List<Player> _activePlayers = new List<Player>();
+    public IReadOnlyList<Player> ActivePlayers => _activePlayers;
 
     private void Awake()
     {
@@ -154,6 +155,7 @@ public class GameManager : NetworkBehaviour
         {
             player.Health = 100;
             player.IsAlive = true;
+            player.ClearDamageHistory();
 
             // 1. OYUNCUNUN MEVCUT HIZINI SIFIRLA (Kendi yazdığın script üzerinden)
             var customMovement = player.GetComponent<PlayerMovement>();
