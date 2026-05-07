@@ -2,7 +2,7 @@ using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static GlobalVariables; // YENİ GİRDİ SİSTEMİ KÜTÜPHANESİ EKLENDİ
+using static GlobalVariables;
 
 public class PlayerInputHandler : NetworkBehaviour
 {
@@ -32,6 +32,18 @@ public class PlayerInputHandler : NetworkBehaviour
         // GÜVENLİK: Eğer bilgisayara klavye veya fare takılı değilse kodun çökmesini engeller
         if (Keyboard.current == null || Mouse.current == null) return;
 
+        // --- YENİ EKLENEN KISIM: MENÜ AÇIKKEN KARAKTERİ DONDURMA SÜZGECİ ---
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            // Menüdeyken karakterin yürümesini ve ateş etmesini engelle
+            CurrentInput.MoveDirection = Vector2.zero;
+            CurrentInput.Buttons = default;
+
+            // Update döngüsünü burada kes, aşağıdaki tuş okuma işlemlerine geçme!
+            return;
+        }
+        // -------------------------------------------------------------------
+
         // 1. Yön Tuşları (Yeni Sistem: Doğrudan tuşların donanım durumunu okuyoruz)
         Vector2 move = Vector2.zero;
         if (Keyboard.current.wKey.isPressed) move.y += 1;
@@ -56,12 +68,5 @@ public class PlayerInputHandler : NetworkBehaviour
         CurrentInput.Buttons.Set(PlayerAction.sprint, Keyboard.current.leftShiftKey.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Fire, Mouse.current.leftButton.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Reload, Keyboard.current.rKey.isPressed);
-
-        // AJAN 1: Yeni sistem tuşları okuyabiliyor mu? (Konsolda görmek istersen "//" işaretlerini kaldırabilirsin)
-        // if (CurrentInput.MoveDirection.magnitude > 0)
-        // {
-        //     Debug.Log("YENİ GİRDİ SİSTEMİ ÇALIŞIYOR! Yön: " + CurrentInput.MoveDirection);
-        // }
     }
-    
 }

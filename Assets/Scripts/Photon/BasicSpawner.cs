@@ -139,7 +139,16 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) 
+    {
+        if (runner != null)
+        {
+            // Fusion'ın tüm ağ işlemlerini ve objeleri güvenle temizlemesini bekle
+            runner.Shutdown();
+        }
+
+        SceneManager.LoadScene(0);
+    }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }

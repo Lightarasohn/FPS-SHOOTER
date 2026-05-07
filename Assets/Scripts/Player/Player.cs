@@ -17,6 +17,8 @@ public class Player : NetworkBehaviour
     // YENİ: Sadece Weapon nesnesi değil, sahnedeki ağ silahımız (Component)
     public PlayerWeapon EquippedWeapon;
 
+    public BuffDebuff ActiveAugment { get; private set; }
+
     public void Awake()
     {
         EquippedWeapon = GetComponent<PlayerWeapon>();
@@ -95,6 +97,62 @@ public class Player : NetworkBehaviour
         if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
         {
             PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
+        }
+    }
+
+    public void RequestBuff(string buffName)
+    {
+        // Sunucuya "Bana bu buff'ı ver" diyoruz
+        RPC_ApplyBuff(buffName);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_ApplyBuff(string buffName)
+    {
+        // SADECE SUNUCU BURAYA GİRER.
+        BuffDebuff newAugment = null;
+
+        // --- YENİ: KUSURSUZ FACTORY (FABRİKA) MİMARİSİ ---
+
+        // 1. Gelen string ismini (Örn: "LowGravity") gerçek bir C# Türüne (Type) çeviriyoruz.
+        System.Type buffType = System.Type.GetType(buffName);
+
+        // 2. Güvenlik: Eğer böyle bir sınıf gerçekten varsa ve bizim BuffDebuff'tan türetilmişse...
+        if (buffType != null && buffType.IsSubclassOf(typeof(BuffDebuff)))
+        {
+            // 3. O sınıftan yepyeni bir obje yarat! (Elle "new LowGravity()" yazmakla birebir aynıdır)
+            newAugment = (BuffDebuff)System.Activator.CreateInstance(buffType);
+        }
+        else
+        {
+            Debug.LogError($"[Sunucu] HATA: '{buffName}' adında geçerli bir Buff/Debuff sınıfı bulunamadı!");
+            return;
+        }
+
+        // --- UYGULAMA KISMI (Eskisiyle aynı) ---
+        if (newAugment != null)
+        {
+            // Eğer eskinden kalan bir buff varsa temizle
+            if (ActiveAugment != null)
+            {
+                ActiveAugment.RemoveAugment(this);
+            }
+
+            // Yeni buff'ı kaydet ve uygula
+            ActiveAugment = newAugment;
+            ActiveAugment.ApplyAugment(this);
+
+            Debug.Log($"[Sunucu] {this.name} oyuncusuna {newAugment.Name} uygulandı!");
+        }
+    }
+
+    // Round bittiğinde veya yeni round başladığında temizlemek için (GameManager'dan çağırabilirsin)
+    public void ClearAugments()
+    {
+        if (ActiveAugment != null)
+        {
+            ActiveAugment.RemoveAugment(this);
+            ActiveAugment = null;
         }
     }
 

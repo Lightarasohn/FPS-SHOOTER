@@ -10,13 +10,13 @@ public class PlayerMovement : NetworkBehaviour
     public float AirAcceleration = 5f; // ESKİSİ 5'Tİ. Şimdi havada anında yön değiştirecek!
     public float MaxFallingSpeed = -32f;
     public float GroundAcceleration = 10f;
-    public float Friction = 5f;
-    public float Gravity = 20f;
-    public float JumpForce = 6f;
+    [Networked] public float Friction { get; set; } = 8f;
+    [Networked] public float Gravity { get; set; } = 18f;
+    public float JumpForce = 7.8f;
 
     [Header("Eğilme (Crouch) Ayarları")]
     public float StandingHeight = 2f;
-    public float CrouchHeight = 1f;
+    public float CrouchHeight = 1.5f;
     public float CrouchSpeedMultiplier = 0.5f;
     public float CrouchTransitionSpeed = 10f;
 

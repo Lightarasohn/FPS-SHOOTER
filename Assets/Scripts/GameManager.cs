@@ -155,6 +155,9 @@ public class GameManager : NetworkBehaviour
             player.Health = 100;
             player.IsAlive = true;
 
+            // oyuncunun augmentini kaldır
+            player.ClearAugments();
+
             // 1. OYUNCUNUN MEVCUT HIZINI SIFIRLA (Kendi yazdığın script üzerinden)
             var customMovement = player.GetComponent<PlayerMovement>();
             if (customMovement != null)
