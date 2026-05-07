@@ -1,10 +1,5 @@
 fileFormatVersion: 2
 guid: bb81a67ad1cf2984784527d333cae7d2
-PrefabImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
   productId: 258453
@@ -12,3 +7,8 @@ AssetOrigin:
   packageVersion: 1.0
   assetPath: Assets/LowPolyFPSLite/Prefabs/Wall_05.prefab
   uploadId: 598300
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

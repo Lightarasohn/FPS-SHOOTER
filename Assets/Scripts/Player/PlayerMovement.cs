@@ -230,36 +230,83 @@ public class PlayerMovement : NetworkBehaviour
     // --- ÖZEL ÇARPIŞMA SİSTEMİ (CUSTOM COLLISION) ---
     private void CheckGrounded(ref Vector3 currentVel)
     {
-        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.01f));
-        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.down, out _, (_capsuleRadius + 0.05f), ~LayerMask.GetMask("Player"));
+        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.05f));
 
-        if (IsGrounded && currentVel.y < 0)
+        // YENİ 1: Edge Forgiveness (Köşe Affı). Yarıçapı karakterden çok az büyük tutarak 
+        // karakterin tam köşelerde düşmek yerine oraya sıkıca tutunmasını (Grip) sağlıyoruz.
+        float checkRadius = _capsuleRadius + 0.02f;
+
+        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player"));
+
+        if (IsGrounded)
         {
-            currentVel.y = 0;
+            // YENİ 2: Sadece yerdeysek ve çarptığımız şey dik bir duvar değilse (Yani zemin veya köşeyse)
+            // Normal.y > 0.5f demek, eğimi 60 dereceden az olan her şeye tutun demektir.
+            if (hitInfo.normal.y > 0.5f)
+            {
+                if (currentVel.y < 0)
+                {
+                    currentVel.y = 0; // Yerçekimini sıfırla ki kapsülün o yuvarlak alt kısmından kayıp düşmesin
+                }
+            }
+            else
+            {
+                // Eğer düz duvara sürtünüyorsak "Yerde" sayılmayalım, yerçekimi bizi aşağı çeksin.
+                IsGrounded = false;
+            }
         }
     }
 
-    private Vector3 ResolveCollisions(Vector3 startPos, Vector3 endPos, ref Vector3 currentVelocity)
+    private Vector3 ResolveCollisions(Vector3 startPos, Vector3 targetPos, ref Vector3 currentVelocity)
     {
-        Vector3 direction = endPos - startPos;
-        float distance = direction.magnitude;
+        Vector3 currentPos = startPos;
+        int maxBounces = 3;
+        float skinWidth = 0.015f;
 
-        if (distance < 0.001f) return startPos;
+        // YENİ 1: Karakterin çarpışmadan önceki o anki hızını (özellikle Y eksenini) sakla
+        Vector3 originalVelocity = currentVelocity;
 
-        Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
-        Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
-
-        if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, _capsuleRadius, direction.normalized, out RaycastHit hit, distance, ~LayerMask.GetMask("Player")))
+        for (int i = 0; i < maxBounces; i++)
         {
-            Vector3 safePos = startPos + direction.normalized * (hit.distance - 0.001f);
-            Vector3 remainingDistance = direction.normalized * (distance - hit.distance);
-            Vector3 slideDirection = Vector3.ProjectOnPlane(remainingDistance, hit.normal);
-            currentVelocity = Vector3.ProjectOnPlane(currentVelocity, hit.normal);
+            Vector3 direction = targetPos - currentPos;
+            float distance = direction.magnitude;
 
-            return safePos + slideDirection;
+            if (distance < 0.001f) break;
+
+            Vector3 p1 = currentPos + Vector3.up * _capsuleRadius;
+            Vector3 p2 = currentPos + Vector3.up * (_capsuleHeight - _capsuleRadius);
+            float castRadius = _capsuleRadius - 0.01f;
+
+            if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, ~LayerMask.GetMask("Player")))
+            {
+                float safeDistance = Mathf.Max(0f, hit.distance - skinWidth);
+                currentPos += direction.normalized * safeDistance;
+
+                Vector3 remainingDirection = direction.normalized * (distance - safeDistance);
+                Vector3 slideVector = Vector3.ProjectOnPlane(remainingDirection, hit.normal);
+
+                targetPos = currentPos + slideVector;
+
+                // --- YENİ 2: FIRLAMA (EDGE BOUNCE / LAUNCH) ENGELLEYİCİ MANTIK ---
+                Vector3 newVelocity = Vector3.ProjectOnPlane(currentVelocity, hit.normal);
+
+                // Eğer havadaysak VE bu çarpışma bizi orijinal hızımızdan daha hızlı yukarı fırlatmaya çalışıyorsa...
+                if (!IsGrounded && newVelocity.y > originalVelocity.y)
+                {
+                    // Yukarı fırlamayı (Y eksenini) iptal et, sadece sağa/sola (X, Z) kaymamıza izin ver!
+                    newVelocity.y = originalVelocity.y;
+                }
+
+                currentVelocity = newVelocity;
+            }
+            else
+            {
+                currentPos = targetPos;
+                break;
+            }
         }
 
-        return endPos;
+        return currentPos;
     }
 
     private void OnDrawGizmos()

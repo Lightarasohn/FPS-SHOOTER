@@ -27,6 +27,7 @@ public class PlayerWeapon : NetworkBehaviour
     public Weapon WeaponData { get; private set; }
 
     [Header("Gerekli Referanslar (Inspector'dan Sürükle!)")]
+    public Transform weaponPoint; // Silahın modeli, görsel efektler için referans noktası
     public Transform firePoint;
     public PlayerCamera playerCamera;     // YENİ: Awake'te aramak yerine Inspector'dan ver
     public PlayerMovement playerMovement; // YENİ: Awake'te aramak yerine Inspector'dan ver
@@ -163,7 +164,7 @@ public class PlayerWeapon : NetworkBehaviour
                         WeaponData.FireRange,
                         Object.InputAuthority,
                         out var hitResult,
-                        LayerMask.GetMask("Player", "Default", "Ground")))
+                        LayerMask.GetMask("Player", "Default", "Ground" , "Environment")))
                     {
                         hit = true;
                         hitPosition = hitResult.Point;
@@ -215,7 +216,7 @@ public class PlayerWeapon : NetworkBehaviour
         {
             if (MuzzleFlashParticle.gameObject.scene.name == null)
             {
-                ParticleSystem flash = Instantiate(MuzzleFlashParticle, firePoint.position, firePoint.rotation, firePoint);
+                ParticleSystem flash = Instantiate(MuzzleFlashParticle, weaponPoint.position, weaponPoint.rotation, weaponPoint);
                 flash.Play();
                 Destroy(flash.gameObject, 1f);
             }
@@ -225,9 +226,9 @@ public class PlayerWeapon : NetworkBehaviour
             }
         }
 
-        if (BulletTrailPrefab != null && firePoint != null)
+        if (BulletTrailPrefab != null && weaponPoint != null)
         {
-            TrailRenderer trail = Instantiate(BulletTrailPrefab, firePoint.position, Quaternion.identity);
+            TrailRenderer trail = Instantiate(BulletTrailPrefab, weaponPoint.position, Quaternion.identity);
             StartCoroutine(SpawnTrailRoutine(trail, LastHitPosition, LastHitNormal, LastShotDidHit));
         }
     }

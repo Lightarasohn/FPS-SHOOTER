@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1563548216227777838}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.411}
+  m_LocalPosition: {x: 0, y: 0, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -65,8 +65,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.01
+  far clip plane: 400
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -272,6 +272,7 @@ MonoBehaviour:
   MaxHealth: 500
   MinHealth: 0
   DefaultColor: {r: 0, g: 0, b: 1, a: 1}
+  PlayerBodyRenderer: {fileID: 56267249448732040}
   PlayerCrosshair:
     CrosshairType: 0
     Length: 0
@@ -366,7 +367,10 @@ MonoBehaviour:
   _LastHitPosition: {x: 0, y: 0, z: 0}
   _LastHitNormal: {x: 0, y: 0, z: 0}
   _LastShotDidHit: 0
+  weaponPoint: {fileID: 985482375826444765}
   firePoint: {fileID: 6404338809728762269}
+  playerCamera: {fileID: 0}
+  playerMovement: {fileID: 0}
   CurrentShotRecoil: {x: 0, y: 0}
   BulletTrailPrefab: {fileID: 3024503204202054061, guid: be6e3873526a0d547b4f2054d6af7ce1, type: 3}
   ImpactParticlePrefab: {fileID: 3925436347142707583, guid: c3943d59b1740304caf61d1eaaf7549a, type: 3}
@@ -435,7 +439,7 @@ Transform:
   m_GameObject: {fileID: 4380245097861798978}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.25}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -466,7 +470,7 @@ Transform:
   m_GameObject: {fileID: 5220534416727729135}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.415}
+  m_LocalPosition: {x: 0.05, y: -0.1, z: 0.415}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
