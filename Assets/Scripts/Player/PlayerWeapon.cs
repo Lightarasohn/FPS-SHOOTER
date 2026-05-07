@@ -164,7 +164,7 @@ public class PlayerWeapon : NetworkBehaviour
                         WeaponData.FireRange,
                         Object.InputAuthority,
                         out var hitResult,
-                        LayerMask.GetMask("Player", "Default", "Ground")))
+                        LayerMask.GetMask("Player", "Default", "Ground" , "Environment")))
                     {
                         hit = true;
                         hitPosition = hitResult.Point;
