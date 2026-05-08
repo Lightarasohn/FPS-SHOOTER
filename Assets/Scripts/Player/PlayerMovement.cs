@@ -27,11 +27,15 @@ public class PlayerMovement : NetworkBehaviour
 
     // Kayma Ayarları (Slide)
     [Header("Kayma (Slide) Ayarları")]
-    public float SlideDuration = 1f;
+    public float SlideDuration = 2f; // MADDE 3: Yerde maksimum 2 saniye kalsın
     public float SlideSpeedMultiplier = 2f;
+    public float SlideCooldownTime = 0.5f;
 
     [Header("Referanslar")]
     public Transform PlayerPivot;
+
+    // Kapsülün dış görünüşünü temsil eden obje
+    public Transform PlayerVisualBody;
 
     [Networked] public Vector3 Velocity { get; set; }
     [Networked] public bool IsGrounded { get; set; }
@@ -40,6 +44,7 @@ public class PlayerMovement : NetworkBehaviour
     // Ağ üzerinden senkronize edilecek kayma değişkenleri
     [Networked] public bool IsSliding { get; set; }
     [Networked] public TickTimer SlideTimer { get; set; }
+    [Networked] public TickTimer SlideCooldown { get; set; }
     [Networked] public Vector3 SlideDirection { get; set; }
 
     // Kapsül boyutunu artık sabit değil, dinamik yapıyoruz
@@ -55,25 +60,28 @@ public class PlayerMovement : NetworkBehaviour
     {
         if (GetInput(out NetworkInput input))
         {
-            // --- KAMERA VE DÖNÜŞ (Look) : Her zaman çalışır (Freeze time'da etrafa bakabiliriz) ---
+            // --- KAMERA VE DÖNÜŞ (Look) ---
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
             // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
             bool canMove = true;
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
             {
-                canMove = false; // Freeze Time! Sadece etrafa bakabilir, hareket edemez.
+                canMove = false;
             }
 
-            // Girdileri canMove kontrolüne bağlıyoruz
+            // Girdileri al
             bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
             IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint);
 
-            // --- KAYMA (SLIDE) BAŞLATMA MANTIĞI ---
-            if (canMove && IsGrounded && IsSprinting && wantsToCrouch && !IsCrouching && !IsSliding && SlideTimer.ExpiredOrNotRunning(Runner))
+            // Sadece ileri doğru (Y ekseninde) gidiyorsa kayabilsin
+            bool isMovingForward = input.MoveDirection.y > 0;
+
+            // --- MADDE 1: İLERİ KOŞARKEN EĞİLDİĞİ DURUMDA KAYMA BAŞLAT ---
+            if (canMove && IsGrounded && IsSprinting && isMovingForward && wantsToCrouch && !IsCrouching && !IsSliding && SlideCooldown.ExpiredOrNotRunning(Runner))
             {
                 IsSliding = true;
-                SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration);
+                SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration); // 2 saniyelik süreci başlat
 
                 Vector3 currentMoveDir = new Vector3(Velocity.x, 0, Velocity.z);
                 if (currentMoveDir.magnitude > 0.1f)
@@ -82,11 +90,19 @@ public class PlayerMovement : NetworkBehaviour
                     SlideDirection = transform.forward;
             }
 
-            if (IsSliding && SlideTimer.Expired(Runner))
+            // --- MADDE 3: ZIPLAMAZSA YERDE MAX 2 SANİYE KAYAR ---
+            if (IsSliding)
             {
-                IsSliding = false;
+                // Artık oyuncu elini C tuşundan çekse bile kayma İPTAL OLMAYACAK! Sadece süre dolarsa bitecek.
+                if (SlideTimer.Expired(Runner))
+                {
+                    IsSliding = false;
+                    SlideTimer = TickTimer.None;
+                    SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
+                }
             }
 
+            // Kayma iptal olmadıysa ve devam ediyorsa, oyuncu tuşu bıraksa bile kod onu zorla eğik (crouch) tutar
             if (IsSliding)
             {
                 wantsToCrouch = true;
@@ -104,17 +120,38 @@ public class PlayerMovement : NetworkBehaviour
             float targetHeight = IsCrouching ? CrouchHeight : StandingHeight;
             _capsuleHeight = Mathf.Lerp(_capsuleHeight, targetHeight, Runner.DeltaTime * CrouchTransitionSpeed);
 
+            // --- GÖRSELİ KÜÇÜLT, HİZALA VE KAYARKEN EĞ ---
+            if (PlayerVisualBody != null)
+            {
+                float targetScaleY = _capsuleHeight / StandingHeight;
+                PlayerVisualBody.localScale = new Vector3(1f, targetScaleY, 1f);
+
+                float yOffset = (_capsuleHeight - StandingHeight) / 2f;
+                PlayerVisualBody.localPosition = new Vector3(0f, yOffset, 0f);
+
+                if (IsSliding)
+                {
+                    Quaternion targetRotation = Quaternion.Euler(60f, 0f, 0f);
+                    PlayerVisualBody.localRotation = Quaternion.Lerp(PlayerVisualBody.localRotation, targetRotation, Runner.DeltaTime * 10f);
+                }
+                else
+                {
+                    PlayerVisualBody.localRotation = Quaternion.Lerp(PlayerVisualBody.localRotation, Quaternion.identity, Runner.DeltaTime * 10f);
+                }
+            }
+
             // --- FİZİK VE HAREKET HESAPLAMASI ---
             Vector3 currentVelocity = Velocity;
             CheckGrounded(ref currentVelocity);
 
+            // Uçurumdan düşersek kaymayı anında iptal et ve bekleme süresi koy
             if (!IsGrounded && IsSliding)
             {
                 IsSliding = false;
                 SlideTimer = TickTimer.None;
+                SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
             }
 
-            // Eğer hareket izni yoksa, oyuncunun basılı tuttuğu tuşları yoksay ve sıfırla
             Vector3 rawInputDirection = Vector3.zero;
             if (canMove)
             {
@@ -141,14 +178,19 @@ public class PlayerMovement : NetworkBehaviour
 
                 Accelerate(ref currentVelocity, wishDir, currentMaxSpeed, GroundAcceleration, Runner.DeltaTime);
 
-                // Zıplama kontrolünü canMove ile sınırlandırıyoruz
+                // --- MADDE 2: SADECE ZIPLADIĞINDA EĞİLME İPTALİ ---
                 if (canMove && input.Buttons.IsSet(PlayerAction.Jump))
                 {
                     if (IsSliding)
                     {
-                        IsSliding = false;
-                        SlideTimer = TickTimer.None;
+                        IsSliding = false;           // Kaymayı iptal et
+                        wantsToCrouch = false;       // Eğilme isteğini anında kes
+                        IsCrouching = false;         // Karakterin dikilmesini sağla
 
+                        SlideTimer = TickTimer.None;
+                        SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
+
+                        // Kaymanın o güzel hızını zıplamaya (Momentum) aktar!
                         if (rawInputDirection.magnitude > 0.1f)
                         {
                             float slideSpeed = new Vector3(currentVelocity.x, 0, currentVelocity.z).magnitude;
@@ -163,17 +205,15 @@ public class PlayerMovement : NetworkBehaviour
             }
             else
             {
-                // Havadayken
                 Accelerate(ref currentVelocity, wishDir, MaxAirSpeed, AirAcceleration, Runner.DeltaTime);
 
-                // Yerçekimi her zaman uygulanır (Freeze time'da havada doğarsa yere düşsün diye)
                 if (currentVelocity.y <= MaxFallingSpeed)
                     currentVelocity.y = MaxFallingSpeed;
                 else
                     currentVelocity.y -= Gravity * Runner.DeltaTime;
             }
 
-            // --- ÇARPIŞMA (COLLISION) VE POZİSYON GÜNCELLEMESİ ---
+            // --- ÇARPIŞMA VE POZİSYON GÜNCELLEMESİ ---
             Vector3 motion = currentVelocity * Runner.DeltaTime;
             Vector3 newPosition = transform.position + motion;
 
@@ -184,7 +224,6 @@ public class PlayerMovement : NetworkBehaviour
         }
     }
 
-    // --- TAVAN KONTROLÜ (Kafayı vurmamak için) ---
     private bool CheckCeiling()
     {
         Vector3 origin = PlayerPivot.position + Vector3.up * _capsuleHeight;
@@ -193,7 +232,6 @@ public class PlayerMovement : NetworkBehaviour
         return Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.up, out _, distanceToStand, ~LayerMask.GetMask("Player"));
     }
 
-    // --- QUAKE/SOURCE MOTORU HAREKET MATEMATİĞİ ---
     private void ApplyFriction(ref Vector3 velocity, float deltaTime)
     {
         float speed = new Vector3(velocity.x, 0, velocity.z).magnitude;
@@ -227,31 +265,24 @@ public class PlayerMovement : NetworkBehaviour
         velocity.z += accelSpeed * wishDir.z;
     }
 
-    // --- ÖZEL ÇARPIŞMA SİSTEMİ (CUSTOM COLLISION) ---
     private void CheckGrounded(ref Vector3 currentVel)
     {
         Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.05f));
-
-        // YENİ 1: Edge Forgiveness (Köşe Affı). Yarıçapı karakterden çok az büyük tutarak 
-        // karakterin tam köşelerde düşmek yerine oraya sıkıca tutunmasını (Grip) sağlıyoruz.
         float checkRadius = _capsuleRadius + 0.02f;
 
         IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player"));
 
         if (IsGrounded)
         {
-            // YENİ 2: Sadece yerdeysek ve çarptığımız şey dik bir duvar değilse (Yani zemin veya köşeyse)
-            // Normal.y > 0.5f demek, eğimi 60 dereceden az olan her şeye tutun demektir.
             if (hitInfo.normal.y > 0.5f)
             {
                 if (currentVel.y < 0)
                 {
-                    currentVel.y = 0; // Yerçekimini sıfırla ki kapsülün o yuvarlak alt kısmından kayıp düşmesin
+                    currentVel.y = 0;
                 }
             }
             else
             {
-                // Eğer düz duvara sürtünüyorsak "Yerde" sayılmayalım, yerçekimi bizi aşağı çeksin.
                 IsGrounded = false;
             }
         }
@@ -262,8 +293,6 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 currentPos = startPos;
         int maxBounces = 3;
         float skinWidth = 0.015f;
-
-        // YENİ 1: Karakterin çarpışmadan önceki o anki hızını (özellikle Y eksenini) sakla
         Vector3 originalVelocity = currentVelocity;
 
         for (int i = 0; i < maxBounces; i++)
@@ -287,13 +316,10 @@ public class PlayerMovement : NetworkBehaviour
 
                 targetPos = currentPos + slideVector;
 
-                // --- YENİ 2: FIRLAMA (EDGE BOUNCE / LAUNCH) ENGELLEYİCİ MANTIK ---
                 Vector3 newVelocity = Vector3.ProjectOnPlane(currentVelocity, hit.normal);
 
-                // Eğer havadaysak VE bu çarpışma bizi orijinal hızımızdan daha hızlı yukarı fırlatmaya çalışıyorsa...
                 if (!IsGrounded && newVelocity.y > originalVelocity.y)
                 {
-                    // Yukarı fırlamayı (Y eksenini) iptal et, sadece sağa/sola (X, Z) kaymamıza izin ver!
                     newVelocity.y = originalVelocity.y;
                 }
 
@@ -319,10 +345,8 @@ public class PlayerMovement : NetworkBehaviour
             grounded = IsGrounded;
         }
 
-        if (grounded)
-            Gizmos.color = Color.green;
-        else
-            Gizmos.color = Color.red;
+        if (grounded) Gizmos.color = Color.green;
+        else Gizmos.color = Color.red;
 
         Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.01f));
         Gizmos.DrawWireSphere(origin, _capsuleRadius);
