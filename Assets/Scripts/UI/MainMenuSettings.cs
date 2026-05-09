@@ -44,4 +44,9 @@ public class MainMenuSettings : MonoBehaviour
         crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
         Debug.Log("Nişangah ayarları kaydedildi!");
     }
+
+    public void OnExit()
+    {
+        Application.Quit();
+    }
 }

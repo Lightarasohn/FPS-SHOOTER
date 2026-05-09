@@ -1,3 +1,5 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GlobalVariables
@@ -49,6 +51,22 @@ public class GlobalVariables
         RoundEnd,          // Round bitti, skor dağıtıldı
         MatchEnd           // Maç bitti (örn. 16'ya ulaşan kazandı)
     }
+
+    public enum AugmentType
+    {
+        Debuff = 0,
+        Buff = 1,
+        Normal = 2,
+    }
+
+    // Hem buff hem de debuff en az 3'er tane olmalı
+    public static List<BuffDebuff> ALL_BUFFS_AND_DEBUFFS = new List<BuffDebuff>
+    {
+        // Debuffs
+        new LowGravity(), new ZeroGravity(), new SlipperyGround(),
+        // Buffs
+        new InfiniteAmmo(), new DoubleDamage(), new DoubleHealth(),
+    };
 
     public static class WeaponRecoil
     {

@@ -102,7 +102,9 @@ public class PlayerWeapon : NetworkBehaviour
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
 
-            if (reloadPressed && Object.HasStateAuthority)
+            // DÜZELTME 1: Reload işleminden Object.HasStateAuthority kısıtlamasını kaldırdık.
+            // Artık Client şarjör değiştirdiğinde sunucuyu beklemeden anında mermisi dolacak (Prediction).
+            if (reloadPressed)
             {
                 if (CurrentMags > 0 && CurrentAmmo < WeaponData.MagCapacity)
                 {
@@ -142,7 +144,9 @@ public class PlayerWeapon : NetworkBehaviour
                     }
                 }
 
-                if (shouldShoot && Object.HasStateAuthority && CurrentAmmo > 0)
+                // DÜZELTME 2: Object.HasStateAuthority kısıtlamasını SİLDİK!
+                // Artık Client'lar ateş ettiğinde kendi bilgisayarlarında da bu bloğa girecekler.
+                if (shouldShoot && CurrentAmmo > 0)
                 {
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
