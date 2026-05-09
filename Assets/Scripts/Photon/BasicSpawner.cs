@@ -2,8 +2,10 @@ using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static GlobalVariables;
 
 
@@ -17,19 +19,26 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
 
 
+    [Header("Buttons")]
+    [SerializeField] public Button HostButton;
+    [SerializeField] public Button ClientButton;
+
     void Awake()
     {
         // Eğer sahnede halihazırda bir BasicSpawner varsa, sonradan geleni yok et.
         if (_instance != null && _instance != this)
+
         {
-            Destroy(gameObject);
+            Destroy(_instance.gameObject);
             return;
         }
+
+        _instance = this;
 
         DontDestroyOnLoad(gameObject);
     }
 
-    async void StartGame(GameMode mode)
+    async Task StartGame(GameMode mode)
     {
         _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
@@ -41,40 +50,64 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (scene.IsValid)
             sceneInfo.AddSceneRef(scene, LoadSceneMode.Single);
 
-        await _runner.StartGame(new StartGameArgs
+        try
         {
-            GameMode = mode,
-            Scene = sceneInfo,
-            SessionName = "TestSession",
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
+            await _runner.StartGame(new StartGameArgs
+            {
+                GameMode = mode,
+                Scene = sceneInfo,
+                SessionName = "TestSession",
+                SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+            });
 
-        if (SceneManager.GetActiveScene().buildIndex == 0)
+            if (SceneManager.GetActiveScene().buildIndex == 0)
+            {
+                _ = SceneManager.UnloadSceneAsync(0);
+            }
+        }
+        catch
         {
-            _ = SceneManager.UnloadSceneAsync(0);
+            if (mode == GameMode.Client)
+                NotificationScript.Instance.ShowNotification("Oyuna katılırken bir sorun oluştu.");
+            else
+                NotificationScript.Instance.ShowNotification("Oyun oluştururken bir sorun oluştu.");
         }
     }
 
-    private void OnGUI()
+    private async void OnGUI()
     {
         if (_runner == null && SceneManager.GetActiveScene().buildIndex != 0)
         {
             if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-                StartGame(GameMode.Host);
+                await StartGame(GameMode.Host);
 
             if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-                StartGame(GameMode.Client);
+                await StartGame(GameMode.Client);
         }
     }
     
-    public void StartGameAsHost()
+    public async void StartGameAsHost()
     {
-        StartGame(GameMode.Host);
+        HostButton.interactable = false;
+        ClientButton.interactable = false;
+
+        NotificationScript.Instance.ShowNotification("Oyun başlatılıyor");
+        await StartGame(GameMode.Host);
+
+        HostButton.interactable = true;
+        ClientButton.interactable = true;
     }
 
-    public void JoinGameAsClient()
+    public async void JoinGameAsClient()
     {
-        StartGame(GameMode.Client);
+        HostButton.interactable = false;
+        ClientButton.interactable = false;
+
+        NotificationScript.Instance.ShowNotification("Oyuna katılınıyor");
+        await StartGame(GameMode.Client);
+
+        HostButton.interactable = true;
+        ClientButton.interactable = true;
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
@@ -148,7 +181,14 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        SceneManager.LoadScene(0);
+
+        _instance = null;
+        Destroy(gameObject);
+
+        if(SceneManager.GetActiveScene().buildIndex != 0)
+        { 
+            SceneManager.LoadScene(0); 
+        }
     }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
