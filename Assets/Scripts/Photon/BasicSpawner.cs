@@ -146,7 +146,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             // Fusion'ın tüm ağ işlemlerini ve objeleri güvenle temizlemesini bekle
             runner.Shutdown();
         }
-
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         SceneManager.LoadScene(0);
     }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }

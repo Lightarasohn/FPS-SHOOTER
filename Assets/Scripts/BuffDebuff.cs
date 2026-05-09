@@ -160,6 +160,8 @@ public class InfiniteAmmo : BuffDebuff
         if (weapon != null)
         {
             weapon.WeaponData.MagAmount = _originalMagAmount;
+            weapon.CurrentMags = _originalMagAmount;
+            weapon.CurrentAmmo = weapon.WeaponData.MagCapacity;
         }
         else
         {
@@ -204,6 +206,8 @@ public class DoubleDamage : BuffDebuff
         {
             weapon.WeaponData.MagAmount = _originalMagAmount;
             weapon.WeaponData.Damage = _originalDamage;
+            weapon.CurrentMags = _originalMagAmount;
+            weapon.CurrentAmmo = weapon.WeaponData.MagCapacity;
         }
         else
         {

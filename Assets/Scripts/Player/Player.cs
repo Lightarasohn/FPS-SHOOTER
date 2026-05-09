@@ -34,15 +34,15 @@ public class Player : NetworkBehaviour
 
         bool isLocal = Object.HasInputAuthority;
 
-        if (Object.HasStateAuthority)
+        if (isLocal)
         {
             IsAlive = true;
+        }
 
-            // YENİ: Patron (Player), doğrudan Silah Slotuna (PlayerWeapon) emri veriyor!
-            if (EquippedWeapon != null)
-            {
-                EquippedWeapon.EquipWeapon(new AK47());
-            }
+        // YENİ: Patron (Player), doğrudan Silah Slotuna (PlayerWeapon) emri veriyor!
+        if (EquippedWeapon != null)
+        {
+            EquippedWeapon.EquipWeapon(new AK47());
         }
 
         if (!isLocal)
