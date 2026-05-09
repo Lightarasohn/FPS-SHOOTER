@@ -28,21 +28,43 @@ public class MainMenuSettings : MonoBehaviour
         crosshairTemplateManager.ApplyCrosshairSettings(currentSettings);
     }
 
+    public void ChangeCrosshairOnCrosshairSettingsChange()
+    {
+        Crosshair newSettings = new Crosshair(
+                (CrosshairType)typeDropdown.value,
+                lengthSlider.value,
+                widthSlider.value,
+                spaceSlider.value,
+                scaleSlider.value
+            );
+
+        crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
+    }
+
     // Bu fonksiyonu "Kaydet" butonuna veya Slider'ların "OnValueChanged" eventine bağlayabilirsin
 
     public void SaveSettingsFromUI()
     {
-        Crosshair newSettings = new Crosshair(
-            (CrosshairType)typeDropdown.value,
-            lengthSlider.value,
-            widthSlider.value,
-            spaceSlider.value,
-            scaleSlider.value
-        );
+        try
+        {
+            Crosshair newSettings = new Crosshair(
+                (CrosshairType)typeDropdown.value,
+                lengthSlider.value,
+                widthSlider.value,
+                spaceSlider.value,
+                scaleSlider.value
+            );
 
-        PlayerSaveManager.SaveCrosshair(newSettings);
-        crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
-        Debug.Log("Nişangah ayarları kaydedildi!");
+            PlayerSaveManager.SaveCrosshair(newSettings);
+            crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
+
+            NotificationScript.Instance.ShowNotification("Ayarlar kaydedildi");
+            Debug.Log("Nişangah ayarları kaydedildi!");
+        }
+        catch
+        {
+            NotificationScript.Instance.ShowNotification("Ayarlar kaydedilirken bir sorun oluştu");
+        }
     }
 
     public void OnExit()

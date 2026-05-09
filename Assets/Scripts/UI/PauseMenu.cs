@@ -39,35 +39,56 @@ public class PauseMenu : MonoBehaviour
         crosshairTemplateManager.ApplyCrosshairSettings(currentSettings);
     }
 
-    public void SaveSettingsFromUI()
+    public void ChangeCrosshairOnCrosshairSettingsChange()
     {
         Crosshair newSettings = new Crosshair(
-            (CrosshairType)typeDropdown.value,
-            lengthSlider.value,
-            widthSlider.value,
-            spaceSlider.value,
-            scaleSlider.value
-        );
+                (CrosshairType)typeDropdown.value,
+                lengthSlider.value,
+                widthSlider.value,
+                spaceSlider.value,
+                scaleSlider.value
+            );
 
-        // 1. Cihaza kaydet
-        PlayerSaveManager.SaveCrosshair(newSettings);
-
-        // 2. Pause menüsündeki önizlemeyi (template) güncelle
         crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
+    }
 
-        // 3. YENİ EKLENEN: Sahnede kendi karakterimizi bul ve oyun içi nişangahı anında güncelle
-        Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
-        foreach (Player p in allPlayers)
+    public void SaveSettingsFromUI()
+    {
+        try
         {
-            // Eğer oyuncunun objesi varsa ve "InputAuthority" bizdeyse (yani bizim karakterimizse)
-            if (p.Object != null && p.HasInputAuthority)
-            {
-                p.UpdateLocalCrosshair(newSettings);
-                break; // Kendi karakterimizi bulduğumuz için döngüyü sonlandır
-            }
-        }
+            Crosshair newSettings = new Crosshair(
+                (CrosshairType)typeDropdown.value,
+                lengthSlider.value,
+                widthSlider.value,
+                spaceSlider.value,
+                scaleSlider.value
+            );
 
-        Debug.Log("Nişangah ayarları kaydedildi ve anında uygulandı!");
+            // 1. Cihaza kaydet
+            PlayerSaveManager.SaveCrosshair(newSettings);
+
+            // 2. Pause menüsündeki önizlemeyi (template) güncelle
+            crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
+
+            // 3. YENİ EKLENEN: Sahnede kendi karakterimizi bul ve oyun içi nişangahı anında güncelle
+            Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
+            foreach (Player p in allPlayers)
+            {
+                // Eğer oyuncunun objesi varsa ve "InputAuthority" bizdeyse (yani bizim karakterimizse)
+                if (p.Object != null && p.HasInputAuthority)
+                {
+                    p.UpdateLocalCrosshair(newSettings);
+                    break; // Kendi karakterimizi bulduğumuz için döngüyü sonlandır
+                }
+            }
+
+            NotificationScript.Instance.ShowNotification("Ayarlar kaydedildi");
+            Debug.Log("Nişangah ayarları kaydedildi ve anında uygulandı!");
+        }
+        catch
+        {
+            NotificationScript.Instance.ShowNotification("Ayarlar kaydedilirken bir hata oluştu");
+        }
     }
 
     void Update()

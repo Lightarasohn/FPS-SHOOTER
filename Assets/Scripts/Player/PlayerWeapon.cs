@@ -161,10 +161,18 @@ public class PlayerWeapon : NetworkBehaviour
                             CurrentBulletIndex++;
                     }
 
+                    // --- PARALAKS ÇÖZÜMÜ BAŞLANGICI ---
+                    
                     Vector3 shootDirection = firePoint.forward;
+                    Vector3 raycastOrigin = firePoint.position; // Varsayılan çıkış noktası namlu
+
                     if (playerCamera != null)
                     {
+                        // 1. Yönü kameradan (sekme dahil) alıyoruz
                         shootDirection = playerCamera.GetShootDirection(transform);
+                        
+                        // 2. Işının çıkış noktasını NAMLU DEĞİL, GÖZ HİZASI (CamPivot) yapıyoruz!
+                        raycastOrigin = playerCamera.CameraPivot.position; 
                     }
 
                     float currentSpeed = playerMovement != null ? playerMovement.Velocity.magnitude : 0f;
@@ -178,14 +186,17 @@ public class PlayerWeapon : NetworkBehaviour
                         shootDirection.Normalize();
                     }
 
-                    CurrentAmmo--;
+                    CurrentAmmo--; 
 
                     bool hit = false;
-                    Vector3 hitPosition = firePoint.position + (shootDirection * WeaponData.FireRange);
+                    
+                    // Iskalanırsa hedeflenecek boşluk noktası (Artık raycastOrigin'den hesaplanıyor)
+                    Vector3 hitPosition = raycastOrigin + (shootDirection * WeaponData.FireRange);
                     Vector3 hitNormal = Vector3.up;
 
+                    // RAYCAST ARTIK 'raycastOrigin' (Yani Kamera) ÜZERİNDEN ÇIKIYOR
                     if (Runner.LagCompensation.Raycast(
-                        firePoint.position,
+                        raycastOrigin, 
                         shootDirection,
                         WeaponData.FireRange,
                         Object.InputAuthority,
@@ -202,6 +213,8 @@ public class PlayerWeapon : NetworkBehaviour
                             playerScript.TakeDamage(WeaponData.Damage, Owner);
                         }
                     }
+
+                    // --- PARALAKS ÇÖZÜMÜ BİTİŞİ ---
 
                     LastHitPosition = hitPosition;
                     LastHitNormal = hitNormal;
