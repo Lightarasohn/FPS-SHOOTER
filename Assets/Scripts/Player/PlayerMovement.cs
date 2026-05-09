@@ -50,10 +50,14 @@ public class PlayerMovement : NetworkBehaviour
     // Kapsül boyutunu artık sabit değil, dinamik yapıyoruz
     private float _capsuleHeight;
     private float _capsuleRadius = 0.35f;
+    private Player _playerScript;
+
 
     public override void Spawned()
     {
         _capsuleHeight = StandingHeight;
+        _playerScript = GetComponent<Player>();
+
     }
 
     public override void FixedUpdateNetwork()
@@ -64,7 +68,7 @@ public class PlayerMovement : NetworkBehaviour
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
             // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
-            bool canMove = true;
+            bool canMove = isAlive;
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
             {
                 canMove = false;
