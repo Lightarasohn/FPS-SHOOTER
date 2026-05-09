@@ -322,6 +322,7 @@ MonoBehaviour:
   SlideDuration: 1
   SlideSpeedMultiplier: 2
   PlayerPivot: {fileID: 5590398794584657195}
+  PlayerVisualBody: {fileID: 2315320648057289377}
   _Velocity: {x: 0, y: 0, z: 0}
   _IsGrounded: 0
   _IsCrouching: 0
