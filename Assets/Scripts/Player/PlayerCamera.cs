@@ -29,9 +29,12 @@ public class PlayerCamera : NetworkBehaviour
     // Ekranda anlık olarak görünen (Lerp edilen) yumuşak sekme
     private Vector2 _visualRecoil;
 
+    public Player PlayerScript;
+
     public override void Spawned()
     {
         _baseCameraHeight = StandingCameraHeight;
+        PlayerScript = GetComponentInParent<Player>();
     }
 
     // YENİDEN EKLENDİ: PlayerWeapon ateş ettiğinde kameraya sekmeyi bildirir
@@ -43,6 +46,7 @@ public class PlayerCamera : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
+        if (PlayerScript != null && !PlayerScript.IsAlive) return;
         if (GetInput(out NetworkInput input))
         {
             _currentPitch = input.LookPitch;

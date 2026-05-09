@@ -87,6 +87,7 @@ public class PauseMenu : MonoBehaviour
 
         // YENİ: Menü açıksa HUD'u gizle, menü kapalıysa HUD'u göster
         if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(!_isMenuOpen);
+        if(GameHUD.Instance != null) GameHUD.Instance.SetVisible(!_isMenuOpen);
 
         if (_isMenuOpen)
         {

@@ -14,6 +14,7 @@ public class GameManager : NetworkBehaviour
 
     // Oyundaki tüm oyuncuları tutacağımız liste
     private List<Player> _activePlayers = new List<Player>();
+    public IReadOnlyList<Player> ActivePlayers => _activePlayers;
 
     private void Awake()
     {
@@ -69,7 +70,7 @@ public class GameManager : NetworkBehaviour
 
         foreach (var player in _activePlayers)
         {
-            if (player.IsAlive) // Not: Önceki mesajlarda IsDead yaptıysan burayı !player.IsDead olarak değiştir
+            if (player.IsAlive) 
             {
                 if (player.PlayerTeam == Team.Red) teamRedAliveCount++;
                 else if (player.PlayerTeam == Team.Blue) teamBlueAliveCount++;
@@ -102,7 +103,7 @@ public class GameManager : NetworkBehaviour
         RoundTimer = TickTimer.CreateFromSeconds(Runner, 5f); // 5 saniye sonra yeni round başlar
     }
 
-    // GameManager içindeki FixedUpdateNetwork - STATE MACHINE AKIŞI
+    
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
@@ -154,6 +155,7 @@ public class GameManager : NetworkBehaviour
         {
             player.Health = 100;
             player.IsAlive = true;
+            player.ClearDamageHistory();
 
             // oyuncunun augmentini kaldır
             player.ClearAugments();
@@ -162,11 +164,15 @@ public class GameManager : NetworkBehaviour
             var customMovement = player.GetComponent<PlayerMovement>();
             if (customMovement != null)
             {
-                Debug.Log($"[GameManager] {player.name} için hareket sıfırlanıyor.");
+
                 customMovement.Velocity = Vector3.zero; // Kayma veya zıplama ivmesi varsa iptal et
                 customMovement.IsSliding = false;       // Eski rounddan kalan kaymayı iptal et
             }
-            // player.ResetWeaponAmmo();
+
+            if (player.EquippedWeapon != null)
+            {
+                player.EquippedWeapon.ResetAmmo();
+            }
             // 2. OYUNCUYU SPAWN NOKTASINA IŞINLA
             Transform spawnPoint = GetSpawnPointForTeam(player.PlayerTeam);
             if (spawnPoint != null)
@@ -193,10 +199,6 @@ public class GameManager : NetworkBehaviour
             {
                 return SpawnManager.Instance.blueSpawnPoint;
             }
-        }
-        else
-        {
-            Debug.LogError("[GameManager] Sahnede SpawnManager bulunamadı! Karakterler yanlış yerde doğabilir.");
         }
 
         // Eğer SpawnManager yoksa veya hata olursa GameManager'ın olduğu yeri (0,0,0) ver
