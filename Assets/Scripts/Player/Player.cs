@@ -1,4 +1,5 @@
 using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
 using static GlobalVariables;
 
@@ -7,6 +8,10 @@ public class Player : NetworkBehaviour
     [Networked] public float Health { get; set; } = 100;
     [Networked] public bool IsAlive { get; set; }
     [Networked] public Team PlayerTeam { get; set; }
+    [Networked] public NetworkString<_32> PlayerName { get; set; } 
+    [Networked] public int Kills { get; set; }
+    [Networked] public int Deaths { get; set; }
+    [Networked] public int Assists { get; set; }
 
     public int MaxHealth = 500;
     public int MinHealth = 0;
@@ -18,6 +23,7 @@ public class Player : NetworkBehaviour
     public PlayerWeapon EquippedWeapon;
 
     public BuffDebuff ActiveAugment { get; private set; }
+    private Dictionary<Player, float> _damageContributors = new Dictionary<Player, float>();
 
     public void Awake()
     {
@@ -29,6 +35,7 @@ public class Player : NetworkBehaviour
     {
         if (GameManager.Instance != null)
         {
+            // Oyuncu listeye eklenir
             GameManager.Instance.AddPlayer(this);
         }
 
@@ -38,7 +45,16 @@ public class Player : NetworkBehaviour
         {
             IsAlive = true;
         }
-
+            // --- YENİ: OTOMATİK İSİMLENDİRME SİSTEMİ ---
+            if (GameManager.Instance != null)
+            {
+                // Listede kaç kişi varsa, o sayıyı alıp ismine ekler.
+                // 1. giren için "Player 1", 2. giren için "Player 2" olur.
+                PlayerName = $"Player {GameManager.Instance.ActivePlayers.Count}";
+            }
+            // -------------------------------------------
+        }
+        
         // YENİ: Patron (Player), doğrudan Silah Slotuna (PlayerWeapon) emri veriyor!
         if (EquippedWeapon != null)
         {
@@ -70,25 +86,72 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, Player attacker)
     {
-        if (Object.HasStateAuthority && IsAlive)
-        {
-            Health -= damage;
-            if (Health <= 0)
-            {
-                Health = 0;
-                IsAlive = false;
+        if (!HasStateAuthority || !IsAlive) return;
 
-                if (GameManager.Instance != null)
+        Health -= damage;
+
+        // 1. HASAR VERENİ LİSTEYE EKLE / GÜNCELLE
+        if (attacker != null && attacker != this)
+        {
+            if (_damageContributors.ContainsKey(attacker))
+            {
+                // Zaten vurmuştu, hasarını üstüne ekle
+                _damageContributors[attacker] += damage;
+            }
+            else
+            {
+                // İlk defa vurdu, listeye ekle
+                _damageContributors.Add(attacker, damage);
+            }
+        }
+
+        // 2. ÖLÜM GERÇEKLEŞTİYSE
+        if (Health <= 0)
+        {
+            Health = 0;
+            IsAlive = false;
+
+            AddDeath();
+
+            if (attacker != null && attacker != this)
+            {
+                attacker.AddKill();
+            }
+
+            // 3. ASİSTLERİ HESAPLA
+            CalculateAssists(killer: attacker);
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.CheckWinCondition();
+            }
+        }
+    }
+    private void CalculateAssists(Player killer)
+    {
+        int assistThreshold = 40; // CS:GO tarzı: Asist almak için en az 40 hasar vermek gerekir
+
+        foreach (var contributor in _damageContributors)
+        {
+            Player potentialAssister = contributor.Key;
+            float damageDealt = contributor.Value;
+
+            // Eğer listedeki kişi asıl katil değilse ve yeterli hasarı vurduysa asist say
+            if (potentialAssister != killer && potentialAssister != null)
+            {
+                if (damageDealt >= assistThreshold)
                 {
-                    GameManager.Instance.CheckWinCondition();
+                    potentialAssister.AddAssist();
+                    Debug.Log($"{potentialAssister.PlayerName}, {damageDealt} hasar vurarak asist yaptı!");
                 }
             }
         }
     }
 
-    public void UpdateLocalCrosshair(Crosshair newCrosshair)
+
+public void UpdateLocalCrosshair(Crosshair newCrosshair)
     {
         if (!Object.HasInputAuthority) return;
 
@@ -182,5 +245,16 @@ public class Player : NetworkBehaviour
 
             PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
         }
+    }
+    public void AddKill() => Kills++;
+    public void AddDeath() => Deaths++;
+    public void AddAssist() => Assists++;
+    public bool CanAct()
+    {
+        return IsAlive && GameManager.Instance != null;
+    }
+    public void ClearDamageHistory()
+    {
+        _damageContributors.Clear();
     }
 }
