@@ -68,7 +68,7 @@ public class PlayerMovement : NetworkBehaviour
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
             // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
-            bool canMove = isAlive;
+            bool canMove = _playerScript.IsAlive;
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
             {
                 canMove = false;

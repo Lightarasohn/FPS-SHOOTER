@@ -45,16 +45,16 @@ public class Player : NetworkBehaviour
         {
             IsAlive = true;
         }
-            // --- YENİ: OTOMATİK İSİMLENDİRME SİSTEMİ ---
-            if (GameManager.Instance != null)
-            {
-                // Listede kaç kişi varsa, o sayıyı alıp ismine ekler.
-                // 1. giren için "Player 1", 2. giren için "Player 2" olur.
-                PlayerName = $"Player {GameManager.Instance.ActivePlayers.Count}";
-            }
-            // -------------------------------------------
+        // --- YENİ: OTOMATİK İSİMLENDİRME SİSTEMİ ---
+        if (GameManager.Instance != null)
+        {
+            // Listede kaç kişi varsa, o sayıyı alıp ismine ekler.
+            // 1. giren için "Player 1", 2. giren için "Player 2" olur.
+            PlayerName = $"Player {GameManager.Instance.ActivePlayers.Count}";
         }
-        
+        // -------------------------------------------
+
+
         // YENİ: Patron (Player), doğrudan Silah Slotuna (PlayerWeapon) emri veriyor!
         if (EquippedWeapon != null)
         {
@@ -77,6 +77,7 @@ public class Player : NetworkBehaviour
             }
         }
     }
+    
 
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
@@ -151,7 +152,7 @@ public class Player : NetworkBehaviour
     }
 
 
-public void UpdateLocalCrosshair(Crosshair newCrosshair)
+    public void UpdateLocalCrosshair(Crosshair newCrosshair)
     {
         if (!Object.HasInputAuthority) return;
 
