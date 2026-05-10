@@ -125,7 +125,8 @@ public class PauseMenu : MonoBehaviour
     // Metodu 'async void' yaparak bekletme (await) özelliği kazandırıyoruz
     async void DisconnectFromGame()
     {
-        // Butona art arda basılmasını engellemek için menüyü gizle veya butonu deaktif et
+        try
+        {// Butona art arda basılmasını engellemek için menüyü gizle veya butonu deaktif et
         pauseMenuPanel.SetActive(false);
         disconnectButton.interactable = false;
 
@@ -140,7 +141,13 @@ public class PauseMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Fusion tamamen kapandıktan sonra temiz bir şekilde ana menüye dön
-        SceneManager.LoadScene(mainMenuSceneIndex);
+            // Fusion tamamen kapandıktan sonra temiz bir şekilde ana menüye dön
+            SceneManager.LoadScene(mainMenuSceneIndex);
+        }
+        catch
+        {
+            pauseMenuPanel.SetActive(true);
+            disconnectButton.interactable = true;
+        }
     }
 }

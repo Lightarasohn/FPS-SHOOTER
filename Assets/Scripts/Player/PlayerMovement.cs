@@ -323,6 +323,11 @@ public class PlayerMovement : NetworkBehaviour
         float skinWidth = 0.015f;
         Vector3 originalVelocity = currentVelocity;
 
+        // --- YENİ EKLENEN HAYAT KURTARICI SATIR ---
+        // PlayerPivot'un ana transform'a göre olan lokal farkını buluyoruz.
+        // Bu sayede fizik kapsülünü her zaman ayak hizasına (Pivot'a) sabitliyoruz!
+        Vector3 pivotOffset = PlayerPivot.position - transform.position;
+
         for (int i = 0; i < maxBounces; i++)
         {
             Vector3 direction = targetPos - currentPos;
@@ -330,9 +335,13 @@ public class PlayerMovement : NetworkBehaviour
 
             if (distance < 0.001f) break;
 
-            Vector3 p1 = currentPos + Vector3.up * _capsuleRadius;
-            Vector3 p2 = currentPos + Vector3.up * (_capsuleHeight - _capsuleRadius);
+            // --- DÜZELTİLEN KISIM BAŞLANGICI ---
+            // Artık currentPos'a pivotOffset ekleyerek hesaplamayı tam ayaklardan (PlayerPivot) başlatıyoruz
+            Vector3 basePos = currentPos + pivotOffset;
+            Vector3 p1 = basePos + Vector3.up * _capsuleRadius;
+            Vector3 p2 = basePos + Vector3.up * (_capsuleHeight - _capsuleRadius);
             float castRadius = _capsuleRadius - 0.01f;
+            // --- DÜZELTİLEN KISIM BİTİŞİ ---
 
             if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, ~LayerMask.GetMask("Player")))
             {
