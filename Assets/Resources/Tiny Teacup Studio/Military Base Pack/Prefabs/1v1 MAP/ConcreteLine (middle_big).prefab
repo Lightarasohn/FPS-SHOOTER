@@ -1,0 +1,178 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1728381129291750056
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5.29
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.13
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 7.04
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.87514615
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.53
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -6.1108704
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_Name
+      value: ConcreteLine (middle_big)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1245257889928676082}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2132325364616126776}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1688870051065587386}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6448197759569249626}
+  m_SourcePrefab: {fileID: 100100000, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+--- !u!1 &1962752136058071033 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cf4c16720fab71d439b0e6f26e63d921, type: 3}
+  m_PrefabInstance: {fileID: 1728381129291750056}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1245257889928676082
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962752136058071033}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 2, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2132325364616126776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962752136058071033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 1
+  SphereRadius: 0
+  CapsuleRadius: 0
+  BoxExtents: {x: 5.3, y: 2.14, z: 7.05}
+  CapsuleExtents: 0
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 1688870051065587386}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &1688870051065587386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962752136058071033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
+  Config: 3
+  BroadRadius: 9.075908
+  Offset: {x: 0, y: 0, z: 0}
+  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  Hitboxes:
+  - {fileID: 2132325364616126776}
+--- !u!114 &6448197759569249626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962752136058071033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 482203188
+  ObjectInterest: 1
+  Flags: 327681
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 1688870051065587386}
+  ForceRemoteRenderTimeframe: 0
