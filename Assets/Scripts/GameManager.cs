@@ -8,8 +8,8 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance;
 
     [Networked] public RoundState CurrentState { get; set; }
-    [Networked] public int TeamRedScore { get; set; } // Red Team
-    [Networked] public int TeamBlueScore { get; set; } // Blue Team
+    [Networked] public int TeamRedScore { get; set; } = 0; // Red Team
+    [Networked] public int TeamBlueScore { get; set; } = 0; // Blue Team
     [Networked] public TickTimer RoundTimer { get; set; }
 
     // Oyundaki tüm oyuncuları tutacağımız liste
