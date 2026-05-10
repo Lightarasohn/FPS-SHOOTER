@@ -170,7 +170,8 @@ public class PlayerWeapon : NetworkBehaviour
                         }
                         // ----------------------------------------------------------------
 
-                        if (playerCamera != null && Object.HasInputAuthority)
+                        // DOĞRU KULLANIM: Host da bu matematiği hesaplamalı ki merminin nereye sektiğini bilsin!
+                        if (playerCamera != null)
                         {
                             playerCamera.ApplyRecoil(CurrentShotRecoil);
                         }
@@ -187,7 +188,22 @@ public class PlayerWeapon : NetworkBehaviour
                     if (playerCamera != null)
                     {
                         shootDirection = playerCamera.GetShootDirection(transform);
-                        raycastOrigin = playerCamera.CameraPivot.position;
+
+                        // YENİ VE KUSURSUZ ÇÖZÜM:
+                        // Görsel (Render) pozisyonuna güvenmek yerine, oyuncunun o anki
+                        // OLMASI GEREKEN boyunu matematiksel olarak buluyoruz.
+                        float targetCamHeight = playerCamera.StandingCameraHeight;
+
+                        if (playerMovement != null && playerMovement.IsCrouching)
+                        {
+                            targetCamHeight = playerCamera.CrouchingCameraHeight;
+                        }
+
+                        // PlayerWeapon.cs içerisindeki o satırı şu şekilde değiştir:
+                        Vector3 exactLocalPos = new Vector3(0f, targetCamHeight, 0f);
+
+                        // Elde ettiğimiz bu lokal pozisyonu, dünyadaki (World Space) gerçek yerine çeviriyoruz.
+                        raycastOrigin = transform.TransformPoint(exactLocalPos);
                     }
 
                     float currentSpeed = playerMovement != null ? playerMovement.Velocity.magnitude : 0f;

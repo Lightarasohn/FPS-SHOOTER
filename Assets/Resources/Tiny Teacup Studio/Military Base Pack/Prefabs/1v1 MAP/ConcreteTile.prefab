@@ -79,15 +79,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e1f80ab628e80a946a2716df7734673b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3145491841114659313}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e1f80ab628e80a946a2716df7734673b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3989671462192253452}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e1f80ab628e80a946a2716df7734673b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2235290196722350653}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e1f80ab628e80a946a2716df7734673b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2319268280066816915}
   m_SourcePrefab: {fileID: 100100000, guid: e1f80ab628e80a946a2716df7734673b, type: 3}
 --- !u!1 &5245177405575094352 stripped
 GameObject:
@@ -115,60 +106,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 30.000004, y: 0.050000016, z: 29.999998}
   m_Center: {x: 0, y: 0.025, z: 0}
---- !u!114 &3989671462192253452
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5245177405575094352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
-  Type: 1
-  SphereRadius: 0
-  CapsuleRadius: 0
-  BoxExtents: {x: 43.65, y: 0.043, z: 47.65}
-  CapsuleExtents: 0
-  Offset: {x: 0, y: 0.043, z: 0}
-  Root: {fileID: 2235290196722350653}
-  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
---- !u!114 &2235290196722350653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5245177405575094352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
-  Config: 3
-  BroadRadius: 64.663795
-  Offset: {x: 0, y: 0, z: 0}
-  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  Hitboxes:
-  - {fileID: 3989671462192253452}
---- !u!114 &2319268280066816915
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5245177405575094352}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1874427194
-  ObjectInterest: 1
-  Flags: 327681
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 2235290196722350653}
-  ForceRemoteRenderTimeframe: 0

@@ -35,7 +35,7 @@ public class PlayerCamera : NetworkBehaviour
     public float RecoilScale = 2f;
 
     // Asıl ulaşmamız gereken sekme (Ağdan/Weapon'dan gelecek)
-    private Vector2 _targetRecoil;
+    [Networked] private Vector2 _targetRecoil { get; set; }
     // Ekranda anlık olarak görünen (Lerp edilen) yumuşak sekme
     private Vector2 _visualRecoil;
 
