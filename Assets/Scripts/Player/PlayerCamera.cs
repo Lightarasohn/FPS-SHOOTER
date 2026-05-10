@@ -15,6 +15,16 @@ public class PlayerCamera : NetworkBehaviour
     public Transform CameraPivot;
     public PlayerMovement PlayerMovementScript;
 
+    // --- YENİ EKLENEN: ADS (Nişan Alma) Ayarları ve Referansları ---
+    [Header("ADS (Nişan Alma) Ayarları")]
+    public float NormalFOV = 60f;
+    public float AimFOV = 40f; // Sağ tıka basınca FOV bu değere düşecek (Zoom)
+    public float ADSSpeed = 15f; // Zoom yapılma hızı
+
+    private Camera _cam;
+    private bool _isAiming;
+    // ---------------------------------------------------------------
+
     private float _currentPitch;
 
     [Header("Recoil (Sekme) Ayarları")]
@@ -35,7 +45,19 @@ public class PlayerCamera : NetworkBehaviour
     {
         _baseCameraHeight = StandingCameraHeight;
         PlayerScript = GetComponentInParent<Player>();
+
+        // --- YENİ EKLENEN: Kamerayı otomatik bul ---
+        _cam = GetComponentInChildren<Camera>();
+        if (_cam != null) NormalFOV = _cam.fieldOfView; // Oyunun başındaki FOV'u varsayılan olarak ayarla
+        // ---------------------------------------------
     }
+
+    // --- YENİ EKLENEN: PlayerWeapon'dan çağırılacak Nişan Alma Fonksiyonu ---
+    public void HandleADS(bool isAiming)
+    {
+        _isAiming = isAiming;
+    }
+    // ------------------------------------------------------------------------
 
     // YENİDEN EKLENDİ: PlayerWeapon ateş ettiğinde kameraya sekmeyi bildirir
     public void ApplyRecoil(Vector2 recoilOffset)
@@ -90,6 +112,14 @@ public class PlayerCamera : NetworkBehaviour
         Vector3 camPos = CameraPivot.localPosition;
         camPos.y = Mathf.Lerp(camPos.y, _baseCameraHeight + bobOffset, Time.deltaTime * 15f);
         CameraPivot.localPosition = camPos;
+
+        // --- YENİ EKLENEN: FOV ZOOM UYGULAMA (GÖRSEL) ---
+        if (_cam != null)
+        {
+            float targetFOV = _isAiming ? AimFOV : NormalFOV;
+            _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, targetFOV, Time.deltaTime * ADSSpeed);
+        }
+        // ------------------------------------------------
     }
 
     // YENİDEN EKLENDİ: Merminin TAM olarak nereye (Crosshair'in üstüne vs.) gideceğini hesaplar.

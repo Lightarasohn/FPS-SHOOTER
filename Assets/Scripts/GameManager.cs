@@ -7,6 +7,9 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
 
+    // YENİ: Ağa bağlandığını diğer scriptlere haber verecek kilit
+    public bool IsReady { get; private set; }
+
     [Networked] public RoundState CurrentState { get; set; }
     [Networked] public int TeamRedScore { get; set; } // Red Team
     [Networked] public int TeamBlueScore { get; set; } // Blue Team
@@ -20,6 +23,20 @@ public class GameManager : NetworkBehaviour
     {
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    // YENİ EKLENEN METOD
+    public override void Spawned()
+    {
+        // Fusion bu objeyi ağa bağladığı an burası çalışır
+        IsReady = true;
+
+        // Garanti olsun diye skorları sunucuda tam bu anda 0'a sabitliyoruz
+        if (HasStateAuthority)
+        {
+            TeamRedScore = 0;
+            TeamBlueScore = 0;
+        }
     }
 
     public void AddPlayer(Player player)

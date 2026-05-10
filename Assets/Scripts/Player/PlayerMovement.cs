@@ -25,6 +25,10 @@ public class PlayerMovement : NetworkBehaviour
     public float SprintSpeedMultiplier = 1.5f;
     public bool IsSprinting = false;
 
+    // --- YENİ: Nişan Alma (ADS) Ayarları ---
+    [Header("Nişan Alma (ADS) Ayarları")]
+    public float ADSSpeedMultiplier = 0.5f; // Nişan alırken hızın % kaçına düşülecek?
+
     // Kayma Ayarları (Slide)
     [Header("Kayma (Slide) Ayarları")]
     public float SlideDuration = 2f; // MADDE 3: Yerde maksimum 2 saniye kalsın
@@ -75,8 +79,12 @@ public class PlayerMovement : NetworkBehaviour
             }
 
             // Girdileri al
+            // 1. Önce nişan alıp almadığını en baştan okuyoruz
+            bool isAiming = canMove && input.Buttons.IsSet(PlayerAction.Aim);
             bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
-            IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint);
+
+            // 2. EĞER NİŞAN ALIYORSA KOŞMAYI İPTAL ET (!isAiming ekledik)
+            IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint) && !isAiming;
 
             // Sadece ileri doğru (Y ekseninde) gidiyorsa kayabilsin
             bool isMovingForward = input.MoveDirection.y > 0;
@@ -176,9 +184,25 @@ public class PlayerMovement : NetworkBehaviour
 
                 float currentMaxSpeed = MaxGroundSpeed;
 
-                if (IsSliding) currentMaxSpeed = MaxGroundSpeed * SlideSpeedMultiplier;
-                else if (IsCrouching) currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
-                else if (IsSprinting) currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
+                // DİKKAT: "bool isAiming = ..." satırını sildik çünkü artık yukarıda hesaplanıyor!
+
+                if (IsSliding)
+                {
+                    currentMaxSpeed = MaxGroundSpeed * SlideSpeedMultiplier;
+                }
+                else if (IsCrouching)
+                {
+                    currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
+                    if (isAiming) currentMaxSpeed *= ADSSpeedMultiplier; // Eğilirken nişan alırsa daha da yavaşlar
+                }
+                else if (IsSprinting)
+                {
+                    currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
+                }
+                else if (isAiming) // Sadece yürürken nişan alıyorsa
+                {
+                    currentMaxSpeed *= ADSSpeedMultiplier;
+                }
 
                 Accelerate(ref currentVelocity, wishDir, currentMaxSpeed, GroundAcceleration, Runner.DeltaTime);
 
@@ -299,6 +323,11 @@ public class PlayerMovement : NetworkBehaviour
         float skinWidth = 0.015f;
         Vector3 originalVelocity = currentVelocity;
 
+        // --- YENİ EKLENEN HAYAT KURTARICI SATIR ---
+        // PlayerPivot'un ana transform'a göre olan lokal farkını buluyoruz.
+        // Bu sayede fizik kapsülünü her zaman ayak hizasına (Pivot'a) sabitliyoruz!
+        Vector3 pivotOffset = PlayerPivot.position - transform.position;
+
         for (int i = 0; i < maxBounces; i++)
         {
             Vector3 direction = targetPos - currentPos;
@@ -306,9 +335,13 @@ public class PlayerMovement : NetworkBehaviour
 
             if (distance < 0.001f) break;
 
-            Vector3 p1 = currentPos + Vector3.up * _capsuleRadius;
-            Vector3 p2 = currentPos + Vector3.up * (_capsuleHeight - _capsuleRadius);
+            // --- DÜZELTİLEN KISIM BAŞLANGICI ---
+            // Artık currentPos'a pivotOffset ekleyerek hesaplamayı tam ayaklardan (PlayerPivot) başlatıyoruz
+            Vector3 basePos = currentPos + pivotOffset;
+            Vector3 p1 = basePos + Vector3.up * _capsuleRadius;
+            Vector3 p2 = basePos + Vector3.up * (_capsuleHeight - _capsuleRadius);
             float castRadius = _capsuleRadius - 0.01f;
+            // --- DÜZELTİLEN KISIM BİTİŞİ ---
 
             if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, ~LayerMask.GetMask("Player")))
             {

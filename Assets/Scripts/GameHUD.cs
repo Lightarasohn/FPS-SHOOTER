@@ -31,6 +31,10 @@ public class GameHUD : MonoBehaviour
        
             return; // Aşağıdaki skor güncelleme kodlarını boşuna çalıştırma
         }
+
+        // DÜZELTME: GameManager henüz AĞA BAĞLANMADIYSA hiçbir şey yapma!
+        if (GameManager.Instance == null || !GameManager.Instance.IsReady) return;
+
         // Değerleri güncelle
         UpdateScores();
         UpdateTime();

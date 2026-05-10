@@ -11,7 +11,8 @@ public class GlobalVariables
         Crouch = 1,
         sprint = 2,      // CS:GO'daki Shift ile yürüme (sessiz/yavaş)
         Fire = 3,      // Sol tık (Ateş)
-        Reload = 4     // R tuşu
+        Reload = 4,     // R tuşu
+        Aim = 5,    // Sağ tık (Nişan alma)
     }
 
     // Silah türleri
