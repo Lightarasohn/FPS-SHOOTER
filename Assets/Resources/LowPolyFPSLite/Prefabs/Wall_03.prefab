@@ -12,9 +12,6 @@ GameObject:
   - component: {fileID: 505217068925162552}
   - component: {fileID: 2370603654566600946}
   - component: {fileID: 4861503338453483991}
-  - component: {fileID: -4488670496209160292}
-  - component: {fileID: 6322759699569659674}
-  - component: {fileID: -3275166722393070644}
   m_Layer: 8
   m_Name: Wall_03
   m_TagString: Untagged
@@ -115,59 +112,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 10, y: 5, z: 0.3641686}
   m_Center: {x: 0, y: 2.5, z: 0}
---- !u!114 &-4488670496209160292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4316400104262123815}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
-  Config: 3
-  BroadRadius: 0
-  Offset: {x: 0, y: 0, z: 0}
-  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  Hitboxes: []
---- !u!114 &6322759699569659674
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4316400104262123815}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2503888707
-  ObjectInterest: 1
-  Flags: 327681
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: -4488670496209160292}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &-3275166722393070644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4316400104262123815}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
-  Type: 1
-  SphereRadius: 0
-  CapsuleRadius: 0
-  BoxExtents: {x: -10.1, y: 5, z: 0.65}
-  CapsuleExtents: 0
-  Offset: {x: 0, y: 4.87, z: 0}
-  Root: {fileID: 0}
-  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

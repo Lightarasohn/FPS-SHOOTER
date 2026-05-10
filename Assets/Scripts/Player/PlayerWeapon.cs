@@ -216,22 +216,37 @@ public class PlayerWeapon : NetworkBehaviour
                     Vector3 hitPosition = raycastOrigin + (shootDirection * WeaponData.FireRange);
                     Vector3 hitNormal = Vector3.up;
 
+                    // HitOptions parametresi ile normal duvarlara (PhysX) çarpmasını garanti altına alıyoruz
                     if (Runner.LagCompensation.Raycast(
                         raycastOrigin,
                         shootDirection,
                         WeaponData.FireRange,
-                        Object.InputAuthority,
+                        Object.InputAuthority, // Kendi kendimizi vurmamızı engeller
                         out var hitResult,
-                        LayerMask.GetMask("Player", "Default", "Ground", "Environment")))
+                        LayerMask.GetMask("Player", "Default", "Ground", "Environment"),
+                        HitOptions.IncludePhysX | HitOptions.IgnoreInputAuthority))
                     {
                         hit = true;
                         hitPosition = hitResult.Point;
                         hitNormal = hitResult.Normal;
 
-                        var playerScript = hitResult.Hitbox != null ? hitResult.Hitbox.GetComponent<Player>() : null;
-                        if (playerScript != null)
+                        // Eğer vurduğumuz şey bir Fusion Hitbox ise
+                        if (hitResult.Hitbox != null)
                         {
-                            playerScript.TakeDamage(WeaponData.Damage, Owner);
+                            // DİKKAT: Hitbox'ın bulunduğu objeden değil, onun bağlı olduğu KÖK (Root) objeden Player'ı arıyoruz!
+                            var playerScript = hitResult.Hitbox.Root.GetComponent<Player>();
+
+                            if (playerScript != null)
+                            {
+                                playerScript.TakeDamage(WeaponData.Damage, Owner); // (Eğer fonksiyona Owner da eklediyseniz onu da yazabilirsiniz)
+                                Debug.Log("adama çarpıldı: ");
+                            }
+                        }
+                        // Eğer vurduğumuz şey Hitbox değil de normal bir duvarsa (PhysX)
+                        else if (hitResult.Collider != null)
+                        {
+                            // Buraya duvara mermi izi (decal) veya kıvılcım efekti çıkaran kodlarını yazabilirsin
+                            Debug.Log("Duvara veya çevreye çarpıldı: " + hitResult.Collider.name);
                         }
                     }
                     LastHitPosition = hitPosition;
