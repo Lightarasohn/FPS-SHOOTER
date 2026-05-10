@@ -17,6 +17,7 @@ public class PlayerWeapon : NetworkBehaviour
     // --- YENİ: AĞ DEĞİŞKENLERİ (Mermiler artık burada yaşıyor) ---
     [Networked] public int CurrentAmmo { get; set; }
     [Networked] public int CurrentMags { get; set; }
+    [Networked] public bool IsAiming { get; set; }
 
     // Çarpışma bilgisini ağda taşımak için struct
     [Networked] public Vector3 LastHitPosition { get; set; }
@@ -98,9 +99,19 @@ public class PlayerWeapon : NetworkBehaviour
                 PreviousButtons = input.Buttons;
                 return;
             }
+            
             bool firePressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Fire);
             bool fireHeld = input.Buttons.IsSet(PlayerAction.Fire);
             bool reloadPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Reload);
+
+            // YENİ: Nişan alma (Sağ tık) inputunu oku
+            IsAiming = input.Buttons.IsSet(PlayerAction.Aim);
+
+            // Kameraya nişan alıp almadığımızı bildir (Sadece lokal oyuncuda kamerayı hareket ettir)
+            if (HasInputAuthority && playerCamera != null)
+            {
+                playerCamera.HandleADS(IsAiming);
+            }
 
             // DÜZELTME 1: Reload işleminden Object.HasStateAuthority kısıtlamasını kaldırdık.
             // Artık Client şarjör değiştirdiğinde sunucuyu beklemeden anında mermisi dolacak (Prediction).
@@ -152,6 +163,13 @@ public class PlayerWeapon : NetworkBehaviour
                     {
                         CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
 
+                        // --- YENİ 1: NİŞAN ALIRKEN KAMERANIN SEKMESİNİ (RECOIL) AZALT ---
+                        if (IsAiming)
+                        {
+                            CurrentShotRecoil *= 0.5f; // Nişan alırken kamera %50 daha az seker
+                        }
+                        // ----------------------------------------------------------------
+
                         if (playerCamera != null && Object.HasInputAuthority)
                         {
                             playerCamera.ApplyRecoil(CurrentShotRecoil);
@@ -162,22 +180,27 @@ public class PlayerWeapon : NetworkBehaviour
                     }
 
                     // --- PARALAKS ÇÖZÜMÜ BAŞLANGICI ---
-                    
+
                     Vector3 shootDirection = firePoint.forward;
-                    Vector3 raycastOrigin = firePoint.position; // Varsayılan çıkış noktası namlu
+                    Vector3 raycastOrigin = firePoint.position;
 
                     if (playerCamera != null)
                     {
-                        // 1. Yönü kameradan (sekme dahil) alıyoruz
                         shootDirection = playerCamera.GetShootDirection(transform);
-                        
-                        // 2. Işının çıkış noktasını NAMLU DEĞİL, GÖZ HİZASI (CamPivot) yapıyoruz!
-                        raycastOrigin = playerCamera.CameraPivot.position; 
+                        raycastOrigin = playerCamera.CameraPivot.position;
                     }
 
                     float currentSpeed = playerMovement != null ? playerMovement.Velocity.magnitude : 0f;
+
                     float currentSpread = WeaponData.BaseSpread + (currentSpeed * WeaponData.MovementSpreadMultiplier);
                     currentSpread = Mathf.Clamp(currentSpread, WeaponData.BaseSpread, WeaponData.MaxSpread);
+
+                    // --- YENİ 2: NİŞAN ALIRKEN RASTGELE DAĞILIMI (SPREAD) SIFIRLA VEYA ÇOK DÜŞÜR ---
+                    if (IsAiming)
+                    {
+                        // %60 daha az spread
+                        currentSpread *= 0.4f;
+                    }
 
                     if (currentSpread > 0f)
                     {
@@ -186,22 +209,20 @@ public class PlayerWeapon : NetworkBehaviour
                         shootDirection.Normalize();
                     }
 
-                    CurrentAmmo--; 
+                    CurrentAmmo--;
 
                     bool hit = false;
-                    
-                    // Iskalanırsa hedeflenecek boşluk noktası (Artık raycastOrigin'den hesaplanıyor)
+
                     Vector3 hitPosition = raycastOrigin + (shootDirection * WeaponData.FireRange);
                     Vector3 hitNormal = Vector3.up;
 
-                    // RAYCAST ARTIK 'raycastOrigin' (Yani Kamera) ÜZERİNDEN ÇIKIYOR
                     if (Runner.LagCompensation.Raycast(
-                        raycastOrigin, 
+                        raycastOrigin,
                         shootDirection,
                         WeaponData.FireRange,
                         Object.InputAuthority,
                         out var hitResult,
-                        LayerMask.GetMask("Player", "Default", "Ground" , "Environment")))
+                        LayerMask.GetMask("Player", "Default", "Ground", "Environment")))
                     {
                         hit = true;
                         hitPosition = hitResult.Point;
@@ -213,9 +234,6 @@ public class PlayerWeapon : NetworkBehaviour
                             playerScript.TakeDamage(WeaponData.Damage, Owner);
                         }
                     }
-
-                    // --- PARALAKS ÇÖZÜMÜ BİTİŞİ ---
-
                     LastHitPosition = hitPosition;
                     LastHitNormal = hitNormal;
                     LastShotDidHit = hit;
