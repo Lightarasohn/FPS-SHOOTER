@@ -7,6 +7,7 @@ public class PlayerHUD : MonoBehaviour
 
     [Header("UI Referansları")]
     public TextMeshProUGUI CanText;
+    public TMP_Text ArmorText;
     public TextMeshProUGUI MermiText;
 
     // YENİ: Asıl nişangah yöneticimizi buraya sürüklüyoruz
@@ -23,9 +24,10 @@ public class PlayerHUD : MonoBehaviour
         SetVisible(false);
     }
 
-    public void ArayuzuGuncelle(int can, int mevcutMermi, int yedekMermi)
+    public void ArayuzuGuncelle(int can, int armor, int mevcutMermi, int yedekMermi)
     {
-        if (CanText != null) CanText.text = "+" + can.ToString();
+        if (CanText != null) CanText.text = can.ToString();
+        if (ArmorText != null) ArmorText.text = armor.ToString();
         if (MermiText != null) MermiText.text = mevcutMermi.ToString() + " / " + yedekMermi.ToString();
     }
 

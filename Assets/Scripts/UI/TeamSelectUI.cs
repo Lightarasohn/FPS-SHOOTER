@@ -46,6 +46,8 @@ public class TeamSelectUI : MonoBehaviour
     {
         if (PlayerState.Local != null)
         {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             PlayerState.Local.RPC_RequestSpawn(team);
 
             // Seçim yapıldıktan sonra menüyü GİZLE
