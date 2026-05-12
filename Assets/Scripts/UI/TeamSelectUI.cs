@@ -46,16 +46,31 @@ public class TeamSelectUI : MonoBehaviour
     {
         if (PlayerState.Local != null)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            PlayerState.Local.RPC_RequestSpawn(team);
+            if (!PlayerState.IsSpawned)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                PlayerState.Local.RPC_RequestSpawn(team);
 
-            // Seçim yapıldıktan sonra menüyü GİZLE
-            teamSelectionPanel.SetActive(false);
+                // Seçim yapıldıktan sonra menüyü GİZLE
+                teamSelectionPanel.SetActive(false);
 
-            // YENİ: Takım seçildiğinde (oyuna girildiğinde) HUD'u göster
-            if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(true);
-            if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(true);
+                // YENİ: Takım seçildiğinde (oyuna girildiğinde) HUD'u göster
+                if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(true);
+                if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(true);
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+
+                PlayerState.Local.RPC_RequestTeamChange(team);
+
+                teamSelectionPanel.SetActive(false);
+
+                if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(true);
+                if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(true);
+            }
         }
     }
 }
