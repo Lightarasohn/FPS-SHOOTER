@@ -33,7 +33,7 @@ public class BuffDebuffScript : MonoBehaviour
     // YENİ: Senin anlattığın süzgeç mantığı burada çalışıyor
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsReady) return;
+        if (GameManager.Instance == null || !GameManager.Instance.IsReady || GameManager.Instance.Object == null || !GameManager.Instance.Object.IsValid) return;
 
         RoundState currentState = GameManager.Instance.CurrentState;
 
