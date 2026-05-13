@@ -267,6 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   _Health: 100
+  _Armor: 100
   _IsAlive: 0
   _PlayerTeam: 0
   _PlayerName:
@@ -278,6 +279,7 @@ MonoBehaviour:
   _Assists: 0
   MaxHealth: 500
   MinHealth: 0
+  ArmorEfectiveness: 2
   DefaultColor: {r: 0, g: 0, b: 1, a: 1}
   PlayerBodyRenderer: {fileID: 56267249448732040}
   PlayerCrosshair:
@@ -326,6 +328,7 @@ MonoBehaviour:
   CrouchTransitionSpeed: 10
   SprintSpeedMultiplier: 1.5
   IsSprinting: 0
+  ADSSpeedMultiplier: 0.5
   SlideDuration: 1
   SlideSpeedMultiplier: 2
   SlideCooldownTime: 0.5

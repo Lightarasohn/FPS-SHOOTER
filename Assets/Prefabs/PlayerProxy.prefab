@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerState
   _characterPrefab:
-    RawGuidValue: 0c5d6dd6bc3e1a340995f1ff605cc40a
+    RawGuidValue: bf54ec2da050254489e4e238336be1b3
 --- !u!114 &2017918211426097726
 MonoBehaviour:
   m_ObjectHideFlags: 0
