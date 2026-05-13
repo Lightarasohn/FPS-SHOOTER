@@ -252,10 +252,14 @@ public class PlayerWeapon : NetworkBehaviour
                             // DİKKAT: Hitbox'ın bulunduğu objeden değil, onun bağlı olduğu KÖK (Root) objeden Player'ı arıyoruz!
                             var playerScript = hitResult.Hitbox.Root.GetComponent<Player>();
 
-                            if (playerScript != null)
+                            if (playerScript != null && Owner != null)
                             {
-                                playerScript.TakeDamage(WeaponData.Damage, Owner); // (Eğer fonksiyona Owner da eklediyseniz onu da yazabilirsiniz)
-                                Debug.Log("adama çarpıldı: ");
+                                if(playerScript.PlayerTeam != Owner.PlayerTeam)
+                                {
+                                    playerScript.TakeDamage(WeaponData.Damage, Owner); // (Eğer fonksiyona Owner da eklediyseniz onu da yazabilirsiniz)
+                                    Debug.Log("adama çarpıldı: ");
+                                }
+                                
                             }
                         }
                         // Eğer vurduğumuz şey Hitbox değil de normal bir duvarsa (PhysX)
