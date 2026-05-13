@@ -6,6 +6,7 @@ using static GlobalVariables;
 public class Player : NetworkBehaviour
 {
     [Networked] public float Health { get; set; } = 100;
+    [Networked] public float Armor { get; set; } = 100;
     [Networked] public bool IsAlive { get; set; }
     [Networked] public Team PlayerTeam { get; set; }
     [Networked] public NetworkString<_32> PlayerName { get; set; } 
@@ -15,6 +16,7 @@ public class Player : NetworkBehaviour
 
     public int MaxHealth = 500;
     public int MinHealth = 0;
+    public float ArmorEfectiveness = 2;
     public Color DefaultColor = Color.blue;
     public MeshRenderer PlayerBodyRenderer; // YENİ: Kapsülün rengini değiştireceğimiz materyal
     public Crosshair PlayerCrosshair;
@@ -41,9 +43,12 @@ public class Player : NetworkBehaviour
 
         bool isLocal = Object.HasInputAuthority;
 
-        if (isLocal)
+        // [Networked] değişkenleri SADECE sunucu değiştirebilir!
+        if (HasStateAuthority)
         {
             IsAlive = true;
+            Health = 100;
+            Armor = 100;
         }
         // --- YENİ: OTOMATİK İSİMLENDİRME SİSTEMİ ---
         if (GameManager.Instance != null)
@@ -91,7 +96,33 @@ public class Player : NetworkBehaviour
     {
         if (!HasStateAuthority || !IsAlive) return;
 
-        Health -= damage;
+        float remainDamage = damage;
+        float damageDealt = 0;
+
+        if (Armor > 0)
+        {
+            if (Armor * ArmorEfectiveness >= remainDamage)
+            {
+                Armor -= remainDamage / ArmorEfectiveness;
+                damageDealt += remainDamage / ArmorEfectiveness;
+                remainDamage = 0;
+            }
+            else
+            {
+                remainDamage -= Armor * ArmorEfectiveness;
+                damageDealt += Armor * ArmorEfectiveness;
+                Armor = 0;
+
+                Health -= remainDamage;
+                damageDealt += remainDamage;
+            }
+        }
+        else
+        {
+            Health -= remainDamage;
+            damageDealt += remainDamage;
+            remainDamage = 0;
+        }
 
         // 1. HASAR VERENİ LİSTEYE EKLE / GÜNCELLE
         if (attacker != null && attacker != this)
@@ -99,12 +130,12 @@ public class Player : NetworkBehaviour
             if (_damageContributors.ContainsKey(attacker))
             {
                 // Zaten vurmuştu, hasarını üstüne ekle
-                _damageContributors[attacker] += damage;
+                _damageContributors[attacker] += damageDealt;
             }
             else
             {
                 // İlk defa vurdu, listeye ekle
-                _damageContributors.Add(attacker, damage);
+                _damageContributors.Add(attacker, damageDealt);
             }
         }
 
@@ -244,7 +275,7 @@ public class Player : NetworkBehaviour
             int currentAmmo = EquippedWeapon != null ? EquippedWeapon.CurrentAmmo : 0;
             int totalMags = EquippedWeapon != null ? EquippedWeapon.CurrentMags : 0;
 
-            PlayerHUD.Instance.ArayuzuGuncelle((int)Health, currentAmmo, totalMags);
+            PlayerHUD.Instance.ArayuzuGuncelle((int)Health, (int)Armor, currentAmmo, totalMags);
         }
     }
     public void AddKill() => Kills++;

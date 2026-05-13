@@ -171,6 +171,7 @@ public class GameManager : NetworkBehaviour
         foreach (var player in _activePlayers)
         {
             player.Health = 100;
+            player.Armor = 100;
             player.IsAlive = true;
             player.ClearDamageHistory();
 
