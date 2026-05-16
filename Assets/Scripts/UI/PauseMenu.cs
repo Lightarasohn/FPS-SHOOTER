@@ -9,15 +9,24 @@ using static GlobalVariables;
 
 public class PauseMenu : MonoBehaviour
 {
-    [Header("UI Referansları")]
+    [Header("UI Elementleri")]
     public GameObject pauseMenuPanel;
     public Button disconnectButton;
+
+    [Header("Crosshair Elementleri")]
     public TMP_Dropdown typeDropdown;
     public Slider widthSlider;
     public Slider lengthSlider;
     public Slider spaceSlider;
     public Slider scaleSlider;
     public CrosshairManager crosshairTemplateManager;
+
+    [Header("Mouse Elementleri")]
+    public Slider sensitivitySlider;
+    public Toggle smoothnessEnabled;
+    public Slider smoothnessSpeed;
+    public Toggle accelerationEnabled;
+    public Slider accelerationThreshold;
 
     [Header("Ayarlar")]
     public int mainMenuSceneIndex = 0;
@@ -30,6 +39,7 @@ public class PauseMenu : MonoBehaviour
 
         disconnectButton.onClick.AddListener(DisconnectFromGame);
         Crosshair currentSettings = PlayerSaveManager.LoadCrosshair();
+        MouseSettings currentMouseSettings = PlayerSaveManager.LoadMouseSettings();
 
         typeDropdown.value = (int)currentSettings.CrosshairType;
         widthSlider.value = currentSettings.Width;
@@ -37,6 +47,32 @@ public class PauseMenu : MonoBehaviour
         spaceSlider.value = currentSettings.Space;
         scaleSlider.value = currentSettings.Scale / 100f; // Scale'i kurucuda 100 ile çarptığın için burada bölüyoruz
         crosshairTemplateManager.ApplyCrosshairSettings(currentSettings);
+
+        // Mouse
+        sensitivitySlider.value = currentMouseSettings.MouseSensitivity;
+        smoothnessEnabled.isOn = currentMouseSettings.EnableSmoothness;
+        smoothnessSpeed.value = currentMouseSettings.SmoothnessSpeed;
+        accelerationEnabled.isOn = currentMouseSettings.EnableAcceleration;
+        accelerationThreshold.value = currentMouseSettings.AccelerationThreshold;
+
+        if (!smoothnessEnabled.isOn)
+        {
+            smoothnessSpeed.interactable = false;
+        }
+        if (!accelerationEnabled.isOn)
+        {
+            accelerationThreshold.interactable = false;
+        }
+    }
+
+    public void OnSmoothnessToggleChanged()
+    {
+        smoothnessSpeed.interactable = smoothnessEnabled.isOn;
+    }
+
+    public void OnAccelerationToggleChanged()
+    {
+        accelerationThreshold.interactable = accelerationEnabled.isOn;
     }
 
     public void ChangeCrosshairOnCrosshairSettingsChange()
@@ -70,6 +106,19 @@ public class PauseMenu : MonoBehaviour
             // 2. Pause menüsündeki önizlemeyi (template) güncelle
             crosshairTemplateManager.ApplyCrosshairSettings(newSettings);
 
+            MouseSettings newMouseSettings =
+                new MouseSettings(
+                    sensitivitySlider.value,
+                    smoothnessEnabled.isOn,
+                    smoothnessSpeed.value,
+                    accelerationEnabled.isOn,
+                    accelerationThreshold.value,
+                    0.5f,
+                    3f);
+
+            // Mouse
+            PlayerSaveManager.SaveMouseSettings(newMouseSettings);
+
             // 3. YENİ EKLENEN: Sahnede kendi karakterimizi bul ve oyun içi nişangahı anında güncelle
             Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
             foreach (Player p in allPlayers)
@@ -78,6 +127,7 @@ public class PauseMenu : MonoBehaviour
                 if (p.Object != null && p.HasInputAuthority)
                 {
                     p.UpdateLocalCrosshair(newSettings);
+                    p.GetComponent<PlayerInputHandler>().UpdateMouseSettings(newMouseSettings);
                     break; // Kendi karakterimizi bulduğumuz için döngüyü sonlandır
                 }
             }

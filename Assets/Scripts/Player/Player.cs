@@ -195,6 +195,16 @@ public class Player : NetworkBehaviour
         }
     }
 
+    public void UpdateMouseSettings(float newSensitivity)
+    {
+        if (!Object.HasInputAuthority) return;
+        PlayerInputHandler inputHandler = GetComponent<PlayerInputHandler>();
+        if (inputHandler != null)
+        {
+            inputHandler.MouseSensitivity = newSensitivity;
+        }
+    }
+
     public void RequestBuff(string buffName)
     {
         // Sunucuya "Bana bu buff'ı ver" diyoruz
