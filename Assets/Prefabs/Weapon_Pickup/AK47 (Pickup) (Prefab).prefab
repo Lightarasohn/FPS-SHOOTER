@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 64115179392626495}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandGripPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,8 +44,9 @@ GameObject:
   - component: {fileID: 7142122186688366957}
   - component: {fileID: 8469066770897562739}
   - component: {fileID: 7340752297988708344}
-  m_Layer: 0
-  m_Name: AK47 (3P) (Prefab)
+  - component: {fileID: 3247176669101816243}
+  m_Layer: 11
+  m_Name: AK47 (Pickup) (Prefab)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -113,7 +114,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -129,12 +130,13 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2959952210
+  SortKey: 2693967783
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 7340752297988708344}
+  - {fileID: 3247176669101816243}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &7340752297988708344
 MonoBehaviour:
@@ -149,9 +151,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhysicalWeaponInfo
   weaponID: 3
+  _NetworkedWeaponID: 3
   _DroppedAmmo: 0
+  _DroppedMags: 0
   LeftGripPoint: {fileID: 64115179392626495}
   MuzzlePoint: {fileID: 3672766564460590805}
+--- !u!114 &3247176669101816243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5245229760118722599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &5379974722626543239
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,7 +182,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3672766564460590805}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: MuzzlePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,6 +212,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9022791957055396334}
     m_Modifications:
+    - target: {fileID: -8776531367722746463, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -230,6 +255,14 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7691827825514812709, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -5520790981654203718, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: -5295544497763986024, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
       propertyPath: m_RootBone
@@ -411,13 +444,49 @@ PrefabInstance:
       propertyPath: 'm_Bones.Array.data[43]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: -4662561384358277839, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -3411331419898532282, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: -2556580117782913663, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1869282465465657612, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -1333888397841816092, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
       propertyPath: m_Name
       value: ar1(automatic rifle)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2010778306775300583, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2044622097727696808, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2598566792259588541, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8393926777666532444, guid: 7ee290c88843d2c49be639ef4dea8a73, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

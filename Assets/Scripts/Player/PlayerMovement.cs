@@ -275,7 +275,7 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.05f));
         float checkRadius = _capsuleRadius + 0.02f;
 
-        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player"));
+        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player", "Weapon"));
 
         if (IsGrounded)
         {

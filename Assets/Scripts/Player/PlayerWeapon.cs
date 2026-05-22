@@ -54,6 +54,7 @@ public class PlayerWeapon : NetworkBehaviour
         public GameObject ViewmodelObject;   // 1. Şahıs Kollar (Eski sistem)
         public Transform ViewmodelMuzzlePoint;
         public GameObject ThirdPersonPrefab; // 3. Şahıs Fiziksel Prefab (PhysicalWeaponInfo içeren obje)
+        public GameObject PickupPrefab;       // (Rigidbody VAR, NetworkObject VAR)
     }
 
     [Header("Silah ve Görsel Referansları")]
@@ -91,33 +92,75 @@ public class PlayerWeapon : NetworkBehaviour
 
         foreach (var mapping in WeaponMappings)
         {
-            if (mapping.WeaponID == WeaponData.ID && mapping.ThirdPersonPrefab != null)
+            if (mapping.WeaponID == WeaponData.ID && mapping.PickupPrefab != null)
             {
-                // Karakterin kamerasına göre hafif ileri bir pozisyon belirle
-                Vector3 dropPosition = playerCamera.CameraPivot.position + playerCamera.CameraPivot.forward * 1f;
-
-                // Orijinal prefabı ağ üzerinde YERE fırlat!
-                Runner.Spawn(mapping.ThirdPersonPrefab.GetComponent<NetworkObject>(), dropPosition, Quaternion.identity, Object.InputAuthority, (runner, obj) =>
+                if (Object.HasStateAuthority)
                 {
-                    // Doğmadan saniyeler önce kendi mermilerimizi yerdeki silaha aktarıyoruz
-                    PhysicalWeaponInfo dropScript = obj.GetComponent<PhysicalWeaponInfo>();
-                    if (dropScript != null)
+                    // Oyuncunun önünde ve biraz yukarısında başlangıç noktası
+                    Vector3 dropStart = transform.position + Vector3.up * 1.5f + transform.forward * 1f;
+                    Vector3 finalDropPosition = dropStart;
+                     
+                    // Zemine raycast at — silahı direkt yere koy
+                    if (Runner.GetPhysicsScene().Raycast(
+                        dropStart,
+                        Vector3.down,
+                        out RaycastHit groundHit,
+                        10f,
+                        ~LayerMask.GetMask("Player")))
                     {
-                        dropScript.weaponID = WeaponData.ID;
-                        dropScript.DroppedAmmo = CurrentAmmo;
-                        dropScript.DroppedMags = CurrentMags;
+                        finalDropPosition = groundHit.point + Vector3.up * 0.05f;
                     }
-                });
 
-                // Kendi elimizi tamamen boşalt
+                    Runner.Spawn(mapping.PickupPrefab, finalDropPosition, Quaternion.identity, PlayerRef.None,
+                        (runner, obj) =>
+                        {
+                            PhysicalWeaponInfo dropScript = obj.GetComponent<PhysicalWeaponInfo>();
+                            if (dropScript != null)
+                            {
+                                dropScript.NetworkedWeaponID = WeaponData.ID;
+                                dropScript.weaponID = WeaponData.ID;
+                                dropScript.DroppedAmmo = CurrentAmmo;
+                                dropScript.DroppedMags = CurrentMags;
+                            }
+                        });
+
+                    EquippedWeaponID = WeaponID.None;
+                }
+
                 WeaponData = null;
                 ActivateWeaponVisuals(WeaponID.None);
 
-                // Animasyonu da silahsız moda (Idle) döndür
                 if (playerMovement != null && playerMovement.BodyAnimator != null)
                     playerMovement.BodyAnimator.SetBool("IsAiming", false);
 
                 break;
+            }
+        }
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_PickupWeapon(NetworkId weaponId, int ammo, int mags)
+    {
+        // Sunucu tarafında çalışacak kodlar
+        var weaponObj = Runner.FindObject(weaponId);
+        if (weaponObj != null)
+        {
+            PhysicalWeaponInfo dropObj = weaponObj.GetComponent<PhysicalWeaponInfo>();
+            if (dropObj != null)
+            {
+                // Yeni silahı kuşan
+                Weapon newWeapon = GetWeaponClassFromID(dropObj.NetworkedWeaponID);
+                if (newWeapon != null)
+                {
+                    EquipWeapon(newWeapon);
+
+                    // Mermileri set et
+                    CurrentAmmo = ammo;
+                    CurrentMags = mags;
+                }
+
+                // Yerdeki silahı tüm dünyadan sil
+                Runner.Despawn(weaponObj);
             }
         }
     }
@@ -142,17 +185,13 @@ public class PlayerWeapon : NetworkBehaviour
 
     private void ActivateWeaponVisuals(WeaponID targetID)
     {
-        // 1. Eski 3P silahı (varsa) elden sil
         if (_current3PWeaponInstance != null)
-        {
             Destroy(_current3PWeaponInstance);
-        }
 
         foreach (var mapping in WeaponMappings)
         {
             bool isEquipped = (mapping.WeaponID == targetID);
 
-            // 2. 1P Görseli (Kolları) sadece bizdeyse (InputAuthority) yönet
             if (mapping.ViewmodelObject != null && HasInputAuthority)
             {
                 mapping.ViewmodelObject.SetActive(isEquipped);
@@ -162,44 +201,21 @@ public class PlayerWeapon : NetworkBehaviour
                     if (_currentViewmodelAnimator != null)
                         _currentViewmodelAnimator.SetTrigger("Draw");
 
-                    // YENİ EKLENTİ: Viewmodel namlusunu kaydet
                     viewmodelWeaponPoint = mapping.ViewmodelMuzzlePoint;
                 }
             }
 
-            // 3. 3P Görselini (Fiziksel Silahı) Herkeste Üret ve Ele (Anchor'a) Sabitle
             if (isEquipped && mapping.ThirdPersonPrefab != null && ThirdPersonWeaponAnchor != null)
             {
-                // Silahı sağ ele kopyala
                 _current3PWeaponInstance = Instantiate(mapping.ThirdPersonPrefab, ThirdPersonWeaponAnchor);
 
-                // --- CRITICAL FIX: FİZİĞİ ANINDA FELÇ ET (Gecikmeyi engeller) ---
-                Rigidbody rb = _current3PWeaponInstance.GetComponent<Rigidbody>();
-                if (rb != null)
+                // PhysicalWeaponInfo yerine WeaponVisualInfo kullan
+                VisualWeaponInfo wvi = _current3PWeaponInstance.GetComponent<VisualWeaponInfo>();
+                if (wvi != null)
                 {
-                    rb.isKinematic = true;  // Anında fiziği kapat, animasyona boyun eğsin
-                    rb.useGravity = false;  // Yerçekimini iptal et
-                }
-
-                BoxCollider col = _current3PWeaponInstance.GetComponent<BoxCollider>();
-                if (col != null)
-                {
-                    col.enabled = false;    // Karakterin kapsülüyle çarpışmayı ANINDA kes
-                }
-
-                // Şimdi arka planda temizlenmeleri için güvenle emir verebiliriz
-                Destroy(rb);
-                Destroy(col);
-                Destroy(_current3PWeaponInstance.GetComponent<NetworkObject>());
-
-                // 4. IK ve VFX Referanslarını Oku ve Karaktere Kilitle
-                PhysicalWeaponInfo pwi = _current3PWeaponInstance.GetComponent<PhysicalWeaponInfo>();
-                if (pwi != null)
-                {
-                    weaponPoint = pwi.MuzzlePoint;
-
+                    weaponPoint = wvi.MuzzlePoint;
                     if (playerMovement != null)
-                        playerMovement.CurrentWeaponLeftGrip = pwi.LeftGripPoint;
+                        playerMovement.CurrentWeaponLeftGrip = wvi.LeftGripPoint;
                 }
             }
         }
@@ -218,6 +234,17 @@ public class PlayerWeapon : NetworkBehaviour
         if (playerCamera == null) playerCamera = GetComponent<PlayerCamera>();
         if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
         Owner = GetComponent<Player>();
+
+        // YENİ EKLENEN KISIM: Oyuna sonradan katılanlar veya ağda halihazırda silahı olanlar için ilk görsel güncelleme
+        if (EquippedWeaponID != WeaponID.None)
+        {
+            Weapon remoteWeapon = GetWeaponClassFromID(EquippedWeaponID);
+            if (remoteWeapon != null)
+            {
+                WeaponData = remoteWeapon;
+                ActivateWeaponVisuals(EquippedWeaponID);
+            }
+        }
     }
 
     public override void FixedUpdateNetwork()
@@ -239,32 +266,21 @@ public class PlayerWeapon : NetworkBehaviour
             // --- 2. YERDEN SİLAH ALMA (E TUŞU) ---
             if (interactPressed && !IsReloading)
             {
-                // Kameradan 3 metre ileriye etkileşim ışını yolla
                 if (Runner.GetPhysicsScene().Raycast(playerCamera.CameraPivot.position, playerCamera.CameraPivot.forward, out RaycastHit interactHit, 3f, ~LayerMask.GetMask("Player")))
                 {
                     PhysicalWeaponInfo dropObj = interactHit.collider.GetComponentInParent<PhysicalWeaponInfo>();
 
                     if (dropObj != null && dropObj.PickupDelay.ExpiredOrNotRunning(Runner))
                     {
-                        // Elimizde zaten silah varsa, yeni silahı almadan önce eskisini yere fırlat
+                        // Eğer elimizde silah varsa önce onu yere at (Mevcut mantığınla aynı kalsın)
                         if (WeaponData != null)
                         {
                             DropCurrentWeapon();
                         }
 
-                        // Yerdeki silahın ID'sini okuyup yeni C# veri sınıfını üret ve donan
-                        Weapon newWeapon = GetWeaponClassFromID(dropObj.weaponID);
-                        if (newWeapon != null)
-                        {
-                            EquipWeapon(newWeapon);
-
-                            // Yerdeki mermi verilerini kendi üstümüze yaz
-                            CurrentAmmo = dropObj.DroppedAmmo;
-                            CurrentMags = dropObj.DroppedMags;
-
-                            // İşimiz biten yerdeki modeli ağdan tamamen sil
-                            Runner.Despawn(dropObj.Object);
-                        }
+                        // ARTIK RPC ÇAĞIRIYORUZ:
+                        // Doğrudan değişkenleri atamak yerine sunucuya "şu silahı, şu mermiyle al" diyoruz.
+                        RPC_PickupWeapon(dropObj.Object.Id, dropObj.DroppedAmmo, dropObj.DroppedMags);
                     }
                 }
             }
@@ -307,11 +323,6 @@ public class PlayerWeapon : NetworkBehaviour
 
                 IsAiming = false;
                 if (playerCamera != null) playerCamera.HandleADS(false);
-
-                if (HasInputAuthority && _currentViewmodelAnimator != null)
-                {
-                    _currentViewmodelAnimator.SetTrigger("Reload");
-                }
 
                 PreviousButtons = input.Buttons;
                 return;
@@ -477,19 +488,31 @@ public class PlayerWeapon : NetworkBehaviour
                 case nameof(ReloadTriggered):
                     if (playerMovement != null && playerMovement.BodyAnimator != null)
                         playerMovement.BodyAnimator.SetTrigger("Reload");
+
+                    // YENİ: 1. Şahıs Kol (Viewmodel) Animasyonu (Sadece silahın sahibi görür)
+                    if (HasInputAuthority && _currentViewmodelAnimator != null)
+                        _currentViewmodelAnimator.SetTrigger("Reload");
                     break;
 
                 // YENİ: Silah değişikliğini tüm clientlarda yakala
                 case nameof(EquippedWeaponID):
-                    // StateAuthority zaten EquipWeapon içinde ActivateWeaponVisuals'ı çağırdı,
-                    // tekrar çağırmasın
                     if (!HasStateAuthority)
                     {
-                        Weapon remoteWeapon = GetWeaponClassFromID(EquippedWeaponID);
-                        if (remoteWeapon != null)
+                        if (EquippedWeaponID == WeaponID.None)
                         {
-                            WeaponData = remoteWeapon;
-                            ActivateWeaponVisuals(EquippedWeaponID);
+                            // Eğer adam silahı yere attıysa veya elini boşalttıysa
+                            WeaponData = null;
+                            ActivateWeaponVisuals(WeaponID.None);
+                        }
+                        else
+                        {
+                            // Yeni bir silah aldıysa
+                            Weapon remoteWeapon = GetWeaponClassFromID(EquippedWeaponID);
+                            if (remoteWeapon != null)
+                            {
+                                WeaponData = remoteWeapon;
+                                ActivateWeaponVisuals(EquippedWeaponID);
+                            }
                         }
                     }
                     break;

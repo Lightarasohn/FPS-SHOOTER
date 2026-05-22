@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5650048308751850926}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandGripPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9202482963103085834}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: MuzzlePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,11 +71,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5157395107610499944}
-  - component: {fileID: 5215815342285528765}
-  - component: {fileID: 57128334083752896}
-  - component: {fileID: 1258491985217910959}
-  - component: {fileID: 3493695597331188082}
-  m_Layer: 0
+  - component: {fileID: 3111426152356751112}
+  m_Layer: 11
   m_Name: MP5 (3P) (Prefab)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -100,55 +97,7 @@ Transform:
   - {fileID: 9202482963103085834}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
---- !u!65 &5215815342285528765
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7555755475114048927}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.17101118, y: 0.57203823, z: 1.5237293}
-  m_Center: {x: 0.34865415, y: 0.0763149, z: 0.71975386}
---- !u!54 &57128334083752896
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7555755475114048927}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &1258491985217910959
+--- !u!114 &3111426152356751112
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -157,30 +106,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7555755475114048927}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: b4430ad42c67e764b820fff7b2575686, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2164490556
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 3493695597331188082}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &3493695597331188082
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7555755475114048927}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aee972bbca1d193409b3b0b851d0d02e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PhysicalWeaponInfo
-  weaponID: 5
-  _DroppedAmmo: 0
+  m_EditorClassIdentifier: Assembly-CSharp::VisualWeaponInfo
   LeftGripPoint: {fileID: 5650048308751850926}
   MuzzlePoint: {fileID: 9202482963103085834}
 --- !u!1001 &7055301711034162681
@@ -230,6 +158,18 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8465836947563177852, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -8057963916285964794, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -7374897755586704533, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: -5409499727981004064, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
       propertyPath: m_RootBone
@@ -411,9 +351,37 @@ PrefabInstance:
       propertyPath: 'm_Bones.Array.data[43]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: -138626756891626512, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
       propertyPath: m_Name
       value: smg2(sub-machine gun)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2236472628017075677, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2770289288319683945, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3189036416345033136, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4943429937189504941, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6895868984171625528, guid: 9dc5517fd53dccb40b195e1098d5ebb4, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

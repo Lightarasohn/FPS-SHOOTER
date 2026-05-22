@@ -38,7 +38,6 @@ public class BuffDebuffScript : MonoBehaviour
 
         RoundState currentState = GameManager.Instance.CurrentState;
 
-        // Yeni PreRound başladıysa kilitleri sıfırla
         if (currentState == RoundState.PreRound && _lastKnownState != RoundState.PreRound)
         {
             _hasSelectedThisRound = false;
@@ -52,9 +51,8 @@ public class BuffDebuffScript : MonoBehaviour
 
             if (localPlayer != null)
             {
-                // Silah seçimi tamamlandıysa ve augment henüz seçilmediyse paneli aç
-                bool weaponPhaseComplete = _weaponSelectionScript != null
-                                          && _weaponSelectionScript.HasSelectedWeaponThisRound;
+                // YENİ: WeaponSelectionScript var mı ve aktif mi diye ekstra güvenlik kontrolü
+                bool weaponPhaseComplete = _weaponSelectionScript != null && _weaponSelectionScript.HasSelectedWeaponThisRound;
 
                 if (weaponPhaseComplete && localPlayer.ActiveAugment == null && !_hasSelectedThisRound)
                 {
@@ -62,14 +60,11 @@ public class BuffDebuffScript : MonoBehaviour
                     {
                         FillButtonsContents();
                         BuffDebuffPanel.SetActive(true);
-
                         Cursor.lockState = CursorLockMode.None;
                         Cursor.visible = true;
-
                         _autoSelectTimer = 0f;
                     }
 
-                    // Otomatik seçim sayacı
                     _autoSelectTimer += Time.deltaTime;
                     if (_autoSelectTimer >= AUTO_SELECT_DELAY)
                     {
@@ -80,7 +75,6 @@ public class BuffDebuffScript : MonoBehaviour
         }
         else
         {
-            // PreRound bitti, panel açıksa zorla kapat
             if (BuffDebuffPanel.activeSelf)
             {
                 BuffDebuffPanel.SetActive(false);
@@ -92,7 +86,7 @@ public class BuffDebuffScript : MonoBehaviour
 
     private Player GetLocalPlayer()
     {
-        Player[] players = FindObjectsByType<Player>(FindObjectsSortMode.None);
+        Player[] players = FindObjectsByType<Player>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (Player p in players)
         {
             if (p.HasInputAuthority) return p;
