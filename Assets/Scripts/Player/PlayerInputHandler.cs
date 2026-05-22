@@ -123,5 +123,7 @@ public class PlayerInputHandler : NetworkBehaviour
         CurrentInput.Buttons.Set(PlayerAction.Fire, Mouse.current.leftButton.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Reload, Keyboard.current.rKey.isPressed);
         CurrentInput.Buttons.Set(PlayerAction.Aim, Mouse.current.rightButton.isPressed);
+        CurrentInput.Buttons.Set(PlayerAction.Interact, Keyboard.current.eKey.isPressed);
+        CurrentInput.Buttons.Set(PlayerAction.DropWeapon, Keyboard.current.gKey.isPressed);
     }
 }

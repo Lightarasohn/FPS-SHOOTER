@@ -8,6 +8,9 @@ TagManager:
   - hitboxroot
   - MainMenu_Main
   - MainMenu_Settings
+  - BodyPart
+  - Body
+  - Head
   layers:
   - Default
   - TransparentFX
@@ -18,8 +21,8 @@ TagManager:
   - WhatIsGround
   - Player
   - Environment
-  - 
-  - 
+  - LocalPlayerBody
+  - Viewmodel
   - 
   - 
   - 

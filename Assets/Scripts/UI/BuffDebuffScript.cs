@@ -1,15 +1,13 @@
-using NUnit.Framework;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
 using static GlobalVariables;
 
 public class BuffDebuffScript : MonoBehaviour
 {
-    [SerializeField]
-    public GameObject BuffDebuffPanel;
+    [SerializeField] public GameObject BuffDebuffPanel;
+    [SerializeField] private WeaponSelectionScript _weaponSelectionScript;
 
     [Header("Sol Augment")]
     [SerializeField] public TMP_Text LeftAugment_Header;
@@ -23,39 +21,43 @@ public class BuffDebuffScript : MonoBehaviour
     [SerializeField] public TMP_Text RightAugment_Header;
     [SerializeField] public TMP_Text RightAugment_Description;
 
-    // YENİ: Raunt takibi ve RPC gecikme kilidi
     private RoundState _lastKnownState;
     private bool _hasSelectedThisRound = false;
     private string _leftAugmentCodeName;
     private string _middleAugmentCodeName;
     private string _rightAugmentCodeName;
 
-    // YENİ: Senin anlattığın süzgeç mantığı burada çalışıyor
+    // Otomatik seçim için zamanlayıcı
+    private float _autoSelectTimer = 0f;
+    private const float AUTO_SELECT_DELAY = 14f;
+
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsReady || GameManager.Instance.Object == null || !GameManager.Instance.Object.IsValid) return;
+        if (GameManager.Instance == null || !GameManager.Instance.IsReady ||
+            GameManager.Instance.Object == null || !GameManager.Instance.Object.IsValid) return;
 
         RoundState currentState = GameManager.Instance.CurrentState;
 
-        // 1. Eğer yepyeni bir Freeze Time (PreRound) başladıysa, kilitleri sıfırla
+        // Yeni PreRound başladıysa kilitleri sıfırla
         if (currentState == RoundState.PreRound && _lastKnownState != RoundState.PreRound)
         {
             _hasSelectedThisRound = false;
+            _autoSelectTimer = 0f;
         }
         _lastKnownState = currentState;
 
-        // 2. FREEZE TIME İÇERİSİNDE MİYİZ?
         if (currentState == RoundState.PreRound)
         {
-            // 3. OYUNCU SAHNEDE OYNUYOR MU? (InputAuthority bizde mi?)
             Player localPlayer = GetLocalPlayer();
 
             if (localPlayer != null)
             {
-                // 4. OYUNCUNUN AUGMENTİ YOK MU VEYA SEÇİM YAPMAMIŞ MI?
-                if (localPlayer.ActiveAugment == null && !_hasSelectedThisRound)
+                // Silah seçimi tamamlandıysa ve augment henüz seçilmediyse paneli aç
+                bool weaponPhaseComplete = _weaponSelectionScript != null
+                                          && _weaponSelectionScript.HasSelectedWeaponThisRound;
+
+                if (weaponPhaseComplete && localPlayer.ActiveAugment == null && !_hasSelectedThisRound)
                 {
-                    // Panel kapalıysa aç ve içerikleri doldur
                     if (!BuffDebuffPanel.activeSelf)
                     {
                         FillButtonsContents();
@@ -63,13 +65,22 @@ public class BuffDebuffScript : MonoBehaviour
 
                         Cursor.lockState = CursorLockMode.None;
                         Cursor.visible = true;
+
+                        _autoSelectTimer = 0f;
+                    }
+
+                    // Otomatik seçim sayacı
+                    _autoSelectTimer += Time.deltaTime;
+                    if (_autoSelectTimer >= AUTO_SELECT_DELAY)
+                    {
+                        AutoSelectAugment();
                     }
                 }
             }
         }
         else
         {
-            // Freeze Time bittiyse (Maç başladıysa) ve ekran hala açıksa ZORLA KAPAT
+            // PreRound bitti, panel açıksa zorla kapat
             if (BuffDebuffPanel.activeSelf)
             {
                 BuffDebuffPanel.SetActive(false);
@@ -79,7 +90,6 @@ public class BuffDebuffScript : MonoBehaviour
         }
     }
 
-    // YARDIMCI METOD: Sahnede bizim kontrol ettiğimiz (Takım seçip doğmuş olan) karakteri bulur
     private Player GetLocalPlayer()
     {
         Player[] players = FindObjectsByType<Player>(FindObjectsSortMode.None);
@@ -97,7 +107,6 @@ public class BuffDebuffScript : MonoBehaviour
 
     public BuffDebuff[] GetAugmentsRandomly(AugmentType augmentType)
     {
-        var random = new System.Random();
         List<BuffDebuff> choosenAugments;
         if (augmentType == AugmentType.Debuff)
         {
@@ -147,26 +156,31 @@ public class BuffDebuffScript : MonoBehaviour
         RightAugment_Description.text = "AÇIKLAMA";
     }
 
+    private void AutoSelectAugment()
+    {
+        string[] options = { _leftAugmentCodeName, _middleAugmentCodeName, _rightAugmentCodeName };
+        string randomPick = options[Random.Range(0, options.Length)];
+        Debug.Log($"[BuffDebuff] Süre doldu! Otomatik seçim: {randomPick}");
+        OnAugmentButtonClicked(randomPick);
+    }
+
     public void OnAugmentButtonClicked(string selectedBuffName)
     {
         Player localPlayer = GetLocalPlayer();
+        if (localPlayer == null) return;
 
-        if (localPlayer != null)
-        {
-            // RPC Gecikmesi kilidini aktif et ki Update döngüsü ekranı tekrar açmasın
-            _hasSelectedThisRound = true;
+        _hasSelectedThisRound = true;
+        _autoSelectTimer = 0f;
 
-            // SUNUCUYA HABER VER
-            localPlayer.RequestBuff(selectedBuffName);
+        localPlayer.RequestBuff(selectedBuffName);
 
-            // ARAYÜZÜ TEMİZLE VE KAPAT
-            ClearButtonContents();
-            BuffDebuffPanel.SetActive(false);
+        ClearButtonContents();
+        BuffDebuffPanel.SetActive(false);
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
+
     public void OnClick_LeftButton() { OnAugmentButtonClicked(_leftAugmentCodeName); }
     public void OnClick_MiddleButton() { OnAugmentButtonClicked(_middleAugmentCodeName); }
     public void OnClick_RightButton() { OnAugmentButtonClicked(_rightAugmentCodeName); }
