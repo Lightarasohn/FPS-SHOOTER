@@ -4,10 +4,10 @@ using static GlobalVariables;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    [Header("Hareket Ayarları (CS:GO Strafe Değerleri)")]
+    [Header("Hareket Ayarları")]
     public float MaxGroundSpeed = 5f;
-    public float MaxAirSpeed = 5f; // Havada yerdeki kadar hızlı gidebilsin
-    public float AirAcceleration = 5f; // ESKİSİ 5'Tİ. Şimdi havada anında yön değiştirecek!
+    public float MaxAirSpeed = 5f;
+    public float AirAcceleration = 5f;
     public float MaxFallingSpeed = -32f;
     public float GroundAcceleration = 10f;
     [Networked] public float Friction { get; set; } = 8f;
@@ -15,85 +15,102 @@ public class PlayerMovement : NetworkBehaviour
     public float JumpForce = 7.8f;
 
     [Header("Eğilme (Crouch) Ayarları")]
-    public float StandingHeight = 2f;
-    public float CrouchHeight = 1.5f;
     public float CrouchSpeedMultiplier = 0.5f;
     public float CrouchTransitionSpeed = 10f;
 
-    // Koşma Ayarları
     [Header("Koşma (Sprint) Ayarları")]
     public float SprintSpeedMultiplier = 1.5f;
     public bool IsSprinting = false;
 
-    // --- YENİ: Nişan Alma (ADS) Ayarları ---
     [Header("Nişan Alma (ADS) Ayarları")]
-    public float ADSSpeedMultiplier = 0.5f; // Nişan alırken hızın % kaçına düşülecek?
+    public float ADSSpeedMultiplier = 0.5f;
 
-    // Kayma Ayarları (Slide)
     [Header("Kayma (Slide) Ayarları")]
-    public float SlideDuration = 2f; // MADDE 3: Yerde maksimum 2 saniye kalsın
+    public float SlideDuration = 0.5f;
     public float SlideSpeedMultiplier = 2f;
     public float SlideCooldownTime = 0.5f;
 
-    [Header("Referanslar")]
-    public Transform PlayerPivot;
+    [Header("Kusursuz Referans Noktaları")]
+    public Transform CharFootPoint; // Ayak Tabanı
+    public Transform CharHeadPoint; // Ayaktayken Kafa Üstü
+    public Transform CrouchingHeadPoint; // Eğilirken Kafa Üstü
 
-    // Kapsülün dış görünüşünü temsil eden obje
-    public Transform PlayerVisualBody;
+    [Header("Animasyon")]
+    public Animator BodyAnimator;
+
+    [Header("Rigging & IK (Nişan ve Sol El)")]
+    public Transform AimTarget;
+    public float AimDistance = 50f;
+    public Transform LeftHandIK_Target; // Sol elin gideceği görünmez hedef
+    public Transform CurrentWeaponLeftGrip; // Elindeki silahın üzerindeki tutma noktası
+
+    // Yukarı/Aşağı bakış açımızı (Pitch) ağdaki herkese gönderen değişken:
+    [Networked] public float NetworkPitch { get; set; }
 
     [Networked] public Vector3 Velocity { get; set; }
     [Networked] public bool IsGrounded { get; set; }
     [Networked] public bool IsCrouching { get; set; }
-
-    // Ağ üzerinden senkronize edilecek kayma değişkenleri
     [Networked] public bool IsSliding { get; set; }
     [Networked] public TickTimer SlideTimer { get; set; }
     [Networked] public TickTimer SlideCooldown { get; set; }
     [Networked] public Vector3 SlideDirection { get; set; }
 
-    // Kapsül boyutunu artık sabit değil, dinamik yapıyoruz
+    // OTOMATİK HESAPLANAN DİNAMİK DEĞERLER
+    private float _standingHeight;
+    private float _crouchHeight;
     private float _capsuleHeight;
     private float _capsuleRadius = 0.35f;
     private Player _playerScript;
+    private ChangeDetector _animChangeDetector;
 
+    // Yeni değer atamalarını ağdan bağımsız olan Awake içine alıyoruz
+    private void Awake()
+    {
+        if (CharHeadPoint != null && CharFootPoint != null && CrouchingHeadPoint != null)
+        {
+            _standingHeight = CharHeadPoint.localPosition.y - CharFootPoint.localPosition.y;
+            _crouchHeight = CrouchingHeadPoint.localPosition.y - CharFootPoint.localPosition.y;
+
+            // Gizmo'nun 0'a çökmemesi için oyun başlar başlamaz ilk değeri veriyoruz
+            _capsuleHeight = _standingHeight;
+        }
+    }
 
     public override void Spawned()
     {
-        _capsuleHeight = StandingHeight;
+        _animChangeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
         _playerScript = GetComponent<Player>();
 
+        if (CharHeadPoint == null || CharFootPoint == null || CrouchingHeadPoint == null)
+        {
+            Debug.LogError("[PlayerMovement] Referans noktaları atanmamış! Lütfen Inspector'dan noktaları sürükleyin.");
+        }
     }
 
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
         {
-            // --- KAMERA VE DÖNÜŞ (Look) ---
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
-            // --- OYUN DURUMU KONTROLÜ (Hareket edebilir miyiz?) ---
+            // --- AĞA BAKIŞ AÇISINI (PITCH) KAYDET ---
+            NetworkPitch = input.LookPitch;
+
             bool canMove = _playerScript.IsAlive;
             if (GameManager.Instance != null && GameManager.Instance.CurrentState == RoundState.PreRound)
             {
                 canMove = false;
             }
 
-            // Girdileri al
-            // 1. Önce nişan alıp almadığını en baştan okuyoruz
             bool isAiming = canMove && input.Buttons.IsSet(PlayerAction.Aim);
             bool wantsToCrouch = canMove && input.Buttons.IsSet(PlayerAction.Crouch);
-
-            // 2. EĞER NİŞAN ALIYORSA KOŞMAYI İPTAL ET (!isAiming ekledik)
             IsSprinting = canMove && input.Buttons.IsSet(PlayerAction.sprint) && !isAiming;
-
-            // Sadece ileri doğru (Y ekseninde) gidiyorsa kayabilsin
             bool isMovingForward = input.MoveDirection.y > 0;
 
-            // --- MADDE 1: İLERİ KOŞARKEN EĞİLDİĞİ DURUMDA KAYMA BAŞLAT ---
             if (canMove && IsGrounded && IsSprinting && isMovingForward && wantsToCrouch && !IsCrouching && !IsSliding && SlideCooldown.ExpiredOrNotRunning(Runner))
             {
                 IsSliding = true;
-                SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration); // 2 saniyelik süreci başlat
+                SlideTimer = TickTimer.CreateFromSeconds(Runner, SlideDuration);
 
                 Vector3 currentMoveDir = new Vector3(Velocity.x, 0, Velocity.z);
                 if (currentMoveDir.magnitude > 0.1f)
@@ -102,10 +119,8 @@ public class PlayerMovement : NetworkBehaviour
                     SlideDirection = transform.forward;
             }
 
-            // --- MADDE 3: ZIPLAMAZSA YERDE MAX 2 SANİYE KAYAR ---
             if (IsSliding)
             {
-                // Artık oyuncu elini C tuşundan çekse bile kayma İPTAL OLMAYACAK! Sadece süre dolarsa bitecek.
                 if (SlideTimer.Expired(Runner))
                 {
                     IsSliding = false;
@@ -114,13 +129,8 @@ public class PlayerMovement : NetworkBehaviour
                 }
             }
 
-            // Kayma iptal olmadıysa ve devam ediyorsa, oyuncu tuşu bıraksa bile kod onu zorla eğik (crouch) tutar
-            if (IsSliding)
-            {
-                wantsToCrouch = true;
-            }
+            if (IsSliding) wantsToCrouch = true;
 
-            // --- TAVAN KONTROLÜ ---
             if (!wantsToCrouch && IsCrouching)
             {
                 if (CheckCeiling()) wantsToCrouch = true;
@@ -128,35 +138,13 @@ public class PlayerMovement : NetworkBehaviour
 
             IsCrouching = wantsToCrouch;
 
-            // --- KAPSÜL BOYUNU AYARLA ---
-            float targetHeight = IsCrouching ? CrouchHeight : StandingHeight;
+            // FİZİKSEL KAPSÜL BOYUNU AYARLA (Modeli ezmeden, sadece görünmez kapsülü küçült)
+            float targetHeight = IsCrouching ? _crouchHeight : _standingHeight;
             _capsuleHeight = Mathf.Lerp(_capsuleHeight, targetHeight, Runner.DeltaTime * CrouchTransitionSpeed);
 
-            // --- GÖRSELİ KÜÇÜLT, HİZALA VE KAYARKEN EĞ ---
-            if (PlayerVisualBody != null)
-            {
-                float targetScaleY = _capsuleHeight / StandingHeight;
-                PlayerVisualBody.localScale = new Vector3(1f, targetScaleY, 1f);
-
-                float yOffset = (_capsuleHeight - StandingHeight) / 2f;
-                PlayerVisualBody.localPosition = new Vector3(0f, yOffset, 0f);
-
-                if (IsSliding)
-                {
-                    Quaternion targetRotation = Quaternion.Euler(60f, 0f, 0f);
-                    PlayerVisualBody.localRotation = Quaternion.Lerp(PlayerVisualBody.localRotation, targetRotation, Runner.DeltaTime * 10f);
-                }
-                else
-                {
-                    PlayerVisualBody.localRotation = Quaternion.Lerp(PlayerVisualBody.localRotation, Quaternion.identity, Runner.DeltaTime * 10f);
-                }
-            }
-
-            // --- FİZİK VE HAREKET HESAPLAMASI ---
             Vector3 currentVelocity = Velocity;
             CheckGrounded(ref currentVelocity);
 
-            // Uçurumdan düşersek kaymayı anında iptal et ve bekleme süresi koy
             if (!IsGrounded && IsSliding)
             {
                 IsSliding = false;
@@ -172,19 +160,12 @@ public class PlayerMovement : NetworkBehaviour
             }
 
             Vector3 wishDir = rawInputDirection;
-
-            if (IsSliding)
-            {
-                wishDir = SlideDirection;
-            }
+            if (IsSliding) wishDir = SlideDirection;
 
             if (IsGrounded)
             {
                 ApplyFriction(ref currentVelocity, Runner.DeltaTime);
-
                 float currentMaxSpeed = MaxGroundSpeed;
-
-                // DİKKAT: "bool isAiming = ..." satırını sildik çünkü artık yukarıda hesaplanıyor!
 
                 if (IsSliding)
                 {
@@ -193,32 +174,29 @@ public class PlayerMovement : NetworkBehaviour
                 else if (IsCrouching)
                 {
                     currentMaxSpeed = MaxGroundSpeed * CrouchSpeedMultiplier;
-                    if (isAiming) currentMaxSpeed *= ADSSpeedMultiplier; // Eğilirken nişan alırsa daha da yavaşlar
+                    if (isAiming) currentMaxSpeed *= ADSSpeedMultiplier;
                 }
                 else if (IsSprinting)
                 {
                     currentMaxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
                 }
-                else if (isAiming) // Sadece yürürken nişan alıyorsa
+                else if (isAiming)
                 {
                     currentMaxSpeed *= ADSSpeedMultiplier;
                 }
 
                 Accelerate(ref currentVelocity, wishDir, currentMaxSpeed, GroundAcceleration, Runner.DeltaTime);
 
-                // --- MADDE 2: SADECE ZIPLADIĞINDA EĞİLME İPTALİ ---
                 if (canMove && input.Buttons.IsSet(PlayerAction.Jump))
                 {
                     if (IsSliding)
                     {
-                        IsSliding = false;           // Kaymayı iptal et
-                        wantsToCrouch = false;       // Eğilme isteğini anında kes
-                        IsCrouching = false;         // Karakterin dikilmesini sağla
-
+                        IsSliding = false;
+                        wantsToCrouch = false;
+                        IsCrouching = false;
                         SlideTimer = TickTimer.None;
                         SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
 
-                        // Kaymanın o güzel hızını zıplamaya (Momentum) aktar!
                         if (rawInputDirection.magnitude > 0.1f)
                         {
                             float slideSpeed = new Vector3(currentVelocity.x, 0, currentVelocity.z).magnitude;
@@ -241,7 +219,6 @@ public class PlayerMovement : NetworkBehaviour
                     currentVelocity.y -= Gravity * Runner.DeltaTime;
             }
 
-            // --- ÇARPIŞMA VE POZİSYON GÜNCELLEMESİ ---
             Vector3 motion = currentVelocity * Runner.DeltaTime;
             Vector3 newPosition = transform.position + motion;
 
@@ -254,8 +231,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private bool CheckCeiling()
     {
-        Vector3 origin = PlayerPivot.position + Vector3.up * _capsuleHeight;
-        float distanceToStand = StandingHeight - _capsuleHeight;
+        Vector3 origin = CharFootPoint.position + Vector3.up * _capsuleHeight;
+        float distanceToStand = _standingHeight - _capsuleHeight;
 
         return Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.up, out _, distanceToStand, ~LayerMask.GetMask("Player"));
     }
@@ -295,7 +272,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private void CheckGrounded(ref Vector3 currentVel)
     {
-        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.05f));
+        Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.05f));
         float checkRadius = _capsuleRadius + 0.02f;
 
         IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player"));
@@ -304,10 +281,7 @@ public class PlayerMovement : NetworkBehaviour
         {
             if (hitInfo.normal.y > 0.5f)
             {
-                if (currentVel.y < 0)
-                {
-                    currentVel.y = 0;
-                }
+                if (currentVel.y < 0) currentVel.y = 0;
             }
             else
             {
@@ -323,10 +297,7 @@ public class PlayerMovement : NetworkBehaviour
         float skinWidth = 0.015f;
         Vector3 originalVelocity = currentVelocity;
 
-        // --- YENİ EKLENEN HAYAT KURTARICI SATIR ---
-        // PlayerPivot'un ana transform'a göre olan lokal farkını buluyoruz.
-        // Bu sayede fizik kapsülünü her zaman ayak hizasına (Pivot'a) sabitliyoruz!
-        Vector3 pivotOffset = PlayerPivot.position - transform.position;
+        Vector3 pivotOffset = CharFootPoint.position - transform.position;
 
         for (int i = 0; i < maxBounces; i++)
         {
@@ -335,13 +306,10 @@ public class PlayerMovement : NetworkBehaviour
 
             if (distance < 0.001f) break;
 
-            // --- DÜZELTİLEN KISIM BAŞLANGICI ---
-            // Artık currentPos'a pivotOffset ekleyerek hesaplamayı tam ayaklardan (PlayerPivot) başlatıyoruz
             Vector3 basePos = currentPos + pivotOffset;
             Vector3 p1 = basePos + Vector3.up * _capsuleRadius;
             Vector3 p2 = basePos + Vector3.up * (_capsuleHeight - _capsuleRadius);
             float castRadius = _capsuleRadius - 0.01f;
-            // --- DÜZELTİLEN KISIM BİTİŞİ ---
 
             if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, ~LayerMask.GetMask("Player")))
             {
@@ -359,7 +327,6 @@ public class PlayerMovement : NetworkBehaviour
                 {
                     newVelocity.y = originalVelocity.y;
                 }
-
                 currentVelocity = newVelocity;
             }
             else
@@ -368,30 +335,83 @@ public class PlayerMovement : NetworkBehaviour
                 break;
             }
         }
-
         return currentPos;
+    }
+
+    public override void Render()
+    {
+        if (BodyAnimator == null) return;
+
+        foreach (var change in _animChangeDetector.DetectChanges(this))
+        {
+            switch (change)
+            {
+                case nameof(IsSliding):
+                    if (IsSliding)
+                    {
+                        BodyAnimator.SetTrigger("Slide");
+                    }
+                    break;
+            }
+        }
+
+        Vector3 localVelocity = transform.InverseTransformDirection(Velocity);
+        float maxSpeed = MaxGroundSpeed * SprintSpeedMultiplier;
+
+        float targetMoveX = localVelocity.x / maxSpeed;
+        float targetMoveY = localVelocity.z / maxSpeed;
+
+        float currentMoveX = BodyAnimator.GetFloat("MoveX");
+        float currentMoveY = BodyAnimator.GetFloat("MoveY");
+
+        BodyAnimator.SetFloat("MoveX", Mathf.Lerp(currentMoveX, targetMoveX, Time.deltaTime * 15f));
+        BodyAnimator.SetFloat("MoveY", Mathf.Lerp(currentMoveY, targetMoveY, Time.deltaTime * 15f));
+
+        BodyAnimator.SetBool("IsCrouching", IsCrouching);
+        BodyAnimator.SetBool("IsGrounded", IsGrounded);
+
+        if (_playerScript != null && _playerScript.EquippedWeapon != null)
+        {
+            BodyAnimator.SetBool("IsAiming", _playerScript.EquippedWeapon.IsAiming);
+        }
+
+        // --- MULTI-AIM (OMURGA BÜKME) SENKRONİZASYONU ---
+        if (AimTarget != null && CharHeadPoint != null)
+        {
+            // NetworkPitch (Ağdan gelen yukarı/aşağı bakış) ile gövdenin sağ/sol yönünü birleştir
+            Quaternion aimRotation = Quaternion.Euler(NetworkPitch, transform.eulerAngles.y, 0);
+
+            // Hedefi kafanın ilerisine, baktığın açıya doğru ışınla
+            AimTarget.position = CharHeadPoint.position + aimRotation * Vector3.forward * AimDistance;
+        }
+
+        // --- SOL EL IK (SİLAH TUTMA) SENKRONİZASYONU ---
+        if (LeftHandIK_Target != null && CurrentWeaponLeftGrip != null)
+        {
+            // Sol el hedef noktasını, direkt elindeki silahın kavrama noktasına yapıştır
+            LeftHandIK_Target.position = CurrentWeaponLeftGrip.position;
+            LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation;
+        }
     }
 
     private void OnDrawGizmos()
     {
-        if (PlayerPivot == null) return;
+        if (CharFootPoint == null || CharHeadPoint == null) return;
 
         bool grounded = false;
-        if (Application.isPlaying && Object != null && Object.IsInSimulation)
-        {
-            grounded = IsGrounded;
-        }
+        if (Application.isPlaying && Object != null && Object.IsInSimulation) grounded = IsGrounded;
 
-        if (grounded) Gizmos.color = Color.green;
-        else Gizmos.color = Color.red;
+        Gizmos.color = grounded ? Color.green : Color.red;
 
-        Vector3 origin = PlayerPivot.position + (Vector3.up * (_capsuleRadius + 0.01f));
+        Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.01f));
         Gizmos.DrawWireSphere(origin, _capsuleRadius);
         Gizmos.DrawLine(origin, origin + Vector3.down * (_capsuleRadius + 0.05f));
 
         Gizmos.color = Color.blue;
-        Vector3 p1 = PlayerPivot.position + Vector3.up * _capsuleRadius;
-        Vector3 p2 = PlayerPivot.position + Vector3.up * (_capsuleHeight - _capsuleRadius);
+        float tempHeight = Application.isPlaying ? _capsuleHeight : (CharHeadPoint.localPosition.y - CharFootPoint.localPosition.y);
+
+        Vector3 p1 = CharFootPoint.position + Vector3.up * _capsuleRadius;
+        Vector3 p2 = CharFootPoint.position + Vector3.up * (tempHeight - _capsuleRadius);
         Gizmos.DrawWireSphere(p1, _capsuleRadius);
         Gizmos.DrawWireSphere(p2, _capsuleRadius);
         Gizmos.DrawLine(p1 + Vector3.left * _capsuleRadius, p2 + Vector3.left * _capsuleRadius);
