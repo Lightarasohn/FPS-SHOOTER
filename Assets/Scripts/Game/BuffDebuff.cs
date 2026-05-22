@@ -142,7 +142,9 @@ public class InfiniteAmmo : BuffDebuff
     public override void ApplyAugment(Player targetPlayer)
     {
         PlayerWeapon weapon = targetPlayer.GetComponent<PlayerWeapon>();
-        if (weapon != null)
+
+        // YENİ: Hem weapon scripti var mı, hem de elinde fiziksel bir WeaponData var mı kontrolü
+        if (weapon != null && weapon.WeaponData != null)
         {
             _originalMagAmount = weapon.WeaponData.MagAmount;
             weapon.WeaponData.MagAmount = 999;
@@ -150,22 +152,20 @@ public class InfiniteAmmo : BuffDebuff
         }
         else
         {
-            Debug.LogError("BuffDebuff.cs:InfiniteAmmo:ApplyAugment: Weapon Script'i Bulunamadı");
+            Debug.LogWarning("BuffDebuff.cs:InfiniteAmmo:ApplyAugment: Oyuncunun elinde silah verisi yok, buff uygulanamadı.");
         }
     }
 
     public override void RemoveAugment(Player targetPlayer)
     {
         PlayerWeapon weapon = targetPlayer.GetComponent<PlayerWeapon>();
-        if (weapon != null)
+
+        // YENİ: Oyuncu öldüyse ve silahını düşürdüyse null döner, güvenlice atlarız
+        if (weapon != null && weapon.WeaponData != null)
         {
             weapon.WeaponData.MagAmount = _originalMagAmount;
             weapon.CurrentMags = _originalMagAmount;
             weapon.CurrentAmmo = weapon.WeaponData.MagCapacity;
-        }
-        else
-        {
-            Debug.LogError("BuffDebuff.cs:InfiniteAmmo:RemoveAugment: Weapon Script'i Bulunamadı");
         }
     }
 }
@@ -185,33 +185,34 @@ public class DoubleDamage : BuffDebuff
     public override void ApplyAugment(Player targetPlayer)
     {
         PlayerWeapon weapon = targetPlayer.GetComponent<PlayerWeapon>();
-        if (weapon != null)
+
+        // YENİ: Hem weapon scripti var mı, hem de elinde fiziksel bir WeaponData var mı kontrolü
+        if (weapon != null && weapon.WeaponData != null)
         {
             _originalDamage = weapon.WeaponData.Damage;
             _originalMagAmount = weapon.WeaponData.MagAmount;
+
             weapon.WeaponData.Damage *= 2;
             weapon.WeaponData.MagAmount = 0;
             weapon.CurrentMags = 0;
         }
         else
         {
-            Debug.LogError("BuffDebuff.cs:DoubleDamage:ApplyAugment: Weapon Script'i Bulunamadı");
+            Debug.LogWarning("BuffDebuff.cs:DoubleDamage:ApplyAugment: Oyuncunun elinde silah verisi yok, buff uygulanamadı.");
         }
     }
 
     public override void RemoveAugment(Player targetPlayer)
     {
         PlayerWeapon weapon = targetPlayer.GetComponent<PlayerWeapon>();
-        if (weapon != null)
+
+        // YENİ: Oyuncu öldüyse ve silahını düşürdüyse null döner, güvenlice atlarız
+        if (weapon != null && weapon.WeaponData != null)
         {
             weapon.WeaponData.MagAmount = _originalMagAmount;
             weapon.WeaponData.Damage = _originalDamage;
             weapon.CurrentMags = _originalMagAmount;
             weapon.CurrentAmmo = weapon.WeaponData.MagCapacity;
-        }
-        else
-        {
-            Debug.LogError("BuffDebuff.cs:DoubleDamage:RemoveAugment: Weapon Script'i Bulunamadı");
         }
     }
 }

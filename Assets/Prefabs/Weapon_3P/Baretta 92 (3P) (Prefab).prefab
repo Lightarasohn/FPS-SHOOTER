@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4872165458319718076}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: MuzzlePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,11 +40,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3611338324674319960}
-  - component: {fileID: 149351631979807046}
-  - component: {fileID: 6412274370392158593}
-  - component: {fileID: 7440108819244940306}
-  - component: {fileID: 1282573902785162721}
-  m_Layer: 0
+  - component: {fileID: 4380116802104715191}
+  m_Layer: 11
   m_Name: Baretta 92 (3P) (Prefab)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -69,55 +66,7 @@ Transform:
   - {fileID: 4872165458319718076}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
---- !u!65 &149351631979807046
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2528380376541037001}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.10320461, y: 0.28031468, z: 0.34497356}
-  m_Center: {x: 0.39217228, y: 0.10682827, z: 1.0696886}
---- !u!54 &6412274370392158593
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2528380376541037001}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &7440108819244940306
+--- !u!114 &4380116802104715191
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -126,30 +75,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2528380376541037001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: b4430ad42c67e764b820fff7b2575686, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 2652464539
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 1282573902785162721}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &1282573902785162721
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2528380376541037001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aee972bbca1d193409b3b0b851d0d02e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PhysicalWeaponInfo
-  weaponID: 1
-  _DroppedAmmo: 0
+  m_EditorClassIdentifier: Assembly-CSharp::VisualWeaponInfo
   LeftGripPoint: {fileID: 6128450481858930121}
   MuzzlePoint: {fileID: 4872165458319718076}
 --- !u!1 &7675678620249708111
@@ -161,7 +89,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6128450481858930121}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandGripPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -231,9 +159,41 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8519138911057749405, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -8244067319798375247, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -7701381221510968876, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -4787329708185074652, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -3348243054838649655, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -260297599357273980, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
       propertyPath: m_Name
       value: pistol1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 1507676075493666849, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 2631085457545173609, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
       propertyPath: m_RootBone
@@ -414,6 +374,22 @@ PrefabInstance:
     - target: {fileID: 2631085457545173609, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
       propertyPath: 'm_Bones.Array.data[43]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 3842639522930797004, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5762851322752658886, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6058458012175374421, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6449759904562665264, guid: 4e98271e1c60ef549b3240179519b7bf, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

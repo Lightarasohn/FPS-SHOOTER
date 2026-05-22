@@ -90,7 +90,8 @@ public class WeaponSelectionScript : MonoBehaviour
 
     private Player GetLocalPlayer()
     {
-        Player[] players = FindObjectsByType<Player>(FindObjectsSortMode.None);
+        // YENİ: Oyuncu kapalı (inactive) bile olsa bulmayı garantile
+        Player[] players = FindObjectsByType<Player>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (Player p in players)
         {
             if (p.HasInputAuthority) return p;

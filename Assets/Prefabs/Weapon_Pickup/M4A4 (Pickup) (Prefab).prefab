@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 8372207434414424357}
   - component: {fileID: 2567749505326338008}
   - component: {fileID: 2479359568236028523}
-  m_Layer: 0
-  m_Name: M4A4 (3P) (Prefab)
+  - component: {fileID: 8898219669552016369}
+  m_Layer: 11
+  m_Name: M4A4 (Pickup) (Prefab)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +83,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -98,12 +99,13 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1525826444
+  SortKey: 3256402599
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2479359568236028523}
+  - {fileID: 8898219669552016369}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2479359568236028523
 MonoBehaviour:
@@ -118,9 +120,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhysicalWeaponInfo
   weaponID: 2
+  _NetworkedWeaponID: 2
   _DroppedAmmo: 0
+  _DroppedMags: 0
   LeftGripPoint: {fileID: 4322750327962148085}
   MuzzlePoint: {fileID: 247836907425947253}
+--- !u!114 &8898219669552016369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2091272457148308557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &2497606648159157519
 GameObject:
   m_ObjectHideFlags: 0
@@ -130,7 +151,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4322750327962148085}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: LeftHandGripPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161,7 +182,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 247836907425947253}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: MuzzlePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -230,6 +251,14 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6130913144298848177, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: -4422603075626966716, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: -3441385681492612445, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
       propertyPath: m_RootBone
@@ -411,9 +440,49 @@ PrefabInstance:
       propertyPath: 'm_Bones.Array.data[43]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: -2380335026906236250, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
       propertyPath: m_Name
       value: ar2(automatic rifle)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 931417835053346734, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 1094898539484785335, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2929965959102343572, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3075729003253586863, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3633770221310033096, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3664274037212753003, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4088512878016149160, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6255174481878261600, guid: f3c17a0215984b14abdef7e4c67297f1, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

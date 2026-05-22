@@ -14,7 +14,7 @@ public class Player : NetworkBehaviour
     [Networked] public int Deaths { get; set; }
     [Networked] public int Assists { get; set; }
 
-    public int MaxHealth = 500;
+    public int MaxHealth = 100; // Standart olarak 100 kalmalı, buff ile artmalı
     public int MinHealth = 0;
     public float ArmorEfectiveness = 2;
     public Color DefaultColor = Color.blue;
@@ -22,11 +22,14 @@ public class Player : NetworkBehaviour
     public PlayerWeapon EquippedWeapon;
 
     [Header("Viewmodel ve Gövde Referansları")]
-    public GameObject ThirdPersonBody; // Hiyerarşideki 'Body' objesi
-    public GameObject ViewmodelRoot;   // Hiyerarşideki 'ViewmodelRoot' objesi
+    public GameObject ThirdPersonBody;
+    public GameObject ViewmodelRoot;
 
     public BuffDebuff ActiveAugment { get; private set; }
     private Dictionary<Player, float> _damageContributors = new Dictionary<Player, float>();
+
+    // YENİ: Durum değişikliklerini izlemek için
+    private ChangeDetector _changeDetector;
 
     public void Awake()
     {
@@ -36,38 +39,30 @@ public class Player : NetworkBehaviour
 
     public override void Spawned()
     {
+        _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
+
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.AddPlayer(this);
-        }
 
         bool isLocal = Object.HasInputAuthority;
 
         if (HasStateAuthority)
         {
             IsAlive = true;
-            Health = 100;
+            Health = MaxHealth;
             Armor = 100;
         }
 
         if (GameManager.Instance != null)
-        {
             PlayerName = $"Player {GameManager.Instance.ActivePlayers.Count}";
-        }
 
-        // --- YENİ: VIEWMODEL VE GÖVDE (CULLING) MANTIĞI ---
         if (isLocal)
         {
-            // Kendi vücudumuzu kameramız görmesin diye gizli katmana alıyoruz
             SetLayerRecursively(ThirdPersonBody, LayerMask.NameToLayer("LocalPlayerBody"));
-
-            // Kendi kollarımızı (Viewmodel) aktif ediyoruz
             if (ViewmodelRoot != null) ViewmodelRoot.SetActive(true);
 
             if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
-            {
                 PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
-            }
         }
         else
         {
@@ -77,17 +72,17 @@ public class Player : NetworkBehaviour
             AudioListener playerLocalAudioListener = GetComponentInChildren<AudioListener>();
             if (playerLocalAudioListener != null) playerLocalAudioListener.enabled = false;
 
-            // Diğer oyuncuların ekranında boş kollar uçmasın diye Viewmodel'i tamamen kapatıyoruz!
             if (ViewmodelRoot != null) ViewmodelRoot.SetActive(false);
         }
+
+        // Doğduğunda görünürlük durumunu eşitle
+        TogglePlayerVisibility(IsAlive);
     }
 
     private void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null) return;
-
         obj.layer = newLayer;
-
         foreach (Transform child in obj.transform)
         {
             if (child == null) continue;
@@ -98,9 +93,7 @@ public class Player : NetworkBehaviour
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.RemovePlayer(this);
-        }
     }
 
     public void TakeDamage(float damage, Player attacker)
@@ -146,11 +139,11 @@ public class Player : NetworkBehaviour
         if (Health <= 0)
         {
             Health = 0;
-            IsAlive = false;
 
-            // Ölünce silahını yere fırlat!
+            // YENİ: Silahı yere atma işlemi IsAlive false olmadan hemen önce yapılmalı
             if (EquippedWeapon != null) EquippedWeapon.DropCurrentWeapon();
 
+            IsAlive = false;
             AddDeath();
 
             if (attacker != null && attacker != this)
@@ -174,10 +167,7 @@ public class Player : NetworkBehaviour
             if (potentialAssister != killer && potentialAssister != null)
             {
                 if (damageDealt >= assistThreshold)
-                {
                     potentialAssister.AddAssist();
-                    Debug.Log($"{potentialAssister.PlayerName}, {damageDealt} hasar vurarak asist yaptı!");
-                }
             }
         }
     }
@@ -187,9 +177,7 @@ public class Player : NetworkBehaviour
         if (!Object.HasInputAuthority) return;
         PlayerCrosshair = newCrosshair;
         if (PlayerHUD.Instance != null && PlayerHUD.Instance.HudCrosshair != null)
-        {
             PlayerHUD.Instance.HudCrosshair.ApplyCrosshairSettings(PlayerCrosshair);
-        }
     }
 
     public void UpdateMouseSettings(float newSensitivity)
@@ -197,10 +185,9 @@ public class Player : NetworkBehaviour
         if (!Object.HasInputAuthority) return;
         PlayerInputHandler inputHandler = GetComponent<PlayerInputHandler>();
         if (inputHandler != null)
-        {
             inputHandler.MouseSensitivity = newSensitivity;
-        }
     }
+
     public void RequestWeapon(string weaponIDStr)
     {
         RPC_ApplyWeapon(weaponIDStr);
@@ -209,27 +196,13 @@ public class Player : NetworkBehaviour
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_ApplyWeapon(string weaponIDStr)
     {
-        if (!System.Enum.TryParse(weaponIDStr, out WeaponID weaponID))
-        {
-            Debug.LogError($"[Sunucu] HATA: '{weaponIDStr}' geçerli bir WeaponID değil!");
-            return;
-        }
-
-        if (EquippedWeapon == null)
-        {
-            Debug.LogError($"[Sunucu] HATA: EquippedWeapon bulunamadı!");
-            return;
-        }
+        if (!System.Enum.TryParse(weaponIDStr, out WeaponID weaponID)) return;
+        if (EquippedWeapon == null) return;
 
         Weapon selectedWeapon = EquippedWeapon.GetWeaponClassFromID(weaponID);
-        if (selectedWeapon == null)
-        {
-            Debug.LogError($"[Sunucu] HATA: '{weaponIDStr}' için silah verisi üretilemedi!");
-            return;
-        }
+        if (selectedWeapon == null) return;
 
         EquippedWeapon.EquipWeapon(selectedWeapon);
-        Debug.Log($"[Sunucu] {this.name} oyuncusuna {selectedWeapon.Name} kuşandırıldı.");
     }
 
     public void RequestBuff(string buffName)
@@ -244,25 +217,16 @@ public class Player : NetworkBehaviour
         System.Type buffType = System.Type.GetType(buffName);
 
         if (buffType != null && buffType.IsSubclassOf(typeof(BuffDebuff)))
-        {
             newAugment = (BuffDebuff)System.Activator.CreateInstance(buffType);
-        }
-        else
-        {
-            Debug.LogError($"[Sunucu] HATA: '{buffName}' adında geçerli bir Buff/Debuff sınıfı bulunamadı!");
-            return;
-        }
+        else return;
 
         if (newAugment != null)
         {
             if (ActiveAugment != null)
-            {
                 ActiveAugment.RemoveAugment(this);
-            }
 
             ActiveAugment = newAugment;
             ActiveAugment.ApplyAugment(this);
-            Debug.Log($"[Sunucu] {this.name} oyuncusuna {newAugment.Name} uygulandı!");
         }
     }
 
@@ -275,10 +239,32 @@ public class Player : NetworkBehaviour
         }
     }
 
+    // YENİ: Oyuncuyu tamamen gizleyen ve fiziksel olarak yok eden metod
+    private void TogglePlayerVisibility(bool isVisible)
+    {
+        if (ThirdPersonBody != null)
+            ThirdPersonBody.SetActive(isVisible);
+
+        if (Object.HasInputAuthority && ViewmodelRoot != null)
+            ViewmodelRoot.SetActive(isVisible);
+
+        // Mermilerin içinden geçmesi için kapsülü kapat
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = isVisible;
+    }
+
     public override void Render()
     {
-        // NOT: Gerçek 3D iskelete geçildiği için ilkel MeshRenderer renk değiştirme kodu kaldırıldı.
-        // İleride takım renklerini "SkinnedMeshRenderer" materyalleri veya UI üzerinden belirleyeceğiz.
+        // YENİ: Ağ üzerinden IsAlive değiştiğinde herkesin ekranında karakteri gizle/göster
+        foreach (var change in _changeDetector.DetectChanges(this))
+        {
+            switch (change)
+            {
+                case nameof(IsAlive):
+                    TogglePlayerVisibility(IsAlive);
+                    break;
+            }
+        }
 
         if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {

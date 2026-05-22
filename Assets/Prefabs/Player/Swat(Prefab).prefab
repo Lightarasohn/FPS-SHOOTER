@@ -297,6 +297,7 @@ MonoBehaviour:
   _LastShotDidHit: 0
   _IsReloading: 0
   _ReloadTriggered: 0
+  _EquippedWeaponID: 0
   weaponPoint: {fileID: 2560557882013033503}
   firePoint: {fileID: 1462749116528630456}
   playerCamera: {fileID: 4682624386267356797}
@@ -314,22 +315,27 @@ MonoBehaviour:
     ViewmodelObject: {fileID: 8056279309108578243}
     ViewmodelMuzzlePoint: {fileID: 1245606046348253097}
     ThirdPersonPrefab: {fileID: 2528380376541037001, guid: 0b4192cc1635f454da2ee4320d89fef0, type: 3}
+    PickupPrefab: {fileID: 2528380376541037001, guid: c9ab1898c77a31b4bb56c7dbd4a23870, type: 3}
   - WeaponID: 2
     ViewmodelObject: {fileID: 2409200724407351719}
     ViewmodelMuzzlePoint: {fileID: 2108674021697689423}
     ThirdPersonPrefab: {fileID: 2091272457148308557, guid: e25b4a18f195d0249990633413080470, type: 3}
+    PickupPrefab: {fileID: 2091272457148308557, guid: 8eb3233e7dc773a4e8494448ccc7c6bb, type: 3}
   - WeaponID: 3
     ViewmodelObject: {fileID: 2956151391680893261}
     ViewmodelMuzzlePoint: {fileID: 8409600575077110627}
     ThirdPersonPrefab: {fileID: 5245229760118722599, guid: 002191efeae433343acd6456cf72de00, type: 3}
+    PickupPrefab: {fileID: 5245229760118722599, guid: 16bbc7e829a56c94c9d989b4098404fc, type: 3}
   - WeaponID: 4
     ViewmodelObject: {fileID: 4153221619833943252}
     ViewmodelMuzzlePoint: {fileID: 6236161981711192744}
     ThirdPersonPrefab: {fileID: 5365490219906615823, guid: ca67787e5a54cef45bf160195fefedf8, type: 3}
+    PickupPrefab: {fileID: 5365490219906615823, guid: 31f7c620508c30e42afeaac391e22d8f, type: 3}
   - WeaponID: 5
     ViewmodelObject: {fileID: 773806591424739166}
     ViewmodelMuzzlePoint: {fileID: 121908004392555603}
     ThirdPersonPrefab: {fileID: 7555755475114048927, guid: ea536cbe7c6e1c84491e0846e3e2c82d, type: 3}
+    PickupPrefab: {fileID: 7555755475114048927, guid: 88d5e69f97c1e8f47b6740c77f76b29a, type: 3}
   ThirdPersonWeaponAnchor: {fileID: 2560557882013033503}
   viewmodelWeaponPoint: {fileID: 0}
 --- !u!114 &7552450449832961667
@@ -1004,7 +1010,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 1527
+    m_Bits: 3575
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

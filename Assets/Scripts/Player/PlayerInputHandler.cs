@@ -59,6 +59,24 @@ public class PlayerInputHandler : NetworkBehaviour
 
         if (Keyboard.current == null || Mouse.current == null) return;
 
+        // --- YENİ EKLENEN KISIM: İMLEÇ SERBEST BIRAKMA MANTIĞI ---
+        // (ESC altındaki çift tırnak/é veya Enter yanındaki tırnak tuşuna basılırsa)
+        if (Keyboard.current.backquoteKey.wasPressedThisFrame || Keyboard.current.quoteKey.wasPressedThisFrame)
+        {
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+        // ---------------------------------------------------------
+
+        // Eğer imleç kilitli değilse (yani menü modundaysak) input okumayı durdur.
         if (Cursor.lockState != CursorLockMode.Locked)
         {
             CurrentInput.MoveDirection = Vector2.zero;
