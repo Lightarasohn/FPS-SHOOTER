@@ -26,7 +26,7 @@ public class PlayerMovement : NetworkBehaviour
     public float ADSSpeedMultiplier = 0.5f;
 
     [Header("Kayma (Slide) Ayarları")]
-    public float SlideDuration = 0.5f;
+    public float SlideDuration = 1f;
     public float SlideSpeedMultiplier = 2f;
     public float SlideCooldownTime = 0.5f;
 
