@@ -434,6 +434,7 @@ MonoBehaviour:
   _IsReloading: 0
   _ReloadTriggered: 0
   _EquippedWeaponID: 0
+  _HasFirstBulletOneShotBuff: 0
   weaponPoint: {fileID: 8297328373743667432}
   firePoint: {fileID: 8516296061679868625}
   playerCamera: {fileID: 1873146218361749248}
@@ -2045,13 +2046,369 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -2530251679569251172, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8297328373743667432}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -7143064857610932893, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6942850447607736712}
+    - targetCorrespondingSourceObject: {fileID: -7143064857610932893, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7121883346949917132}
+    - targetCorrespondingSourceObject: {fileID: -6537936343540691165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7716895834428076114}
+    - targetCorrespondingSourceObject: {fileID: -6537936343540691165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 25149381750926333}
+    - targetCorrespondingSourceObject: {fileID: -1372478435321823698, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8577340716137815668}
+    - targetCorrespondingSourceObject: {fileID: -1372478435321823698, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 604865240354082506}
+    - targetCorrespondingSourceObject: {fileID: -4402405717547116215, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 480235165954626470}
+    - targetCorrespondingSourceObject: {fileID: -4402405717547116215, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4186609740802537613}
+    - targetCorrespondingSourceObject: {fileID: 4702939792406662091, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3576380381877936708}
+    - targetCorrespondingSourceObject: {fileID: 4702939792406662091, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8593970206788037580}
+    - targetCorrespondingSourceObject: {fileID: 8667086787320500357, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4298598222068009754}
+    - targetCorrespondingSourceObject: {fileID: 8667086787320500357, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1597322295391024355}
+    - targetCorrespondingSourceObject: {fileID: -8825237598274801784, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1563902288809074629}
+    - targetCorrespondingSourceObject: {fileID: -8825237598274801784, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6281342376106449729}
+    - targetCorrespondingSourceObject: {fileID: -5284410159558089147, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3593106401392245726}
+    - targetCorrespondingSourceObject: {fileID: -5284410159558089147, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4052819188077572962}
+    - targetCorrespondingSourceObject: {fileID: -2004136995773306988, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6036952125172048006}
+    - targetCorrespondingSourceObject: {fileID: -2004136995773306988, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3374625355743213866}
+    - targetCorrespondingSourceObject: {fileID: 4174522340748956165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3912404142522782096}
+    - targetCorrespondingSourceObject: {fileID: 4174522340748956165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2856922701617876797}
+    - targetCorrespondingSourceObject: {fileID: -2972324554277783046, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2716947378833588651}
+    - targetCorrespondingSourceObject: {fileID: -2972324554277783046, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1839304004897753138}
+    - targetCorrespondingSourceObject: {fileID: 4495723111191367625, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7631205634436103617}
+    - targetCorrespondingSourceObject: {fileID: 4495723111191367625, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1547746783489344217}
+    - targetCorrespondingSourceObject: {fileID: -6332332895749125116, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6872377454067629596}
+    - targetCorrespondingSourceObject: {fileID: -6332332895749125116, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8699266094224970713}
+    - targetCorrespondingSourceObject: {fileID: -8620762613579571570, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7455318388705018669}
+    - targetCorrespondingSourceObject: {fileID: -8620762613579571570, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 360107667961735560}
+    - targetCorrespondingSourceObject: {fileID: 2807231755144388993, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7639285611984668220}
+    - targetCorrespondingSourceObject: {fileID: 2807231755144388993, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3495199260887894582}
   m_SourcePrefab: {fileID: 100100000, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+--- !u!1 &349991205843137802 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -5284410159558089147, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3593106401392245726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 349991205843137802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.19
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.36
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &4052819188077572962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 349991205843137802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 1
+--- !u!1 &837539938804121930 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4174522340748956165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3912404142522782096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 837539938804121930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.07
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.3
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &2856922701617876797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 837539938804121930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &870724737868373126 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4495723111191367625, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7631205634436103617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870724737868373126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 2
+  SphereRadius: 0.12
+  CapsuleRadius: 0
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0
+  Offset: {x: 0, y: 0.1, z: 0.05}
+  Root: {fileID: 0}
+  GizmosColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &1547746783489344217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870724737868373126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 0
+--- !u!1 &1478343655823160014 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2807231755144388993, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7639285611984668220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478343655823160014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.06
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.24
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &3495199260887894582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478343655823160014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &1672522492528122988 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6537936343540691165, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7716895834428076114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1672522492528122988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.08
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.5
+  Offset: {x: 0, y: 0.2, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &25149381750926333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1672522492528122988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &1904568649562398539 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6332332895749125116, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6872377454067629596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1904568649562398539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.08
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.57
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &8699266094224970713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1904568649562398539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!4 &2776330113966685498 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1510652388387417717, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
   m_PrefabInstance: {fileID: 3634804917557351247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &3364144438809951788 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -7143064857610932893, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6942850447607736712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3364144438809951788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.1
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.48
+  Offset: {x: 0, y: 0.17, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &7121883346949917132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3364144438809951788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!4 &3889934347870155940 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
@@ -2062,11 +2419,163 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 416511142261111596, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
   m_PrefabInstance: {fileID: 3634804917557351247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4032726046577130695 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8825237598274801784, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1563902288809074629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4032726046577130695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.21
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.36
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &6281342376106449729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4032726046577130695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 1
+--- !u!1 &4192162698525822401 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8620762613579571570, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7455318388705018669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4192162698525822401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.07
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.3
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &360107667961735560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4192162698525822401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &5347679670712206282 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8667086787320500357, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4298598222068009754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347679670712206282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 1
+  SphereRadius: 0
+  CapsuleRadius: 0
+  BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
+  CapsuleExtents: 0
+  Offset: {x: 0, y: -0.1, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &1597322295391024355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347679670712206282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!4 &6005645430538509690 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2222177442952688075, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
   m_PrefabInstance: {fileID: 3634804917557351247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6223565485497119963 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2004136995773306988, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6036952125172048006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6223565485497119963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.08
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.57
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &3374625355743213866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6223565485497119963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!4 &6449998836221254745 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -1444648241424511210, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
@@ -2077,11 +2586,163 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -1680883931492820501, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
   m_PrefabInstance: {fileID: 3634804917557351247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6810166055141076321 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1372478435321823698, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8577340716137815668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6810166055141076321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 1
+  SphereRadius: 0
+  CapsuleRadius: 0
+  BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
+  CapsuleExtents: 0
+  Offset: {x: 0, y: -0.1, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &604865240354082506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6810166055141076321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &7255656617524374197 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2972324554277783046, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2716947378833588651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7255656617524374197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.06
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.24
+  Offset: {x: 0, y: 0, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &1839304004897753138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7255656617524374197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!4 &7967947806246250451 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2530251679569251172, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
   m_PrefabInstance: {fileID: 3634804917557351247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8112927430956403206 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -4402405717547116215, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &480235165954626470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8112927430956403206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.1
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.48
+  Offset: {x: 0, y: 0.17, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &4186609740802537613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8112927430956403206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
+--- !u!1 &8301639355075369092 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4702939792406662091, guid: 9741ece9ccf06b34a9998a1c23491d79, type: 3}
+  m_PrefabInstance: {fileID: 3634804917557351247}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3576380381877936708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8301639355075369092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.Hitbox
+  Type: 3
+  SphereRadius: 0
+  CapsuleRadius: 0.08
+  BoxExtents: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.5
+  Offset: {x: 0, y: 0.2, z: 0}
+  Root: {fileID: 0}
+  GizmosColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!114 &8593970206788037580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8301639355075369092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ed719430af66c64880330f3580fd6a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HitboxProperties
+  zone: 2
 --- !u!1001 &4957598700774838154
 PrefabInstance:
   m_ObjectHideFlags: 0
