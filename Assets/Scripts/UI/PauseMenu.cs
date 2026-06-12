@@ -176,23 +176,26 @@ public class PauseMenu : MonoBehaviour
     async void DisconnectFromGame()
     {
         try
-        {// Butona art arda basılmasını engellemek için menüyü gizle veya butonu deaktif et
-        pauseMenuPanel.SetActive(false);
-        disconnectButton.interactable = false;
-
-        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-
-        if (runner != null)
         {
-            // Fusion'ın tüm ağ işlemlerini ve objeleri güvenle temizlemesini bekle
-            await runner.Shutdown();
-        }
+            // Butona art arda basılmasını engellemek için menüyü gizle veya butonu deaktif et
+            pauseMenuPanel.SetActive(false);
+            disconnectButton.interactable = false;
 
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+            NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
 
-            // Fusion tamamen kapandıktan sonra temiz bir şekilde ana menüye dön
-            SceneManager.LoadScene(mainMenuSceneIndex);
+            if (runner != null)
+            {
+                // Fusion'ın tüm ağ işlemlerini temizlemesini bekle.
+                // Kapanma bitince BasicSpawner.OnShutdown tetiklenecek ve sahneyi o değiştirecek.
+                await runner.Shutdown();
+            }
+            else
+            {
+                // Eğer sahnede runner yoksa (güvenlik amaçlı) direkt ana menüye dön
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                SceneManager.LoadScene(mainMenuSceneIndex);
+            }
         }
         catch
         {

@@ -223,14 +223,17 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Geçiş mantığını (isTransitioning) tamamen kaldırdık. 
-        // Lobi > Oyun geçişinde zaten yukarıda "RemoveCallbacks" kullandığımız için bu metot asla çalışmaz.
-        // EĞER bu metot çalışıyorsa, oyuncu Pause menüsünden veya hata yüzünden düşmüştür.
-        // O yüzden arayüz referanslarını tazelemek için kendini imha edip Ana Menüye dönmesi DOĞRUDUR.
+        // YENİ: Ayırdığımız "FusionRunner" objesini de sahnede çöp kalmaması için yok ediyoruz.
+        if (runner != null && runner.gameObject != null)
+        {
+            Destroy(runner.gameObject);
+        }
 
+        // Oyun içerisindeyken maçtan çıkılırsa temizliği yapar
         _instance = null;
         Destroy(gameObject);
 
+        // Ana menüye dönüşü SADECE burası yönetir
         if (SceneManager.GetActiveScene().buildIndex != 0)
         {
             SceneManager.LoadScene(0);
