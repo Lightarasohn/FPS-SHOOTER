@@ -26,6 +26,8 @@ public class PlayerWeapon : NetworkBehaviour
                                                           // Networked property ekle (diğer [Networked]'lerin yanına)
     [Networked] public WeaponID EquippedWeaponID { get; set; }
 
+    [Networked] public bool HasFirstBulletOneShotBuff { get; set; } // İlk kurşun tek atar buff'ı aktif mi?
+
     public Weapon WeaponData { get; private set; }
 
     [Header("Gerekli Referanslar")]
@@ -436,6 +438,15 @@ public class PlayerWeapon : NetworkBehaviour
                                 if (playerScript.PlayerTeam != Owner.PlayerTeam)
                                 {
                                     float finalDamage = WeaponData.Damage;
+
+                                    // YENİ: Ölümcül İlk Kurşun Buff Kontrolü
+                                    // Not: Mermi ateşlendiğinde hemen üstte CurrentAmmo-- yapıldığı için, 
+                                    // ilk mermi atıldığında CurrentAmmo değeri (MagCapacity - 1) olur.
+                                    if (HasFirstBulletOneShotBuff && CurrentAmmo == (WeaponData.MagCapacity - 1))
+                                    {
+                                        finalDamage = 9999f; // Tek atması için garantili astronomik bir hasar
+                                    }
+
                                     HitZoneType hitTag = hitResult.Hitbox.gameObject.GetComponent<HitboxProperties>().zone;
 
                                     switch (hitTag)

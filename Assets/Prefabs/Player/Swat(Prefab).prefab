@@ -245,9 +245,6 @@ MonoBehaviour:
   AimDistance: 50
   LeftHandIK_Target: {fileID: 7077804246892930247}
   CurrentWeaponLeftGrip: {fileID: 0}
-  LeftElbow_Hint: {fileID: 8829866323181674105}
-  LeftElbow_Hint_Standing: {fileID: 0}
-  LeftElbow_Hint_Crouching: {fileID: 0}
   _NetworkPitch: 0
   _Velocity: {x: 0, y: 0, z: 0}
   _IsGrounded: 0

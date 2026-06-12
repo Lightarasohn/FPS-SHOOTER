@@ -61,8 +61,9 @@ public class GlobalVariables
     }
 
     // Takım Türleri
-    public enum Team {
-        Spectator, Red, Blue 
+    public enum Team
+    {
+        Spectator, Red, Blue
     }
     public enum RoundState
     {
@@ -83,17 +84,27 @@ public class GlobalVariables
     // Hem buff hem de debuff en az 3'er tane olmalı
     public static List<BuffDebuff> ALL_BUFFS_AND_DEBUFFS = new List<BuffDebuff>
     {
-        // Debuffs
-        new LowGravity(), new ZeroGravity(), new SlipperyGround(),
-        // Buffs
-        new InfiniteAmmo(), new DoubleDamage(), new DoubleHealth(),
+        // --- DEBUFFS ---
+        new LowGravity(),
+        new SlipperyGround(),
+        new ShakyHands(),   // YENİ: Titrek Eller (Sekme x1.5)
+        new CementShoes(),  // YENİ: Beton Ayaklar (Zıplama İptal)
+
+        // --- BUFFS ---
+        new InfiniteAmmo(),
+        new DoubleDamage(),
+        new DoubleHealth(),
+        new ZeroRecoil(),           // YENİ: Sıfır Geri Tepme
+        new FirstBulletOneShot(),   // YENİ: Ölümcül İlk Kurşun
+        new HalfRecoil(),           // YENİ: Kontrollü Atış (Sekme /2)
+        new AdrenalineRush()        // YENİ: Adrenalin Patlaması (Hız x1.5, Can -50)
     };
 
     public static class WeaponRecoil
     {
         public static Vector2[] Baretta92 = new Vector2[]
         {
-            
+
             new(0f, 0f), new(0.0164f, 0.9482f), new(0.1025f, 0.4945f), new(-0.1768f, 0.3727f), new(-0.3232f, 0.9386f),
             new(0.0164f, 0.7105f), new(-0.2692f, 1.7175f), new(-0.3956f, 1.6016f), new(1.0151f, 1.258f), new(-3.0844f, 2.1274f),
             new(0.3861f, 0.7505f), new(0.8042f, 0.1958f),
