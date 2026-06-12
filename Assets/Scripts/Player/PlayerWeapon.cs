@@ -128,6 +128,8 @@ public class PlayerWeapon : NetworkBehaviour
                 }
 
                 WeaponData = null;
+                CurrentAmmo = 0;
+                CurrentMags = 0;
                 ActivateWeaponVisuals(WeaponID.None);
 
                 if (playerMovement != null && playerMovement.BodyAnimator != null)
@@ -152,6 +154,7 @@ public class PlayerWeapon : NetworkBehaviour
                 Weapon newWeapon = GetWeaponClassFromID(dropObj.NetworkedWeaponID);
                 if (newWeapon != null)
                 {
+                    DropCurrentWeapon();
                     EquipWeapon(newWeapon);
 
                     // Mermileri set et
