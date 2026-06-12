@@ -23,11 +23,11 @@ MonoBehaviour:
   - m_enabled: 1
     m_path: Assets/Scenes/Menu.unity
   - m_enabled: 0
-    m_path: Assets/Scenes/Volkan.unity
+    m_path: "Assets/Scenes/Maps/\xC7\xF6l.unity"
   - m_enabled: 0
     m_path: Assets/Scenes/Onur2.unity
   - m_enabled: 1
-    m_path: Assets/Scenes/1v1.unity
+    m_path: Assets/Scenes/Maps/Hangar.unity
   m_HasScriptingDefines: 0
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:
