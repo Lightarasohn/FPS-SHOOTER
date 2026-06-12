@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &465627787226055895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2539261175638779473}
+  - component: {fileID: 6508347815296689147}
+  m_Layer: 0
+  m_Name: FusionSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2539261175638779473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 465627787226055895}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 50, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6508347815296689147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 465627787226055895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f748a39fc9c8d04f9ee000661f56e3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  _playerStatePrefab:
+    RawGuidValue: 9e77ec1ca0f6749408859926d26c5a3c
+  _sessionListContent: {fileID: 0}
+  _sessionEntryPrefab: {fileID: 7294938129700866980, guid: 85a0a988712c82e4e8e0fa0438ffadbf, type: 3}
+  _mapSelectionPanel: {fileID: 0}
+  _mapListContent: {fileID: 0}
+  _mapEntryPrefab: {fileID: 7294938129700866980, guid: f58344de1085a02408288bfdd7db03c3, type: 3}
+  _availableMaps:
+  - MapName: Hangar
+    MapPreviewImage: {fileID: 21300000, guid: cfe0363219ad8c4439db4fd2ef9cc8e9, type: 3}
+    SceneBuildIndex: 1
+  - MapName: "\xC7\xF6l"
+    MapPreviewImage: {fileID: 21300000, guid: be59e75fe9d42bb42a845a9180ba18a2, type: 3}
+    SceneBuildIndex: 2
+  - MapName: SciFi
+    MapPreviewImage: {fileID: 21300000, guid: 69b9d4ace3cd32c48a68b6dc145e7e86, type: 3}
+    SceneBuildIndex: 3
+  HostButton: {fileID: 0}
+  ClientButton: {fileID: 0}
