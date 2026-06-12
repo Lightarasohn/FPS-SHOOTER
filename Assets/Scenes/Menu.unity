@@ -119,66 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &5242619
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5242621}
-  - component: {fileID: 5242620}
-  m_Layer: 0
-  m_Name: FusionSpawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &5242620
+--- !u!114 &5242620 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+  m_PrefabInstance: {fileID: 7671253851204230677}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5242619}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f748a39fc9c8d04f9ee000661f56e3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  _playerStatePrefab:
-    RawGuidValue: 9e77ec1ca0f6749408859926d26c5a3c
-  _sessionListContent: {fileID: 1163213781}
-  _sessionEntryPrefab: {fileID: 7294938129700866980, guid: 85a0a988712c82e4e8e0fa0438ffadbf, type: 3}
-  _mapSelectionPanel: {fileID: 956343199}
-  _mapListContent: {fileID: 799111144}
-  _mapEntryPrefab: {fileID: 7294938129700866980, guid: f58344de1085a02408288bfdd7db03c3, type: 3}
-  _availableMaps:
-  - MapName: Hangar
-    MapPreviewImage: {fileID: 21300000, guid: cfe0363219ad8c4439db4fd2ef9cc8e9, type: 3}
-    SceneBuildIndex: 1
-  - MapName: "\xC7\xF6l"
-    MapPreviewImage: {fileID: 21300000, guid: be59e75fe9d42bb42a845a9180ba18a2, type: 3}
-    SceneBuildIndex: 2
-  HostButton: {fileID: 844283149}
-  ClientButton: {fileID: 1354197209}
---- !u!4 &5242621
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5242619}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 50, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8918097
 GameObject:
   m_ObjectHideFlags: 0
@@ -14883,6 +14834,83 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2115934011}
   m_CullTransparentMesh: 1
+--- !u!1001 &7671253851204230677
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 465627787226055895, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_Name
+      value: FusionSpawner
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2539261175638779473, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: HostButton
+      value: 
+      objectReference: {fileID: 844283149}
+    - target: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: ClientButton
+      value: 
+      objectReference: {fileID: 1354197209}
+    - target: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: _mapListContent
+      value: 
+      objectReference: {fileID: 799111144}
+    - target: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: _mapSelectionPanel
+      value: 
+      objectReference: {fileID: 956343199}
+    - target: {fileID: 6508347815296689147, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
+      propertyPath: _sessionListContent
+      value: 
+      objectReference: {fileID: 1163213781}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 50f4020ba4e4e7f40a8d47f35ccd55a8, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -14890,4 +14918,4 @@ SceneRoots:
   - {fileID: 1700393851}
   - {fileID: 1336049800}
   - {fileID: 1535707214}
-  - {fileID: 5242621}
+  - {fileID: 7671253851204230677}
