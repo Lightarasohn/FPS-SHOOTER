@@ -101,6 +101,14 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             sessionName = "Room_" + Guid.NewGuid().ToString().Substring(0, 8);
         }
 
+        // --- GÜNCELLENEN KISIM: ODA ÖZELLİKLERİNE HARİTA BİLGİSİNİ EKLEME ---
+        Dictionary<string, SessionProperty> customProperties = new Dictionary<string, SessionProperty>();
+        if (mode == GameMode.Host)
+        {
+            customProperties.Add("MapIndex", sceneIndex);
+        }
+        // -------------------------------------------------------------------
+
         try
         {
             await _runner.StartGame(new StartGameArgs
@@ -108,7 +116,11 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 GameMode = mode,
                 Scene = sceneInfo,
                 SessionName = sessionName,
-                SceneManager = runnerObj.AddComponent<NetworkSceneManagerDefault>()
+                SceneManager = runnerObj.AddComponent<NetworkSceneManagerDefault>(),
+                // --- GÜNCELLENEN KISIM: Özellikleri Fusion'a paslıyoruz ---
+                SessionProperties = mode == GameMode.Host ? customProperties : null,
+                IsOpen = true,
+                IsVisible = true
             });
 
             if (SceneManager.GetActiveScene().buildIndex == 0)
@@ -126,7 +138,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    // Client lobi kodları aynı...
     async Task ConnectToLobby()
     {
         if (_runner != null)
@@ -157,7 +168,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    // YENİ: Artık direkt başlamak yerine seçilen harita indeksini alıyor
     public async void StartGameAsHost(int selectedSceneIndex)
     {
         SetButtonsInteractable(false);
@@ -176,7 +186,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public async void JoinSelectedSession(string sessionName)
     {
         NotificationScript.Instance.ShowNotification($"{sessionName} odasına katılıyor...");
-        // Client'lar harita indexi yollamaz, Host'un kurduğu sahne onlara Fusion tarafından otomatik indirilir.
         await StartGame(GameMode.Client, sessionName);
     }
 
@@ -190,15 +199,15 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (_runner == null && SceneManager.GetActiveScene().buildIndex == 0)
         {
-            // Eğer buton UI ile çalışıyorsa OnGUI'ye gerek kalmaz ama test için durabilir.
             if (GUI.Button(new Rect(0, 0, 200, 40), "Host (Harita Seç)"))
-                OpenMapSelectionMenu(); // YENİ: Direkt başlatma, menüyü aç.
+                OpenMapSelectionMenu();
 
             if (GUI.Button(new Rect(0, 40, 200, 40), "Join Lobby"))
                 JoinGameAsClient();
         }
     }
 
+    // --- HATANIN DÜZELTİLDİĞİ KISIM BURASI ---
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
         Debug.Log($"[BasicSpawner] OnSessionListUpdated tetiklendi. Oda Sayısı: {sessionList.Count}");
@@ -219,7 +228,24 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
                 if (entryScript != null)
                 {
-                    entryScript.Setup(session, () => JoinSelectedSession(session.Name));
+                    Sprite mapSprite = null;
+
+                    // Odadan ağ üzerinden "MapIndex" verisini güvenli bir şekilde çekiyoruz
+                    if (session.Properties != null && session.Properties.TryGetValue("MapIndex", out var propValue))
+                    {
+                        // DÜZELTME: (int) ile doğrudan cast ediyoruz
+                        int hostedMapIndex = (int)propValue;
+
+                        // Havuzumuzdan (Available Maps listesinden) bu indexe ait resmi eşleştiriyoruz
+                        MapData foundMap = _availableMaps.Find(m => m.SceneBuildIndex == hostedMapIndex);
+                        if (foundMap.MapPreviewImage != null)
+                        {
+                            mapSprite = foundMap.MapPreviewImage;
+                        }
+                    }
+
+                    // Setup fonksiyonuna bulduğumuz resmi parametre olarak ekledik
+                    entryScript.Setup(session, mapSprite, () => JoinSelectedSession(session.Name));
                 }
             }
         }
@@ -261,17 +287,14 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // YENİ: Ayırdığımız "FusionRunner" objesini de sahnede çöp kalmaması için yok ediyoruz.
         if (runner != null && runner.gameObject != null)
         {
             Destroy(runner.gameObject);
         }
 
-        // Oyun içerisindeyken maçtan çıkılırsa temizliği yapar
         _instance = null;
         Destroy(gameObject);
 
-        // Ana menüye dönüşü SADECE burası yönetir
         if (SceneManager.GetActiveScene().buildIndex != 0)
         {
             SceneManager.LoadScene(0);
