@@ -20,6 +20,13 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private Transform _sessionListContent;
     [SerializeField] private GameObject _sessionEntryPrefab;
 
+    // --- YENİ EKLENEN KISIM: HARİTA SEÇİM SİSTEMİ ---
+    [Header("Map Selection (Host)")]
+    [SerializeField] private GameObject _mapSelectionPanel; // Harita seçim ekranının genel paneli
+    [SerializeField] private Transform _mapListContent;     // Harita butonlarının ekleneceği yer
+    [SerializeField] private GameObject _mapEntryPrefab;    // İçinde MapEntryUI scripti olan prefab
+    [SerializeField] private List<MapData> _availableMaps;  // Editörden dolduracağın harita havuzu
+
     [Header("Buttons")]
     [SerializeField] public Button HostButton;
     [SerializeField] public Button ClientButton;
@@ -36,19 +43,46 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         DontDestroyOnLoad(gameObject);
     }
 
-    // Oyun Başlatma (Host veya Doğrudan Belirli Bir Odaya Client Olarak Giriş)
-    async Task StartGame(GameMode mode, string sessionName = "")
+    // YENİ: Harita seçim menüsünü açan fonksiyon. (Host butonuna tıklandığında bunu çağıracağız)
+    public void OpenMapSelectionMenu()
     {
-        // Eski runner varsa temizle
+        if (_mapSelectionPanel == null) return;
+
+        _mapSelectionPanel.SetActive(true);
+
+        // İçerideki eski haritaları temizle
+        foreach (Transform child in _mapListContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Editörden girdiğimiz harita verilerini UI prefablarına aktar
+        foreach (var map in _availableMaps)
+        {
+            GameObject entry = Instantiate(_mapEntryPrefab, _mapListContent);
+            MapEntryUI entryScript = entry.GetComponent<MapEntryUI>();
+
+            if (entryScript != null)
+            {
+                // Butona tıklandığında paneli kapat ve o haritanın indexi ile oyunu başlat
+                entryScript.Setup(map, () =>
+                {
+                    _mapSelectionPanel.SetActive(false);
+                    StartGameAsHost(map.SceneBuildIndex);
+                });
+            }
+        }
+    }
+
+    // YENİ: Parametrelere "int sceneIndex" eklendi. Varsayılanı 1 yaptık ki Client'lar girerken sorun yaşamasın.
+    async Task StartGame(GameMode mode, string sessionName = "", int sceneIndex = 1)
+    {
         if (_runner != null)
         {
-            // YENİ: Geçiş sırasında Spawner'ın OnShutdown algılamasını iptal et
             _runner.RemoveCallbacks(this);
             await _runner.Shutdown();
         }
 
-        // YENİ: NetworkRunner'ı BasicSpawner'dan ayırıp YENİ bir objeye koyuyoruz!
-        // Böylece Fusion shutdown olduğunda BasicSpawner silinmez.
         GameObject runnerObj = new GameObject("FusionRunner");
         DontDestroyOnLoad(runnerObj);
 
@@ -56,7 +90,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
 
-        var scene = SceneRef.FromIndex(1);
+        // YENİ: Hardcoded 1 yerine, parametreden gelen sceneIndex değerini Fusion'a veriyoruz.
+        var scene = SceneRef.FromIndex(sceneIndex);
         var sceneInfo = new NetworkSceneInfo();
         if (scene.IsValid)
             sceneInfo.AddSceneRef(scene, LoadSceneMode.Single);
@@ -91,7 +126,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    // Client'ların Photon Lobi Sunucusuna Bağlanmasını Sağlayan Metot
+    // Client lobi kodları aynı...
     async Task ConnectToLobby()
     {
         if (_runner != null)
@@ -122,11 +157,12 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    public async void StartGameAsHost()
+    // YENİ: Artık direkt başlamak yerine seçilen harita indeksini alıyor
+    public async void StartGameAsHost(int selectedSceneIndex)
     {
         SetButtonsInteractable(false);
         NotificationScript.Instance.ShowNotification("Oyun başlatılıyor...");
-        await StartGame(GameMode.Host);
+        await StartGame(GameMode.Host, "", selectedSceneIndex);
         SetButtonsInteractable(true);
     }
 
@@ -140,6 +176,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public async void JoinSelectedSession(string sessionName)
     {
         NotificationScript.Instance.ShowNotification($"{sessionName} odasına katılıyor...");
+        // Client'lar harita indexi yollamaz, Host'un kurduğu sahne onlara Fusion tarafından otomatik indirilir.
         await StartGame(GameMode.Client, sessionName);
     }
 
@@ -153,8 +190,9 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (_runner == null && SceneManager.GetActiveScene().buildIndex == 0)
         {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host (GUID)"))
-                StartGameAsHost();
+            // Eğer buton UI ile çalışıyorsa OnGUI'ye gerek kalmaz ama test için durabilir.
+            if (GUI.Button(new Rect(0, 0, 200, 40), "Host (Harita Seç)"))
+                OpenMapSelectionMenu(); // YENİ: Direkt başlatma, menüyü aç.
 
             if (GUI.Button(new Rect(0, 40, 200, 40), "Join Lobby"))
                 JoinGameAsClient();
