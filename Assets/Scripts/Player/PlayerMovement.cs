@@ -189,24 +189,28 @@ public class PlayerMovement : NetworkBehaviour
 
                 if (canMove && input.Buttons.IsSet(PlayerAction.Jump))
                 {
-                    if (IsSliding)
+                    // YENİ: Zıplama gücü sıfır veya daha azsa, zıplama bloğunu tamamen yoksay
+                    if (JumpForce > 0f)
                     {
-                        IsSliding = false;
-                        wantsToCrouch = false;
-                        IsCrouching = false;
-                        SlideTimer = TickTimer.None;
-                        SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
-
-                        if (rawInputDirection.magnitude > 0.1f)
+                        if (IsSliding)
                         {
-                            float slideSpeed = new Vector3(currentVelocity.x, 0, currentVelocity.z).magnitude;
-                            currentVelocity.x = rawInputDirection.x * slideSpeed;
-                            currentVelocity.z = rawInputDirection.z * slideSpeed;
-                        }
-                    }
+                            IsSliding = false;
+                            wantsToCrouch = false;
+                            IsCrouching = false;
+                            SlideTimer = TickTimer.None;
+                            SlideCooldown = TickTimer.CreateFromSeconds(Runner, SlideCooldownTime);
 
-                    currentVelocity.y = JumpForce;
-                    IsGrounded = false;
+                            if (rawInputDirection.magnitude > 0.1f)
+                            {
+                                float slideSpeed = new Vector3(currentVelocity.x, 0, currentVelocity.z).magnitude;
+                                currentVelocity.x = rawInputDirection.x * slideSpeed;
+                                currentVelocity.z = rawInputDirection.z * slideSpeed;
+                            }
+                        }
+
+                        currentVelocity.y = JumpForce;
+                        IsGrounded = false;
+                    }
                 }
             }
             else
