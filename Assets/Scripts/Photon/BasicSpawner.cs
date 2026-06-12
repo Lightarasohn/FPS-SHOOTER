@@ -8,16 +8,17 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static GlobalVariables;
 
-
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
     private NetworkRunner _runner;
     private static BasicSpawner _instance;
 
     [Header("Prefabs")]
-    // Kapsül değil, görünmez temsilci prefabını (PlayerState) buraya koyacağız
     [SerializeField] private NetworkPrefabRef _playerStatePrefab;
 
+    [Header("UI List References (Lobby)")]
+    [SerializeField] private Transform _sessionListContent;
+    [SerializeField] private GameObject _sessionEntryPrefab;
 
     [Header("Buttons")]
     [SerializeField] public Button HostButton;
@@ -25,30 +26,45 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     void Awake()
     {
-        // Eğer sahnede halihazırda bir BasicSpawner varsa, sonradan geleni yok et.
         if (_instance != null && _instance != this)
-
         {
-            Destroy(_instance.gameObject);
+            Destroy(gameObject);
             return;
         }
 
         _instance = this;
-
         DontDestroyOnLoad(gameObject);
     }
 
-    async Task StartGame(GameMode mode)
+    // Oyun Başlatma (Host veya Doğrudan Belirli Bir Odaya Client Olarak Giriş)
+    async Task StartGame(GameMode mode, string sessionName = "")
     {
-        _runner = gameObject.AddComponent<NetworkRunner>();
+        // Eski runner varsa temizle
+        if (_runner != null)
+        {
+            // YENİ: Geçiş sırasında Spawner'ın OnShutdown algılamasını iptal et
+            _runner.RemoveCallbacks(this);
+            await _runner.Shutdown();
+        }
+
+        // YENİ: NetworkRunner'ı BasicSpawner'dan ayırıp YENİ bir objeye koyuyoruz!
+        // Böylece Fusion shutdown olduğunda BasicSpawner silinmez.
+        GameObject runnerObj = new GameObject("FusionRunner");
+        DontDestroyOnLoad(runnerObj);
+
+        _runner = runnerObj.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
 
-        //FIX: EĞER SCENE INDEX DEĞİŞİRSE BURAYI DA DEĞİŞTİR. UNUTMA!
         var scene = SceneRef.FromIndex(1);
         var sceneInfo = new NetworkSceneInfo();
         if (scene.IsValid)
             sceneInfo.AddSceneRef(scene, LoadSceneMode.Single);
+
+        if (mode == GameMode.Host && string.IsNullOrEmpty(sessionName))
+        {
+            sessionName = "Room_" + Guid.NewGuid().ToString().Substring(0, 8);
+        }
 
         try
         {
@@ -56,8 +72,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             {
                 GameMode = mode,
                 Scene = sceneInfo,
-                SessionName = "TestSession",
-                SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+                SessionName = sessionName,
+                SceneManager = runnerObj.AddComponent<NetworkSceneManagerDefault>()
             });
 
             if (SceneManager.GetActiveScene().buildIndex == 0)
@@ -65,8 +81,9 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
                 _ = SceneManager.UnloadSceneAsync(0);
             }
         }
-        catch
+        catch (Exception e)
         {
+            Debug.LogError($"[BasicSpawner] Başlatma Hatası: {e.Message}");
             if (mode == GameMode.Client)
                 NotificationScript.Instance.ShowNotification("Oyuna katılırken bir sorun oluştu.");
             else
@@ -74,131 +91,161 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    private async void OnGUI()
+    // Client'ların Photon Lobi Sunucusuna Bağlanmasını Sağlayan Metot
+    async Task ConnectToLobby()
     {
-        if (_runner == null && SceneManager.GetActiveScene().buildIndex != 0)
+        if (_runner != null)
         {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-                await StartGame(GameMode.Host);
+            _runner.RemoveCallbacks(this);
+            await _runner.Shutdown();
+        }
 
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-                await StartGame(GameMode.Client);
+        GameObject runnerObj = new GameObject("FusionRunner");
+        DontDestroyOnLoad(runnerObj);
+
+        _runner = runnerObj.AddComponent<NetworkRunner>();
+        _runner.AddCallbacks(this);
+
+        NotificationScript.Instance.ShowNotification("Lobiye bağlanılıyor...");
+
+        var result = await _runner.JoinSessionLobby(SessionLobby.ClientServer);
+
+        if (result.Ok)
+        {
+            NotificationScript.Instance.ShowNotification("Lobiye bağlanıldı. Odalar listeleniyor.");
+        }
+        else
+        {
+            Debug.LogError($"[BasicSpawner] Lobiye bağlanılamadı: {result.ShutdownReason}");
+            NotificationScript.Instance.ShowNotification("Lobi bağlantısı başarısız oldu.");
+            SetButtonsInteractable(true);
         }
     }
-    
+
     public async void StartGameAsHost()
     {
-        HostButton.interactable = false;
-        ClientButton.interactable = false;
-
-        NotificationScript.Instance.ShowNotification("Oyun başlatılıyor");
+        SetButtonsInteractable(false);
+        NotificationScript.Instance.ShowNotification("Oyun başlatılıyor...");
         await StartGame(GameMode.Host);
-
-        HostButton.interactable = true;
-        ClientButton.interactable = true;
+        SetButtonsInteractable(true);
     }
 
     public async void JoinGameAsClient()
     {
-        HostButton.interactable = false;
-        ClientButton.interactable = false;
+        SetButtonsInteractable(false);
+        await ConnectToLobby();
+        SetButtonsInteractable(true);
+    }
 
-        NotificationScript.Instance.ShowNotification("Oyuna katılınıyor");
-        await StartGame(GameMode.Client);
+    public async void JoinSelectedSession(string sessionName)
+    {
+        NotificationScript.Instance.ShowNotification($"{sessionName} odasına katılıyor...");
+        await StartGame(GameMode.Client, sessionName);
+    }
 
-        HostButton.interactable = true;
-        ClientButton.interactable = true;
+    private void SetButtonsInteractable(bool state)
+    {
+        if (HostButton != null) HostButton.interactable = state;
+        if (ClientButton != null) ClientButton.interactable = state;
+    }
+
+    private void OnGUI()
+    {
+        if (_runner == null && SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            if (GUI.Button(new Rect(0, 0, 200, 40), "Host (GUID)"))
+                StartGameAsHost();
+
+            if (GUI.Button(new Rect(0, 40, 200, 40), "Join Lobby"))
+                JoinGameAsClient();
+        }
+    }
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+        Debug.Log($"[BasicSpawner] OnSessionListUpdated tetiklendi. Oda Sayısı: {sessionList.Count}");
+
+        if (_sessionListContent == null || _sessionEntryPrefab == null) return;
+
+        foreach (Transform child in _sessionListContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach (var session in sessionList)
+        {
+            if (session.IsOpen && session.IsVisible)
+            {
+                GameObject entry = Instantiate(_sessionEntryPrefab, _sessionListContent);
+                SessionEntryUI entryScript = entry.GetComponent<SessionEntryUI>();
+
+                if (entryScript != null)
+                {
+                    entryScript.Setup(session, () => JoinSelectedSession(session.Name));
+                }
+            }
+        }
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log($"[BasicSpawner] OnPlayerJoined called. Runner.IsServer={runner.IsServer}, player={player.RawEncoded}");
-
         if (runner.IsServer)
         {
-            // Sadece oyuncunun ağdaki işlemlerini yönetecek olan PlayerState prefabını doğuruyoruz.
             runner.Spawn(_playerStatePrefab, Vector3.zero, Quaternion.identity, player);
-        }
-    }
-
-    public void OnInput(NetworkRunner runner, NetworkInput input)
-    {
-        var localPlayerObject = runner.GetPlayerObject(runner.LocalPlayer);
-        if (localPlayerObject != null)
-        {
-            var inputHandler = localPlayerObject.GetComponent<PlayerInputHandler>();
-            if (inputHandler != null)
-            {
-                input.Set(inputHandler.CurrentInput);
-            }
         }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log($"[BasicSpawner] Oyuncu {player.RawEncoded} oyundan ayrıldı. Temizlik yapılıyor...");
-
-        // Bu temizlik işlemini SADECE sunucu (Host/Server) yapabilir
         if (runner.IsServer)
         {
-            // Ayrılan oyuncunun ağdaki ana temsilcisini (PlayerState) bul
             NetworkObject playerObj = runner.GetPlayerObject(player);
 
             if (playerObj != null)
             {
-                // DİKKAT: Senin mimarinde asıl "Fiziksel Karakter"i PlayerState doğuruyordu.
-                // Oyuncu çıkmadan hemen önce GameManager'dan çıkarılması için Player nesnesini bulmalıyız.
-
-                // NOT: Eğer karakter ile PlayerState farklı objelerse (ki senin mimarinde öyle), 
-                // sahnedeki tüm fiziksel karakterleri tarayıp InputAuthority'si bu çıkan oyuncuya ait olanı bulup silmeliyiz.
-
                 NetworkObject[] allNetworkObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
                 foreach (var no in allNetworkObjects)
                 {
-                    // Eğer sahnedeki obje çıkan oyuncuya aitse ve karakter/state ise
                     if (no.InputAuthority == player)
                     {
                         runner.Despawn(no);
                     }
                 }
 
-                // En son, ana temsilciyi (PlayerState) de yok et
                 runner.Despawn(playerObj);
-
-                // Hafızadan da sil
                 runner.SetPlayerObject(player, null);
             }
         }
     }
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) 
+
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-        if (runner != null)
-        {
-            // Fusion'ın tüm ağ işlemlerini ve objeleri güvenle temizlemesini bekle
-            runner.Shutdown();
-        }
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Geçiş mantığını (isTransitioning) tamamen kaldırdık. 
+        // Lobi > Oyun geçişinde zaten yukarıda "RemoveCallbacks" kullandığımız için bu metot asla çalışmaz.
+        // EĞER bu metot çalışıyorsa, oyuncu Pause menüsünden veya hata yüzünden düşmüştür.
+        // O yüzden arayüz referanslarını tazelemek için kendini imha edip Ana Menüye dönmesi DOĞRUDUR.
 
         _instance = null;
         Destroy(gameObject);
 
-        if(SceneManager.GetActiveScene().buildIndex != 0)
-        { 
-            SceneManager.LoadScene(0); 
+        if (SceneManager.GetActiveScene().buildIndex != 0)
+        {
+            SceneManager.LoadScene(0);
         }
     }
+
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public void OnSceneLoadDone(NetworkRunner runner) { }
@@ -206,18 +253,16 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInput(NetworkRunner runner, Fusion.NetworkInput input)
     {
-        // Kendi karakterimizi (InputAuthority bizde olan objeyi) buluyoruz
         var localPlayerObject = runner.GetPlayerObject(runner.LocalPlayer);
-
         if (localPlayerObject != null)
         {
-            // Karakterin üzerindeki kendi yazdığımız PlayerInputHandler scriptini alıyoruz
             var inputHandler = localPlayerObject.GetComponent<PlayerInputHandler>();
             if (inputHandler != null)
             {
-                // Verileri Fusion ağına iletiyoruz
                 input.Set(inputHandler.CurrentInput);
             }
         }
     }
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, Fusion.NetworkInput input) { }
 }

@@ -245,6 +245,9 @@ MonoBehaviour:
   AimDistance: 50
   LeftHandIK_Target: {fileID: 7077804246892930247}
   CurrentWeaponLeftGrip: {fileID: 0}
+  LeftElbow_Hint: {fileID: 8829866323181674105}
+  LeftElbow_Hint_Standing: {fileID: 0}
+  LeftElbow_Hint_Crouching: {fileID: 0}
   _NetworkPitch: 0
   _Velocity: {x: 0, y: 0, z: 0}
   _IsGrounded: 0
@@ -682,7 +685,7 @@ Transform:
   m_GameObject: {fileID: 3316159010823217025}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.187, y: 0.104, z: 0.228}
+  m_LocalPosition: {x: -0.72, y: -0.4, z: 0.88}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
