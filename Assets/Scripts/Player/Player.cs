@@ -48,9 +48,23 @@ public class Player : NetworkBehaviour
 
         if (HasStateAuthority)
         {
-            IsAlive = true;
-            Health = MaxHealth;
-            Armor = 100;
+            // OYUNA SONRADAN KATILMA (LATE-JOIN) KONTROLÜ
+            if (GameManager.Instance != null &&
+               (GameManager.Instance.CurrentState == RoundState.Playing ||
+                GameManager.Instance.CurrentState == RoundState.RoundEnd))
+            {
+                // Eğer maç oynanırken veya raunt biterken katıldıysa: ÖLÜ OLARAK BAŞLAT
+                IsAlive = false;
+                Health = 0;
+                Armor = 0;
+            }
+            else
+            {
+                // Isınma (WaitingForPlayers) veya satın alma (PreRound) evresiyse: CANLI BAŞLAT
+                IsAlive = true;
+                Health = MaxHealth;
+                Armor = 100;
+            }
         }
 
         if (GameManager.Instance != null)
@@ -75,7 +89,7 @@ public class Player : NetworkBehaviour
             if (ViewmodelRoot != null) ViewmodelRoot.SetActive(false);
         }
 
-        // Doğduğunda görünürlük durumunu eşitle
+        // Doğduğunda görünürlük durumunu eşitle (Ölü doğduysa anında görünmez olur)
         TogglePlayerVisibility(IsAlive);
     }
 
