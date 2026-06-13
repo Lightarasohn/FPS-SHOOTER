@@ -47,8 +47,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerState
   _redTeamCharacterPrefabs:
   - RawGuidValue: 6dd2623e623a2744a814e7c5ef51bc03
+  - RawGuidValue: f625a69b9de62fd4588c9e1878d60788
   _blueTeamCharacterPrefabs:
   - RawGuidValue: 3df25c5363f0e1548bebdbdb4c3a5c8f
+  - RawGuidValue: efa5a615461b16345800456a0d43fbfb
 --- !u!114 &2017918211426097726
 MonoBehaviour:
   m_ObjectHideFlags: 0

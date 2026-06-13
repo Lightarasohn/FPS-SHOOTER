@@ -488,10 +488,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.HitboxRoot
   Config: 3
-  BroadRadius: 0
+  BroadRadius: 1.7719703
   Offset: {x: 0, y: 0, z: 0}
   GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  Hitboxes: []
+  Hitboxes:
+  - {fileID: 6942850447607736712}
+  - {fileID: 480235165954626470}
+  - {fileID: 1563902288809074629}
+  - {fileID: 7716895834428076114}
+  - {fileID: 3576380381877936708}
+  - {fileID: 3593106401392245726}
+  - {fileID: 8577340716137815668}
+  - {fileID: 4298598222068009754}
+  - {fileID: 6036952125172048006}
+  - {fileID: 7631205634436103617}
+  - {fileID: 6872377454067629596}
+  - {fileID: 3912404142522782096}
+  - {fileID: 7455318388705018669}
+  - {fileID: 2716947378833588651}
+  - {fileID: 7639285611984668220}
 --- !u!95 &5835590297059549716
 Animator:
   serializedVersion: 7
@@ -2161,7 +2176,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.36
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &4052819188077572962
 MonoBehaviour:
@@ -2199,7 +2214,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.3
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &2856922701617876797
 MonoBehaviour:
@@ -2237,7 +2252,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0
   Offset: {x: 0, y: 0.1, z: 0.05}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &1547746783489344217
 MonoBehaviour:
@@ -2275,7 +2290,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.24
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &3495199260887894582
 MonoBehaviour:
@@ -2313,7 +2328,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.5
   Offset: {x: 0, y: 0.2, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &25149381750926333
 MonoBehaviour:
@@ -2351,7 +2366,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.57
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &8699266094224970713
 MonoBehaviour:
@@ -2394,7 +2409,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.48
   Offset: {x: 0, y: 0.17, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &7121883346949917132
 MonoBehaviour:
@@ -2442,7 +2457,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.36
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &6281342376106449729
 MonoBehaviour:
@@ -2480,7 +2495,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.3
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &360107667961735560
 MonoBehaviour:
@@ -2518,7 +2533,7 @@ MonoBehaviour:
   BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
   CapsuleExtents: 0
   Offset: {x: 0, y: -0.1, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &1597322295391024355
 MonoBehaviour:
@@ -2561,7 +2576,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.57
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &3374625355743213866
 MonoBehaviour:
@@ -2609,7 +2624,7 @@ MonoBehaviour:
   BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
   CapsuleExtents: 0
   Offset: {x: 0, y: -0.1, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &604865240354082506
 MonoBehaviour:
@@ -2647,7 +2662,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.24
   Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &1839304004897753138
 MonoBehaviour:
@@ -2690,7 +2705,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.48
   Offset: {x: 0, y: 0.17, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &4186609740802537613
 MonoBehaviour:
@@ -2728,7 +2743,7 @@ MonoBehaviour:
   BoxExtents: {x: 0, y: 0, z: 0}
   CapsuleExtents: 0.5
   Offset: {x: 0, y: 0.2, z: 0}
-  Root: {fileID: 0}
+  Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &8593970206788037580
 MonoBehaviour:
