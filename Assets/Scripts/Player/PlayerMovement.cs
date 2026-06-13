@@ -44,8 +44,8 @@ public class PlayerMovement : NetworkBehaviour
     public Transform LeftHandIK_Target;
     public Transform CurrentWeaponLeftGrip;
 
-    [Header("SFX")]
-    public PlayerAudioHandler AudioHandler;
+    // Git merge sırasında ezilmişti, Inspector'dan atama yapmamak için tekrar private'a çekildi
+    private PlayerAudioHandler AudioHandler;
 
     [Networked] public float NetworkPitch { get; set; }
 
@@ -58,7 +58,7 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] public Vector3 SlideDirection { get; set; }
 
     [Networked] public byte JumpTriggered { get; set; }
-    [Networked] public byte LandTriggered { get; set; } // YENİ: Yere düşme tetikleyicisi
+    [Networked] public byte LandTriggered { get; set; }
 
     private float _standingHeight;
     private float _crouchHeight;
@@ -72,6 +72,9 @@ public class PlayerMovement : NetworkBehaviour
 
     private void Awake()
     {
+        // Ses yöneticisini otomatik bul
+        AudioHandler = GetComponent<PlayerAudioHandler>();
+
         if (CharHeadPoint != null && CharFootPoint != null && CrouchingHeadPoint != null)
         {
             _standingHeight = CharHeadPoint.localPosition.y - CharFootPoint.localPosition.y;
@@ -91,12 +94,20 @@ public class PlayerMovement : NetworkBehaviour
         }
     }
 
+    // --- YENİ EKLENEN MERKEZİ LAYER MASKESİ ---
+    // Karakterin kendi bedenine (Hitbox, Gövde, Silah) çarpmasını kesin olarak engeller
+    private int GetPlayerIgnoreMask()
+    {
+        // Eğer "Hitbox" diye bir katmanın yoksa Unity hata vermez, sadece görmezden gelir.
+        return ~LayerMask.GetMask("Player", "Weapon", "LocalPlayerBody", "Hitbox");
+    }
+    // ------------------------------------------
+
     public override void FixedUpdateNetwork()
     {
         if (GetInput(out NetworkInput input))
         {
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
-
             NetworkPitch = input.LookPitch;
 
             bool canMove = _playerScript.IsAlive;
@@ -144,18 +155,15 @@ public class PlayerMovement : NetworkBehaviour
             float targetHeight = IsCrouching ? _crouchHeight : _standingHeight;
             _capsuleHeight = Mathf.Lerp(_capsuleHeight, targetHeight, Runner.DeltaTime * CrouchTransitionSpeed);
 
-            // --- YENİ EKLENEN DÜŞME KONTROLÜ ---
-            bool wasGrounded = IsGrounded; // Kontrol öncesi durumu kaydet
+            bool wasGrounded = IsGrounded;
             Vector3 currentVelocity = Velocity;
 
-            CheckGrounded(ref currentVelocity); // Yere değip değmediğini hesapla
+            CheckGrounded(ref currentVelocity);
 
-            // Eğer az önce havadaydıysa ve şimdi yere değdiyse (Düştü!)
             if (!wasGrounded && IsGrounded)
             {
-                LandTriggered++; // Yere çarpma sesini tüm ağa gönder
+                LandTriggered++;
             }
-            // ------------------------------------
 
             if (!IsGrounded && IsSliding)
             {
@@ -201,7 +209,6 @@ public class PlayerMovement : NetworkBehaviour
 
                 if (canMove && input.Buttons.IsSet(PlayerAction.Jump))
                 {
-                    // YENİ: Zıplama gücü sıfır veya daha azsa, zıplama bloğunu tamamen yoksay
                     if (JumpForce > 0f)
                     {
                         if (IsSliding)
@@ -220,9 +227,10 @@ public class PlayerMovement : NetworkBehaviour
                             }
                         }
 
-                    currentVelocity.y = JumpForce;
-                    IsGrounded = false;
-                    JumpTriggered++;
+                        currentVelocity.y = JumpForce;
+                        IsGrounded = false;
+                        JumpTriggered++;
+                    }
                 }
             }
             else
@@ -250,7 +258,8 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 origin = CharFootPoint.position + Vector3.up * _capsuleHeight;
         float distanceToStand = _standingHeight - _capsuleHeight;
 
-        return Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.up, out _, distanceToStand, ~LayerMask.GetMask("Player"));
+        // DÜZELTİLDİ: Merkezi maske kullanılıyor
+        return Runner.GetPhysicsScene().SphereCast(origin, _capsuleRadius, Vector3.up, out _, distanceToStand, GetPlayerIgnoreMask());
     }
 
     private void ApplyFriction(ref Vector3 velocity, float deltaTime)
@@ -291,7 +300,8 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.05f));
         float checkRadius = _capsuleRadius + 0.02f;
 
-        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), ~LayerMask.GetMask("Player", "Weapon"));
+        // DÜZELTİLDİ: Merkezi maske kullanılıyor
+        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), GetPlayerIgnoreMask());
 
         if (IsGrounded)
         {
@@ -327,7 +337,8 @@ public class PlayerMovement : NetworkBehaviour
             Vector3 p2 = basePos + Vector3.up * (_capsuleHeight - _capsuleRadius);
             float castRadius = _capsuleRadius - 0.01f;
 
-            if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, ~LayerMask.GetMask("Player")))
+            // DÜZELTİLDİ: Merkezi maske kullanılarak kendi Hitbox/Vücut colliderlarına çarpması engellendi
+            if (Runner.GetPhysicsScene().CapsuleCast(p1, p2, castRadius, direction.normalized, out RaycastHit hit, distance + skinWidth, GetPlayerIgnoreMask()))
             {
                 float safeDistance = Mathf.Max(0f, hit.distance - skinWidth);
                 currentPos += direction.normalized * safeDistance;
@@ -366,7 +377,6 @@ public class PlayerMovement : NetworkBehaviour
                     if (IsSliding)
                     {
                         BodyAnimator.SetTrigger("Slide");
-                        // YENİ: Kaymaya başladığı an sesi oynat
                         if (AudioHandler != null) AudioHandler.PlaySlide();
                     }
                     break;
@@ -375,7 +385,6 @@ public class PlayerMovement : NetworkBehaviour
                     if (AudioHandler != null) AudioHandler.PlayJump();
                     break;
 
-                // YENİ: Yere düştüğünü ağdan algıla ve sesi oynat
                 case nameof(LandTriggered):
                     if (AudioHandler != null) AudioHandler.PlayLand();
                     break;
@@ -414,7 +423,6 @@ public class PlayerMovement : NetworkBehaviour
             LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation;
         }
 
-        // Ayak Sesi
         if (IsGrounded && !IsSliding)
         {
             float currentSpeed = new Vector3(Velocity.x, 0, Velocity.z).magnitude;
