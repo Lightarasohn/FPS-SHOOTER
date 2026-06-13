@@ -15,6 +15,7 @@ public class PlayerWeapon : NetworkBehaviour
     [Networked] public int CurrentAmmo { get; set; }
     [Networked] public int CurrentMags { get; set; }
     [Networked] public bool IsAiming { get; set; }
+    [Networked] public bool IsFiring { get; set; }
 
     [Networked] public Vector3 LastHitPosition { get; set; }
     [Networked] public Vector3 LastHitNormal { get; set; }
@@ -49,6 +50,8 @@ public class PlayerWeapon : NetworkBehaviour
     public float BodyShotMultiplier = 1.0f;
     public float BodyPartShotMultiplier = 0.7f;
 
+
+
     [System.Serializable]
     public struct WeaponMapping
     {
@@ -57,6 +60,11 @@ public class PlayerWeapon : NetworkBehaviour
         public Transform ViewmodelMuzzlePoint;
         public GameObject ThirdPersonPrefab; // 3. Şahıs Fiziksel Prefab (PhysicalWeaponInfo içeren obje)
         public GameObject PickupPrefab;       // (Rigidbody VAR, NetworkObject VAR)
+
+        [Header("Silaha Özel Sesler")]
+        public AudioClip SingleFireClip; // Tekli sıkma sesi
+        public AudioClip DrawClip; // Silahı ele alma sesi
+        public AudioClip ReloadClip; // Şarjör değiştirme sesi
     }
 
     [Header("Silah ve Görsel Referansları")]
@@ -67,6 +75,10 @@ public class PlayerWeapon : NetworkBehaviour
     private Animator _currentViewmodelAnimator;
 
     private ChangeDetector _changeDetector;
+
+    private WeaponAudioHandler _viewmodelAudioHandler;
+    private WeaponAudioHandler _thirdPersonAudioHandler;
+
     private float _gizmoHideTime;
     private bool _lastShotHit;
     private Vector3 _lastShootDirection;
@@ -186,12 +198,21 @@ public class PlayerWeapon : NetworkBehaviour
         }
 
         ActivateWeaponVisuals(WeaponData.ID);
+        WeaponAudioHandler activeAudioHandler = HasInputAuthority ? _viewmodelAudioHandler : _thirdPersonAudioHandler;
+
+        if (activeAudioHandler != null)
+        {
+            activeAudioHandler.PlayDrawSound();
+        }
     }
 
     private void ActivateWeaponVisuals(WeaponID targetID)
     {
         if (_current3PWeaponInstance != null)
             Destroy(_current3PWeaponInstance);
+
+        _viewmodelAudioHandler = null;
+        _thirdPersonAudioHandler = null;
 
         foreach (var mapping in WeaponMappings)
         {
@@ -207,6 +228,17 @@ public class PlayerWeapon : NetworkBehaviour
                         _currentViewmodelAnimator.SetTrigger("Draw");
 
                     viewmodelWeaponPoint = mapping.ViewmodelMuzzlePoint;
+                    if (viewmodelWeaponPoint != null)
+                    {
+                        // SİLİNEN GET COMPONENT SATIRINI GERİ EKLEDİK
+                        _viewmodelAudioHandler = viewmodelWeaponPoint.GetComponent<WeaponAudioHandler>();
+
+                        if (_viewmodelAudioHandler != null)
+                        {
+                            _viewmodelAudioHandler.SetupSounds(mapping.SingleFireClip, mapping.DrawClip, mapping.ReloadClip);
+                        }
+                    }
+
                 }
             }
 
@@ -221,7 +253,25 @@ public class PlayerWeapon : NetworkBehaviour
                     weaponPoint = wvi.MuzzlePoint;
                     if (playerMovement != null)
                         playerMovement.CurrentWeaponLeftGrip = wvi.LeftGripPoint;
+                    if (weaponPoint != null)
+                    {
+                        _thirdPersonAudioHandler = weaponPoint.GetComponent<WeaponAudioHandler>();
+                        if (_thirdPersonAudioHandler != null)
+                        {
+                            _thirdPersonAudioHandler.SetupSounds(mapping.SingleFireClip, mapping.DrawClip, mapping.ReloadClip);
+                        }
+                    }
                 }
+            }
+        }
+        if (targetID != WeaponID.None)
+        {
+            // Kimin ekranından bakılıyorsa onun ses yöneticisini al
+            WeaponAudioHandler activeAudioHandler = HasInputAuthority ? _viewmodelAudioHandler : _thirdPersonAudioHandler;
+
+            if (activeAudioHandler != null)
+            {
+                activeAudioHandler.PlayDrawSound();
             }
         }
     }
@@ -261,6 +311,7 @@ public class PlayerWeapon : NetworkBehaviour
 
             bool interactPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.Interact);
             bool dropPressed = input.Buttons.WasPressed(PreviousButtons, PlayerAction.DropWeapon);
+
 
             // --- 1. MANUEL SİLAH ATMA (G TUŞU) ---
             if (dropPressed && !IsReloading && WeaponData != null)
@@ -342,6 +393,15 @@ public class PlayerWeapon : NetworkBehaviour
             if (HasInputAuthority && playerCamera != null)
             {
                 playerCamera.HandleADS(IsAiming);
+            }
+            if (WeaponData.WeaponFireType == WeaponFireType.Auto)
+            {
+                // Mermi varsa, reload yapmıyorsa ve tetiğe basılıyorsa IsFiring true olur
+                IsFiring = fireHeld && CurrentAmmo > 0 && !IsReloading;
+            }
+            else
+            {
+                IsFiring = false;
             }
 
             bool shouldShoot = false;
@@ -497,6 +557,15 @@ public class PlayerWeapon : NetworkBehaviour
             {
                 case nameof(spawnedProjectile):
                     PlayVisualEffects();
+
+                    break;
+
+                case nameof(IsFiring):
+                    WeaponAudioHandler autoAudioHandler = HasInputAuthority ? _viewmodelAudioHandler : _thirdPersonAudioHandler;
+                    if (autoAudioHandler != null)
+                    {
+                        autoAudioHandler.ToggleAutoFireSound(IsFiring);
+                    }
                     break;
 
                 case nameof(ReloadTriggered):
@@ -506,6 +575,12 @@ public class PlayerWeapon : NetworkBehaviour
                     // YENİ: 1. Şahıs Kol (Viewmodel) Animasyonu (Sadece silahın sahibi görür)
                     if (HasInputAuthority && _currentViewmodelAnimator != null)
                         _currentViewmodelAnimator.SetTrigger("Reload");
+                    WeaponAudioHandler activeAudioHandler = HasInputAuthority ? _viewmodelAudioHandler : _thirdPersonAudioHandler;
+
+                    if (activeAudioHandler != null)
+                    {
+                        activeAudioHandler.PlayReloadSound();
+                    }
                     break;
 
                 // YENİ: Silah değişikliğini tüm clientlarda yakala
@@ -532,6 +607,7 @@ public class PlayerWeapon : NetworkBehaviour
                     break;
             }
         }
+
     }
 
     private void PlayVisualEffects()
@@ -542,6 +618,20 @@ public class PlayerWeapon : NetworkBehaviour
 
         // Namlu bulunamadıysa hata vermemesi için güvenlik duvarı
         if (activeMuzzle == null) return;
+
+        WeaponAudioHandler activeAudioHandler = HasInputAuthority ? _viewmodelAudioHandler : _thirdPersonAudioHandler;
+
+        if (activeAudioHandler != null)
+        {
+            // --- DEĞİŞEN KISIM BURASI ---
+            // SADECE silah otomatik DEĞİLSE her mermide bu tekil sesi çal.
+            // Otomatik silahların sesini zaten Render() içerisindeki IsFiring döngüsü hallediyor.
+            if (WeaponData != null && (WeaponData.WeaponFireType != WeaponFireType.Auto || !activeAudioHandler.HasAutoClip()))
+            {
+                activeAudioHandler.PlaySingleFireSound();
+            }
+            // -----------------------------
+        }
 
         if (MuzzleFlashParticle != null)
         {
