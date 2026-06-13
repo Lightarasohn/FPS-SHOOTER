@@ -1,14 +1,17 @@
 using Fusion;
 using UnityEngine;
-using static GlobalVariables; 
+using static GlobalVariables;
 
 public class PlayerState : NetworkBehaviour
 {
     public static PlayerState Local; // Arayüzün bu objeyi bulması için referans
 
+    [Header("Team Character Pools")]
+    [Tooltip("Kırmızı takım için rastgele seçilecek karakter prefabları")]
+    [SerializeField] private NetworkPrefabRef[] _redTeamCharacterPrefabs;
 
-    [Header("Spawn Settings")]
-    [SerializeField] private NetworkPrefabRef _characterPrefab; // Oynayacağın asıl karakter prefabı
+    [Tooltip("Mavi takım için rastgele seçilecek karakter prefabları")]
+    [SerializeField] private NetworkPrefabRef[] _blueTeamCharacterPrefabs;
 
     public override void Spawned()
     {
@@ -43,8 +46,30 @@ public class PlayerState : NetworkBehaviour
                 Debug.LogError("[PlayerState] Sahnede GameManager bulunamadı!");
             }
 
-            // DÜZELTİLEN KISIM BURASI: (runner, obj) => lambda fonksiyonu ile doğmadan hemen önce takımı veriyoruz
-            NetworkObject character = Runner.Spawn(_characterPrefab, spawnPos, Quaternion.identity, Object.InputAuthority, (runner, obj) =>
+            // --- TAKIMA GÖRE RASTGELE KARAKTER SEÇİMİ ---
+            NetworkPrefabRef selectedPrefab = default;
+
+            if (team == Team.Red && _redTeamCharacterPrefabs.Length > 0)
+            {
+                int randomIndex = Random.Range(0, _redTeamCharacterPrefabs.Length);
+                selectedPrefab = _redTeamCharacterPrefabs[randomIndex];
+            }
+            else if (team == Team.Blue && _blueTeamCharacterPrefabs.Length > 0)
+            {
+                int randomIndex = Random.Range(0, _blueTeamCharacterPrefabs.Length);
+                selectedPrefab = _blueTeamCharacterPrefabs[randomIndex];
+            }
+
+            // Eğer inspector'dan prefab atanmamışsa hata ver (NullReference önlemi)
+            if (selectedPrefab == default)
+            {
+                Debug.LogError($"[PlayerState] {team} takımı için karakter havuzu boş! Lütfen PlayerProxy prefabı üzerinden karakterleri ekleyin.");
+                return;
+            }
+            // ---------------------------------------------
+
+            // DÜZELTİLEN KISIM BURASI: _characterPrefab yerine selectedPrefab kullanıyoruz
+            NetworkObject character = Runner.Spawn(selectedPrefab, spawnPos, Quaternion.identity, Object.InputAuthority, (runner, obj) =>
             {
                 // Bu süslü parantezlerin içi, karakter haritaya düşmeden ve Player.Spawned() ÇALIŞMADAN ÖNCE çalışır!
                 Player physicalPlayerScript = obj.GetComponent<Player>();
