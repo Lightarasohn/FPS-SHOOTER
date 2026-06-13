@@ -25,6 +25,9 @@ public class Player : NetworkBehaviour
     public GameObject ThirdPersonBody;
     public GameObject ViewmodelRoot;
 
+    [Header("Ses Dinleyici Referansı")]
+    public AudioListener PlayerAudioListener;
+
     public BuffDebuff ActiveAugment { get; private set; }
     private Dictionary<Player, float> _damageContributors = new Dictionary<Player, float>();
 

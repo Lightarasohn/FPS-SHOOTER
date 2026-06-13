@@ -902,7 +902,7 @@ Animator:
   m_GameObject: {fileID: 3802291909585832503}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 450378b205c131b41bd2067aa28981d3, type: 2}
+  m_Controller: {fileID: 9100000, guid: 6ff81f5e5eda2434abfbe8e05127591b, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1442,9 +1442,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 810481303872a5f4da8dded3fc3bcf11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponAudioHandler
-  fireClip: {fileID: 8300000, guid: cdd722a423228b64f841904304047214, type: 3}
-  drawClip: {fileID: 8300000, guid: b072e3198cf2c6c4f991f560a5d55b0d, type: 3}
-  reloadClip: {fileID: 8300000, guid: c395f2d39dbd53344aad8100f9ef8866, type: 3}
   minPitch: 0.95
   maxPitch: 1.05
   volume: 0.8

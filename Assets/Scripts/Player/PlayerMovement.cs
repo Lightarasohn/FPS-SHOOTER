@@ -44,6 +44,10 @@ public class PlayerMovement : NetworkBehaviour
     public Transform LeftHandIK_Target;
     public Transform CurrentWeaponLeftGrip;
 
+    [Header("Karaktere Özel Sol El Ofsetleri")]
+    public Vector3 LeftHandPositionOffset;
+    public Vector3 LeftHandRotationOffset;
+
     // Git merge sırasında ezilmişti, Inspector'dan atama yapmamak için tekrar private'a çekildi
     private PlayerAudioHandler AudioHandler;
 
@@ -419,8 +423,13 @@ public class PlayerMovement : NetworkBehaviour
 
         if (LeftHandIK_Target != null && CurrentWeaponLeftGrip != null)
         {
-            LeftHandIK_Target.position = CurrentWeaponLeftGrip.position;
-            LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation;
+            // ESKİ KOD:
+            // LeftHandIK_Target.position = CurrentWeaponLeftGrip.position;
+            // LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation;
+
+            // YENİ KOD: Silahın kavrama noktasını baz alarak karaktere özel ofsetleri uygula
+            LeftHandIK_Target.position = CurrentWeaponLeftGrip.TransformPoint(LeftHandPositionOffset);
+            LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation * Quaternion.Euler(LeftHandRotationOffset);
         }
 
         if (IsGrounded && !IsSliding)

@@ -328,6 +328,7 @@ MonoBehaviour:
   EquippedWeapon: {fileID: 0}
   ThirdPersonBody: {fileID: 399061914281060736}
   ViewmodelRoot: {fileID: 5031971328962364931}
+  PlayerAudioListener: {fileID: 0}
 --- !u!114 &6666122520646881031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383,7 +384,8 @@ MonoBehaviour:
   AimDistance: 50
   LeftHandIK_Target: {fileID: 2911915218167344294}
   CurrentWeaponLeftGrip: {fileID: 0}
-  AudioHandler: {fileID: 6285246048418449177}
+  LeftHandPositionOffset: {x: 0, y: 0, z: 0}
+  LeftHandRotationOffset: {x: 0, y: 0, z: 0}
   _NetworkPitch: 0
   _Velocity: {x: 0, y: 0, z: 0}
   _IsGrounded: 0
@@ -449,7 +451,7 @@ MonoBehaviour:
   BulletTrailPrefab: {fileID: 3024503204202054061, guid: be6e3873526a0d547b4f2054d6af7ce1, type: 3}
   ImpactParticlePrefab: {fileID: 3925436347142707583, guid: c3943d59b1740304caf61d1eaaf7549a, type: 3}
   MuzzleFlashParticle: {fileID: 198234346748616026, guid: ad2ab49d0a2a17148bd51c93d977bdbc, type: 3}
-  BulletTrailSpeed: 100
+  BulletTrailSpeed: 300
   HeadShotMultiplier: 3
   BodyShotMultiplier: 1
   BodyPartShotMultiplier: 0.7
@@ -589,8 +591,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 3
+  MaxDistance: 100
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0

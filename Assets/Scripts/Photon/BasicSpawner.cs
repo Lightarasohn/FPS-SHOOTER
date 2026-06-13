@@ -195,18 +195,6 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (ClientButton != null) ClientButton.interactable = state;
     }
 
-    private void OnGUI()
-    {
-        if (_runner == null && SceneManager.GetActiveScene().buildIndex == 0)
-        {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host (Harita Seç)"))
-                OpenMapSelectionMenu();
-
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Join Lobby"))
-                JoinGameAsClient();
-        }
-    }
-
     // --- HATANIN DÜZELTİLDİĞİ KISIM BURASI ---
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {

@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static GlobalVariables;
+using Assets.Scripts.Player.PlayerSettings; // Ses ayarları (SoundSettings) sınıfı için gerekli
 
 public class PauseMenu : MonoBehaviour
 {
@@ -28,6 +29,11 @@ public class PauseMenu : MonoBehaviour
     public Toggle accelerationEnabled;
     public Slider accelerationThreshold;
 
+    // --- YENİ EKLENEN KISIM: SES ELEMENTLERİ ---
+    [Header("Ses Elementleri")]
+    public Slider mainVolume;
+    // -------------------------------------------
+
     [Header("Ayarlar")]
     public int mainMenuSceneIndex = 0;
 
@@ -40,6 +46,16 @@ public class PauseMenu : MonoBehaviour
         disconnectButton.onClick.AddListener(DisconnectFromGame);
         Crosshair currentSettings = PlayerSaveManager.LoadCrosshair();
         MouseSettings currentMouseSettings = PlayerSaveManager.LoadMouseSettings();
+
+        // --- YENİ: SES AYARINI YÜKLE VE UYGULA ---
+        SoundSettings currentSoundSettings = PlayerSaveManager.LoadSoundSettings();
+
+        if (mainVolume != null)
+        {
+            mainVolume.value = currentSoundSettings.MainVolume;
+        }
+        AudioListener.volume = currentSoundSettings.MainVolume; // Global sesi anında ayarla
+        // -----------------------------------------
 
         typeDropdown.value = (int)currentSettings.CrosshairType;
         widthSlider.value = currentSettings.Width;
@@ -119,7 +135,18 @@ public class PauseMenu : MonoBehaviour
             // Mouse
             PlayerSaveManager.SaveMouseSettings(newMouseSettings);
 
-            // 3. YENİ EKLENEN: Sahnede kendi karakterimizi bul ve oyun içi nişangahı anında güncelle
+            // --- YENİ EKLENEN KISIM: SESİ KAYDET VE ANINDA UYGULA ---
+            if (mainVolume != null)
+            {
+                float selectedVolume = mainVolume.value;
+                SoundSettings newSoundSettings = new SoundSettings(selectedVolume);
+
+                PlayerSaveManager.SaveSoundSettings(newSoundSettings);
+                AudioListener.volume = selectedVolume; // Statik ses motorunu anında güncelle
+            }
+            // --------------------------------------------------------
+
+            // 3. Sahnede kendi karakterimizi bul ve oyun içi nişangahı/mouse'u anında güncelle
             Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);
             foreach (Player p in allPlayers)
             {
@@ -133,7 +160,7 @@ public class PauseMenu : MonoBehaviour
             }
 
             NotificationScript.Instance.ShowNotification("Ayarlar kaydedildi");
-            Debug.Log("Nişangah ayarları kaydedildi ve anında uygulandı!");
+            Debug.Log("Ayarlar kaydedildi ve anında uygulandı!");
         }
         catch
         {
@@ -158,7 +185,7 @@ public class PauseMenu : MonoBehaviour
 
         // YENİ: Menü açıksa HUD'u gizle, menü kapalıysa HUD'u göster
         if (PlayerHUD.Instance != null) PlayerHUD.Instance.SetVisible(!_isMenuOpen);
-        if(GameHUD.Instance != null) GameHUD.Instance.SetVisible(!_isMenuOpen);
+        if (GameHUD.Instance != null) GameHUD.Instance.SetVisible(!_isMenuOpen);
 
         if (_isMenuOpen)
         {

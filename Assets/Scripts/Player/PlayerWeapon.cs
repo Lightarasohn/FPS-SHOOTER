@@ -436,7 +436,7 @@ public class PlayerWeapon : NetworkBehaviour
                 {
                     if (WeaponData.RecoilData != null && WeaponData.RecoilData.Length > 0)
                     {
-                        CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex];
+                        CurrentShotRecoil = WeaponData.RecoilData[CurrentBulletIndex] * WeaponData.RecoilStrength;
 
                         if (IsAiming) CurrentShotRecoil *= 0.5f;
 
@@ -557,7 +557,7 @@ public class PlayerWeapon : NetworkBehaviour
             {
                 case nameof(spawnedProjectile):
                     PlayVisualEffects();
-
+                    _currentViewmodelAnimator.SetTrigger("Fire");
                     break;
 
                 case nameof(IsFiring):

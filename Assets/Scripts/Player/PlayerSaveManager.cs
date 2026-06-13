@@ -1,3 +1,4 @@
+using Assets.Scripts.Player.PlayerSettings;
 using UnityEngine;
 using static GlobalVariables;
 
@@ -6,6 +7,26 @@ public static class PlayerSaveManager
     // Veriyi PlayerPrefs içinde hangi isimle tutacağımızı belirliyoruz
     private const string SAVE_KEY_CROSSHAIR = "PlayerCrosshairSettings";
     private const string SAVE_KEY_MOUSE = "PlayerMouseSettings";
+    private const string SAVE_KEY_SOUND = "PlayerSoundSettings";
+
+    public static void SaveSoundSettings(SoundSettings soundSettings)
+    {
+        string soundSettingsJson = JsonUtility.ToJson(soundSettings);
+        PlayerPrefs.SetString(SAVE_KEY_SOUND, soundSettingsJson);
+        PlayerPrefs.Save();
+    }
+
+    public static SoundSettings LoadSoundSettings()
+    {
+        if (PlayerPrefs.HasKey(SAVE_KEY_SOUND))
+        {
+            string soundSettingsJson = PlayerPrefs.GetString(SAVE_KEY_SOUND);
+            SoundSettings loadedSoundSettings = JsonUtility.FromJson<SoundSettings>(soundSettingsJson);
+            return loadedSoundSettings;
+        }
+        // İlk defa oyuna giriliyorsa varsayılan ses 1f (Maksimum) olsun
+        return new SoundSettings(1f);
+    }
 
     public static void SaveMouseSettings(MouseSettings mouseSettings)
     {

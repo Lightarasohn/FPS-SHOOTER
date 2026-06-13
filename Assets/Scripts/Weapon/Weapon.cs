@@ -22,6 +22,7 @@ public class Weapon
     [Header("Geri Tepme ve Dağılma")]
     public Vector2[] RecoilData;
     public float RecoilResetTime = 0.5f;
+    public float RecoilStrength = 1.0f;
     public float BaseSpread = 0f;
     public float MaxSpread;
     public float MovementSpreadMultiplier = 0.05f;
