@@ -328,14 +328,6 @@ public class PlayerWeapon : NetworkBehaviour
 
                     if (dropObj != null && dropObj.PickupDelay.ExpiredOrNotRunning(Runner))
                     {
-                        // Eğer elimizde silah varsa önce onu yere at (Mevcut mantığınla aynı kalsın)
-                        if (WeaponData != null)
-                        {
-                            DropCurrentWeapon();
-                        }
-
-                        // ARTIK RPC ÇAĞIRIYORUZ:
-                        // Doğrudan değişkenleri atamak yerine sunucuya "şu silahı, şu mermiyle al" diyoruz.
                         RPC_PickupWeapon(dropObj.Object.Id, dropObj.DroppedAmmo, dropObj.DroppedMags);
                     }
                 }
