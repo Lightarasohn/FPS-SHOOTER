@@ -31,9 +31,9 @@ public class PlayerMovement : NetworkBehaviour
     public float SlideCooldownTime = 0.5f;
 
     [Header("Kusursuz Referans Noktaları")]
-    public Transform CharFootPoint; // Ayak Tabanı
-    public Transform CharHeadPoint; // Ayaktayken Kafa Üstü
-    public Transform CrouchingHeadPoint; // Eğilirken Kafa Üstü
+    public Transform CharFootPoint;
+    public Transform CharHeadPoint;
+    public Transform CrouchingHeadPoint;
 
     [Header("Animasyon")]
     public Animator BodyAnimator;
@@ -41,10 +41,12 @@ public class PlayerMovement : NetworkBehaviour
     [Header("Rigging & IK (Nişan ve Sol El)")]
     public Transform AimTarget;
     public float AimDistance = 50f;
-    public Transform LeftHandIK_Target; // Sol elin gideceği görünmez hedef
-    public Transform CurrentWeaponLeftGrip; // Elindeki silahın üzerindeki tutma noktası
+    public Transform LeftHandIK_Target;
+    public Transform CurrentWeaponLeftGrip;
 
-    // Yukarı/Aşağı bakış açımızı (Pitch) ağdaki herkese gönderen değişken:
+    [Header("SFX")]
+    public PlayerAudioHandler AudioHandler;
+
     [Networked] public float NetworkPitch { get; set; }
 
     [Networked] public Vector3 Velocity { get; set; }
@@ -55,7 +57,9 @@ public class PlayerMovement : NetworkBehaviour
     [Networked] public TickTimer SlideCooldown { get; set; }
     [Networked] public Vector3 SlideDirection { get; set; }
 
-    // OTOMATİK HESAPLANAN DİNAMİK DEĞERLER
+    [Networked] public byte JumpTriggered { get; set; }
+    [Networked] public byte LandTriggered { get; set; } // YENİ: Yere düşme tetikleyicisi
+
     private float _standingHeight;
     private float _crouchHeight;
     private float _capsuleHeight;
@@ -63,15 +67,15 @@ public class PlayerMovement : NetworkBehaviour
     private Player _playerScript;
     private ChangeDetector _animChangeDetector;
 
-    // Yeni değer atamalarını ağdan bağımsız olan Awake içine alıyoruz
+    private float _footstepTimer;
+    private float _baseStepInterval = 0.45f;
+
     private void Awake()
     {
         if (CharHeadPoint != null && CharFootPoint != null && CrouchingHeadPoint != null)
         {
             _standingHeight = CharHeadPoint.localPosition.y - CharFootPoint.localPosition.y;
             _crouchHeight = CrouchingHeadPoint.localPosition.y - CharFootPoint.localPosition.y;
-
-            // Gizmo'nun 0'a çökmemesi için oyun başlar başlamaz ilk değeri veriyoruz
             _capsuleHeight = _standingHeight;
         }
     }
@@ -83,7 +87,7 @@ public class PlayerMovement : NetworkBehaviour
 
         if (CharHeadPoint == null || CharFootPoint == null || CrouchingHeadPoint == null)
         {
-            Debug.LogError("[PlayerMovement] Referans noktaları atanmamış! Lütfen Inspector'dan noktaları sürükleyin.");
+            Debug.LogError("[PlayerMovement] Referans noktaları atanmamış!");
         }
     }
 
@@ -93,7 +97,6 @@ public class PlayerMovement : NetworkBehaviour
         {
             transform.rotation = Quaternion.Euler(0, input.LookYaw, 0);
 
-            // --- AĞA BAKIŞ AÇISINI (PITCH) KAYDET ---
             NetworkPitch = input.LookPitch;
 
             bool canMove = _playerScript.IsAlive;
@@ -138,12 +141,21 @@ public class PlayerMovement : NetworkBehaviour
 
             IsCrouching = wantsToCrouch;
 
-            // FİZİKSEL KAPSÜL BOYUNU AYARLA (Modeli ezmeden, sadece görünmez kapsülü küçült)
             float targetHeight = IsCrouching ? _crouchHeight : _standingHeight;
             _capsuleHeight = Mathf.Lerp(_capsuleHeight, targetHeight, Runner.DeltaTime * CrouchTransitionSpeed);
 
+            // --- YENİ EKLENEN DÜŞME KONTROLÜ ---
+            bool wasGrounded = IsGrounded; // Kontrol öncesi durumu kaydet
             Vector3 currentVelocity = Velocity;
-            CheckGrounded(ref currentVelocity);
+
+            CheckGrounded(ref currentVelocity); // Yere değip değmediğini hesapla
+
+            // Eğer az önce havadaydıysa ve şimdi yere değdiyse (Düştü!)
+            if (!wasGrounded && IsGrounded)
+            {
+                LandTriggered++; // Yere çarpma sesini tüm ağa gönder
+            }
+            // ------------------------------------
 
             if (!IsGrounded && IsSliding)
             {
@@ -207,6 +219,7 @@ public class PlayerMovement : NetworkBehaviour
 
                     currentVelocity.y = JumpForce;
                     IsGrounded = false;
+                    JumpTriggered++;
                 }
             }
             else
@@ -350,7 +363,18 @@ public class PlayerMovement : NetworkBehaviour
                     if (IsSliding)
                     {
                         BodyAnimator.SetTrigger("Slide");
+                        // YENİ: Kaymaya başladığı an sesi oynat
+                        if (AudioHandler != null) AudioHandler.PlaySlide();
                     }
+                    break;
+
+                case nameof(JumpTriggered):
+                    if (AudioHandler != null) AudioHandler.PlayJump();
+                    break;
+
+                // YENİ: Yere düştüğünü ağdan algıla ve sesi oynat
+                case nameof(LandTriggered):
+                    if (AudioHandler != null) AudioHandler.PlayLand();
                     break;
             }
         }
@@ -375,22 +399,43 @@ public class PlayerMovement : NetworkBehaviour
             BodyAnimator.SetBool("IsAiming", _playerScript.EquippedWeapon.IsAiming);
         }
 
-        // --- MULTI-AIM (OMURGA BÜKME) SENKRONİZASYONU ---
         if (AimTarget != null && CharHeadPoint != null)
         {
-            // NetworkPitch (Ağdan gelen yukarı/aşağı bakış) ile gövdenin sağ/sol yönünü birleştir
             Quaternion aimRotation = Quaternion.Euler(NetworkPitch, transform.eulerAngles.y, 0);
-
-            // Hedefi kafanın ilerisine, baktığın açıya doğru ışınla
             AimTarget.position = CharHeadPoint.position + aimRotation * Vector3.forward * AimDistance;
         }
 
-        // --- SOL EL IK (SİLAH TUTMA) SENKRONİZASYONU ---
         if (LeftHandIK_Target != null && CurrentWeaponLeftGrip != null)
         {
-            // Sol el hedef noktasını, direkt elindeki silahın kavrama noktasına yapıştır
             LeftHandIK_Target.position = CurrentWeaponLeftGrip.position;
             LeftHandIK_Target.rotation = CurrentWeaponLeftGrip.rotation;
+        }
+
+        // Ayak Sesi
+        if (IsGrounded && !IsSliding)
+        {
+            float currentSpeed = new Vector3(Velocity.x, 0, Velocity.z).magnitude;
+
+            if (currentSpeed > 0.5f)
+            {
+                _footstepTimer -= Time.deltaTime;
+
+                if (_footstepTimer <= 0)
+                {
+                    if (AudioHandler != null) AudioHandler.PlayFootstep();
+
+                    if (IsSprinting)
+                        _footstepTimer = _baseStepInterval * 0.7f;
+                    else if (IsCrouching)
+                        _footstepTimer = _baseStepInterval * 1.5f;
+                    else
+                        _footstepTimer = _baseStepInterval;
+                }
+            }
+            else
+            {
+                _footstepTimer = 0f;
+            }
         }
     }
 
