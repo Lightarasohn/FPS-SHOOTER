@@ -1442,6 +1442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 810481303872a5f4da8dded3fc3bcf11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponAudioHandler
+  sfxMixerGroup: {fileID: -8615410346417863774, guid: 6cc7c3223dd7d454da36984e759216ac, type: 2}
   minPitch: 0.95
   maxPitch: 1.05
   volume: 0.8

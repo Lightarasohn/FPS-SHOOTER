@@ -2,14 +2,19 @@
 
 namespace Assets.Scripts.Player.PlayerSettings
 {
-    [System.Serializable] // JsonUtility'nin bu sınıfı okuyabilmesi için zorunlu
+    [System.Serializable]
     public class SoundSettings
     {
-        public float MainVolume; // { get; set; } KULLANMIYORUZ! Float yapıyoruz (0.0f - 1.0f arası)
+        public float MainVolume;
+        public float SfxVolume; // YENİ
+        public float UiVolume;  // YENİ
 
-        public SoundSettings(float mainVolume)
+        // Varsayılan değerleri 1.0f (Maksimum) olarak belirliyoruz
+        public SoundSettings(float mainVolume = 1.0f, float sfxVolume = 1.0f, float uiVolume = 1.0f)
         {
             MainVolume = mainVolume;
+            SfxVolume = sfxVolume;
+            UiVolume = uiVolume;
         }
     }
 }

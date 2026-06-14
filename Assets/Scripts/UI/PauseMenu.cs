@@ -1,12 +1,13 @@
+using Assets.Scripts.Player.PlayerSettings; // Ses ayarları (SoundSettings) sınıfı için gerekli
 using Fusion;
 using System.Threading.Tasks; // async/await kullanabilmek için gerekli
 using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static GlobalVariables;
-using Assets.Scripts.Player.PlayerSettings; // Ses ayarları (SoundSettings) sınıfı için gerekli
 
 public class PauseMenu : MonoBehaviour
 {
@@ -29,9 +30,11 @@ public class PauseMenu : MonoBehaviour
     public Toggle accelerationEnabled;
     public Slider accelerationThreshold;
 
-    // --- YENİ EKLENEN KISIM: SES ELEMENTLERİ ---
     [Header("Ses Elementleri")]
+    public AudioMixer mainAudioMixer; // YENİ EKLENDİ: Unity Editöründen MainMixer'ı buraya sürükle
     public Slider mainVolume;
+    public Slider sfxVolume; // YENİ EKLENDİ: Ayak sesleri, silah vb.
+    public Slider uiVolume;
     // -------------------------------------------
 
     [Header("Ayarlar")]
@@ -50,12 +53,15 @@ public class PauseMenu : MonoBehaviour
         // --- YENİ: SES AYARINI YÜKLE VE UYGULA ---
         SoundSettings currentSoundSettings = PlayerSaveManager.LoadSoundSettings();
 
-        if (mainVolume != null)
-        {
-            mainVolume.value = currentSoundSettings.MainVolume;
-        }
-        AudioListener.volume = currentSoundSettings.MainVolume; // Global sesi anında ayarla
-        // -----------------------------------------
+        // --- SES AYARINI UYGULA ---
+        mainVolume.value = currentSoundSettings.MainVolume;
+        sfxVolume.value = currentSoundSettings.SfxVolume;
+        uiVolume.value = currentSoundSettings.UiVolume;
+
+        ApplyVolumeToMixer("MasterVolume", currentSoundSettings.MainVolume);
+        ApplyVolumeToMixer("SFXVolume", currentSoundSettings.SfxVolume);
+        ApplyVolumeToMixer("UIVolume", currentSoundSettings.UiVolume);
+        // --------------------------
 
         typeDropdown.value = (int)currentSettings.CrosshairType;
         widthSlider.value = currentSettings.Width;
@@ -79,6 +85,15 @@ public class PauseMenu : MonoBehaviour
         {
             accelerationThreshold.interactable = false;
         }
+    }
+
+    private void ApplyVolumeToMixer(string parameterName, float sliderValue)
+    {
+        if (mainAudioMixer == null) return;
+
+        // Slider değeri 0.001'den küçükse sesi tamamen kapat (-80 dB)
+        float db = sliderValue > 0.001f ? Mathf.Log10(sliderValue) * 20f : -80f;
+        mainAudioMixer.SetFloat(parameterName, db);
     }
 
     public void OnSmoothnessToggleChanged()
@@ -135,16 +150,19 @@ public class PauseMenu : MonoBehaviour
             // Mouse
             PlayerSaveManager.SaveMouseSettings(newMouseSettings);
 
-            // --- YENİ EKLENEN KISIM: SESİ KAYDET VE ANINDA UYGULA ---
-            if (mainVolume != null)
-            {
-                float selectedVolume = mainVolume.value;
-                SoundSettings newSoundSettings = new SoundSettings(selectedVolume);
+            // --- YENİ SES KAYIT KISMI ---
+            float selectedMain = mainVolume.value;
+            float selectedSfx = sfxVolume.value;
+            float selectedUi = uiVolume.value;
 
-                PlayerSaveManager.SaveSoundSettings(newSoundSettings);
-                AudioListener.volume = selectedVolume; // Statik ses motorunu anında güncelle
-            }
-            // --------------------------------------------------------
+            SoundSettings newSoundSettings = new SoundSettings(selectedMain, selectedSfx, selectedUi);
+            PlayerSaveManager.SaveSoundSettings(newSoundSettings);
+
+            // Ayarları anında Mixer'a uygula
+            ApplyVolumeToMixer("MasterVolume", selectedMain);
+            ApplyVolumeToMixer("SFXVolume", selectedSfx);
+            ApplyVolumeToMixer("UIVolume", selectedUi);
+            // ----------------------------
 
             // 3. Sahnede kendi karakterimizi bul ve oyun içi nişangahı/mouse'u anında güncelle
             Player[] allPlayers = FindObjectsByType<Player>(FindObjectsSortMode.None);

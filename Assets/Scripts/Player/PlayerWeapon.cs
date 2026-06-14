@@ -20,6 +20,7 @@ public class PlayerWeapon : NetworkBehaviour
     [Networked] public Vector3 LastHitPosition { get; set; }
     [Networked] public Vector3 LastHitNormal { get; set; }
     [Networked] public bool LastShotDidHit { get; set; }
+    [Networked] public bool LastShotHitPlayer { get; set; }
 
     [Networked] public TickTimer ReloadTimer { get; set; }
     [Networked] public bool IsReloading { get; set; }
@@ -28,6 +29,8 @@ public class PlayerWeapon : NetworkBehaviour
     [Networked] public WeaponID EquippedWeaponID { get; set; }
 
     [Networked] public bool HasFirstBulletOneShotBuff { get; set; } // İlk kurşun tek atar buff'ı aktif mi?
+
+    [Networked] public byte HitmarkerCounter { get; set; }
 
     public Weapon WeaponData { get; private set; }
 
@@ -42,6 +45,7 @@ public class PlayerWeapon : NetworkBehaviour
     [Header("Görsel Efektler (VFX)")]
     public TrailRenderer BulletTrailPrefab;
     public ParticleSystem ImpactParticlePrefab;
+    public ParticleSystem PlayerImpactParticlePrefab;
     public ParticleSystem MuzzleFlashParticle;
     public float BulletTrailSpeed = 100f;
 
@@ -49,8 +53,6 @@ public class PlayerWeapon : NetworkBehaviour
     public float HeadShotMultiplier = 3.0f;
     public float BodyShotMultiplier = 1.0f;
     public float BodyPartShotMultiplier = 0.7f;
-
-
 
     [System.Serializable]
     public struct WeaponMapping
@@ -464,6 +466,7 @@ public class PlayerWeapon : NetworkBehaviour
 
                     CurrentAmmo--;
                     bool hit = false;
+                    bool hitPlayer = false;
 
                     Vector3 hitPosition = raycastOrigin + (shootDirection * WeaponData.FireRange);
                     Vector3 hitNormal = Vector3.up;
@@ -489,6 +492,9 @@ public class PlayerWeapon : NetworkBehaviour
                             {
                                 if (playerScript.PlayerTeam != Owner.PlayerTeam)
                                 {
+                                    // YENİ: Rakibi vurduğumuzu onayladık!
+                                    hitPlayer = true;
+
                                     float finalDamage = WeaponData.Damage;
 
                                     // YENİ: Ölümcül İlk Kurşun Buff Kontrolü
@@ -518,6 +524,8 @@ public class PlayerWeapon : NetworkBehaviour
                                     }
 
                                     playerScript.TakeDamage(finalDamage, Owner);
+
+                                    HitmarkerCounter++;
                                 }
                             }
                         }
@@ -525,6 +533,7 @@ public class PlayerWeapon : NetworkBehaviour
                     LastHitPosition = hitPosition;
                     LastHitNormal = hitNormal;
                     LastShotDidHit = hit;
+                    LastShotHitPlayer = hitPlayer;
 
                     _lastShootDirection = shootDirection;
                     RecoilResetTimer = TickTimer.CreateFromSeconds(Runner, WeaponData.RecoilResetTime);
@@ -549,7 +558,8 @@ public class PlayerWeapon : NetworkBehaviour
             {
                 case nameof(spawnedProjectile):
                     PlayVisualEffects();
-                    _currentViewmodelAnimator.SetTrigger("Fire");
+                    if (HasInputAuthority && _currentViewmodelAnimator != null)
+                        _currentViewmodelAnimator.SetTrigger("Fire");
                     break;
 
                 case nameof(IsFiring):
@@ -594,6 +604,18 @@ public class PlayerWeapon : NetworkBehaviour
                                 WeaponData = remoteWeapon;
                                 ActivateWeaponVisuals(EquippedWeaponID);
                             }
+                        }
+                    }
+                    break;
+
+                case nameof(HitmarkerCounter):
+                    // KRİTİK KONTROL: Sayacı artan silah bizim elimizdeyse hitmarker sesini çal
+                    if (HasInputAuthority)
+                    {
+                        PlayerAudioHandler playerAudio = GetComponent<PlayerAudioHandler>();
+                        if (playerAudio != null)
+                        {
+                            playerAudio.PlayDealDamage();
                         }
                     }
                     break;
@@ -644,11 +666,12 @@ public class PlayerWeapon : NetworkBehaviour
         if (BulletTrailPrefab != null)
         {
             TrailRenderer trail = Instantiate(BulletTrailPrefab, activeMuzzle.position, Quaternion.identity);
-            StartCoroutine(SpawnTrailRoutine(trail, LastHitPosition, LastHitNormal, LastShotDidHit));
+            // YENİ: LastShotHitPlayer bilgisini de parametre olarak gönderiyoruz
+            StartCoroutine(SpawnTrailRoutine(trail, LastHitPosition, LastHitNormal, LastShotDidHit, LastShotHitPlayer));
         }
     }
 
-    private IEnumerator SpawnTrailRoutine(TrailRenderer trail, Vector3 hitPoint, Vector3 hitNormal, bool madeImpact)
+    private IEnumerator SpawnTrailRoutine(TrailRenderer trail, Vector3 hitPoint, Vector3 hitNormal, bool madeImpact, bool hitPlayer)
     {
         Vector3 startPosition = trail.transform.position;
         float distance = Vector3.Distance(startPosition, hitPoint);
@@ -668,10 +691,17 @@ public class PlayerWeapon : NetworkBehaviour
 
         if (trail != null) trail.transform.position = hitPoint;
 
-        if (madeImpact && ImpactParticlePrefab != null)
+        if (madeImpact)
         {
-            ParticleSystem impact = Instantiate(ImpactParticlePrefab, hitPoint, Quaternion.LookRotation(hitNormal));
-            Destroy(impact.gameObject, 2f);
+            // YENİ: Eğer oyuncuyu vurduysak yeni efekti, çevreye vurduysak eski efekti seç
+            ParticleSystem prefabToSpawn = hitPlayer ? PlayerImpactParticlePrefab : ImpactParticlePrefab;
+
+            // Seçilen prefab boş değilse sahneye üret
+            if (prefabToSpawn != null)
+            {
+                ParticleSystem impact = Instantiate(prefabToSpawn, hitPoint, Quaternion.LookRotation(hitNormal));
+                Destroy(impact.gameObject, 2f);
+            }
         }
 
         if (trail != null) Destroy(trail.gameObject, trail.time);

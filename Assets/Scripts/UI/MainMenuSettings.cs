@@ -2,6 +2,7 @@ using Assets.Scripts.Player.PlayerSettings;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 using static GlobalVariables;
 
@@ -25,7 +26,10 @@ public class MainMenuSettings : MonoBehaviour
     public Slider accelerationThreshold;
 
     [Header("Ses Elementleri")]
+    public AudioMixer mainAudioMixer; // YENİ EKLENDİ: Unity Editöründen MainMixer'ı buraya sürükle
     public Slider mainVolume;
+    public Slider sfxVolume; // YENİ EKLENDİ: Ayak sesleri, silah vb.
+    public Slider uiVolume;
 
     // Start is called once before the first execution of Updat e after the MonoBehaviour is created
     private void Start()
@@ -37,7 +41,12 @@ public class MainMenuSettings : MonoBehaviour
 
         // --- SES AYARINI UYGULA ---
         mainVolume.value = currentSoundSettings.MainVolume;
-        AudioListener.volume = currentSoundSettings.MainVolume; // Unity'nin global sesini ayarla
+        sfxVolume.value = currentSoundSettings.SfxVolume;
+        uiVolume.value = currentSoundSettings.UiVolume;
+
+        ApplyVolumeToMixer("MasterVolume", currentSoundSettings.MainVolume);
+        ApplyVolumeToMixer("SFXVolume", currentSoundSettings.SfxVolume);
+        ApplyVolumeToMixer("UIVolume", currentSoundSettings.UiVolume);
         // --------------------------
 
         // Crosshair
@@ -63,6 +72,15 @@ public class MainMenuSettings : MonoBehaviour
         {
             accelerationThreshold.interactable = false;
         }
+    }
+
+    private void ApplyVolumeToMixer(string parameterName, float sliderValue)
+    {
+        if (mainAudioMixer == null) return;
+
+        // Slider değeri 0.001'den küçükse sesi tamamen kapat (-80 dB)
+        float db = sliderValue > 0.001f ? Mathf.Log10(sliderValue) * 20f : -80f;
+        mainAudioMixer.SetFloat(parameterName, db);
     }
 
     public void OnSmoothnessToggleChanged()
@@ -120,15 +138,19 @@ public class MainMenuSettings : MonoBehaviour
             PlayerSaveManager.SaveMouseSettings(newMouseSettings);
 
             // --- YENİ SES KAYIT KISMI ---
-            float selectedVolume = mainVolume.value; // Float olarak alıyoruz
-            SoundSettings newSoundSettings = new SoundSettings(selectedVolume);
+            float selectedMain = mainVolume.value;
+            float selectedSfx = sfxVolume.value;
+            float selectedUi = uiVolume.value;
+
+            SoundSettings newSoundSettings = new SoundSettings(selectedMain, selectedSfx, selectedUi);
             PlayerSaveManager.SaveSoundSettings(newSoundSettings);
 
-            // Unity'nin statik ses motoruna anında uygula! Artık Player objesine haber vermeye gerek yok.
-            AudioListener.volume = selectedVolume;
+            // Ayarları anında Mixer'a uygula
+            ApplyVolumeToMixer("MasterVolume", selectedMain);
+            ApplyVolumeToMixer("SFXVolume", selectedSfx);
+            ApplyVolumeToMixer("UIVolume", selectedUi);
             // ----------------------------
 
-            // Bildirim
             NotificationScript.Instance.ShowNotification("Ayarlar kaydedildi");
             Debug.Log("Ayarlar kaydedildi!");
         }

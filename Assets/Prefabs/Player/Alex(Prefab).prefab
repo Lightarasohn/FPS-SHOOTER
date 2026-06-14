@@ -219,8 +219,9 @@ GameObject:
   - component: {fileID: 370907293763831094}
   - component: {fileID: 5835590297059549716}
   - component: {fileID: 4673358590610055981}
-  - component: {fileID: 5279374369091907256}
   - component: {fileID: 6056223107920167026}
+  - component: {fileID: 5279374369091907256}
+  - component: {fileID: 7831360590422966715}
   m_Layer: 7
   m_Name: Alex(Prefab)
   m_TagString: Player
@@ -328,7 +329,6 @@ MonoBehaviour:
   EquippedWeapon: {fileID: 0}
   ThirdPersonBody: {fileID: 399061914281060736}
   ViewmodelRoot: {fileID: 5031971328962364931}
-  PlayerAudioListener: {fileID: 0}
 --- !u!114 &6666122520646881031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -439,10 +439,12 @@ MonoBehaviour:
   _LastHitPosition: {x: 0, y: 0, z: 0}
   _LastHitNormal: {x: 0, y: 0, z: 0}
   _LastShotDidHit: 0
+  _LastShotHitPlayer: 0
   _IsReloading: 0
   _ReloadTriggered: 0
   _EquippedWeaponID: 0
   _HasFirstBulletOneShotBuff: 0
+  _HitmarkerCounter: 0
   weaponPoint: {fileID: 647699304916535927}
   firePoint: {fileID: 8516296061679868625}
   playerCamera: {fileID: 1873146218361749248}
@@ -450,6 +452,7 @@ MonoBehaviour:
   CurrentShotRecoil: {x: 0, y: 0}
   BulletTrailPrefab: {fileID: 3024503204202054061, guid: be6e3873526a0d547b4f2054d6af7ce1, type: 3}
   ImpactParticlePrefab: {fileID: 3925436347142707583, guid: c3943d59b1740304caf61d1eaaf7549a, type: 3}
+  PlayerImpactParticlePrefab: {fileID: 3827610010075344870, guid: 67f89371613647042b1a0071ca9535e9, type: 3}
   MuzzleFlashParticle: {fileID: 198234346748616026, guid: ad2ab49d0a2a17148bd51c93d977bdbc, type: 3}
   BulletTrailSpeed: 300
   HeadShotMultiplier: 3
@@ -570,6 +573,33 @@ MonoBehaviour:
   - m_Rig: {fileID: 7660955519001122487}
     m_Active: 1
   m_Effectors: []
+--- !u!114 &6056223107920167026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1121952925158488666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5c79517c663bdc489f5f860476cd221, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAudioHandler
+  sfxMixerGroup: {fileID: -8615410346417863774, guid: 6cc7c3223dd7d454da36984e759216ac, type: 2}
+  uiMixerGroup: {fileID: -2044618528788690722, guid: 6cc7c3223dd7d454da36984e759216ac, type: 2}
+  footstepClips:
+  - {fileID: 8300000, guid: 1cc89b1d779211144aaac0bc7e1dd15e, type: 3}
+  - {fileID: 8300000, guid: 94a5f757cefacda4fb76574f74e562ba, type: 3}
+  jumpClip: {fileID: 8300000, guid: b7875a4e6b532c2438e42d2493b2c3cb, type: 3}
+  landClip: {fileID: 8300000, guid: eab1dba9d3f24534ebfb15e1c66fa982, type: 3}
+  slideClip: {fileID: 8300000, guid: f3196bfe281fa8a4da230c255382b984, type: 3}
+  physicsVolume: 0.5
+  takeDamageClip: {fileID: 8300000, guid: 509259568ca0286409cf425256fe0189, type: 3}
+  dealDamageClip: {fileID: 8300000, guid: 4873e5edf2c03154fb8d45a738521eca, type: 3}
+  scoreClip: {fileID: 8300000, guid: bf90c58a8d7ed354a824acc052b4ac26, type: 3}
+  takeDamageVolume: 0.8
+  dealDamageVolume: 1
+  scoreVolume: 0.9
 --- !u!82 &5279374369091907256
 AudioSource:
   m_ObjectHideFlags: 0
@@ -667,25 +697,103 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &6056223107920167026
-MonoBehaviour:
+--- !u!82 &7831360590422966715
+AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1121952925158488666}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5c79517c663bdc489f5f860476cd221, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAudioHandler
-  footstepClips:
-  - {fileID: 8300000, guid: 1cc89b1d779211144aaac0bc7e1dd15e, type: 3}
-  - {fileID: 8300000, guid: 94a5f757cefacda4fb76574f74e562ba, type: 3}
-  jumpClip: {fileID: 8300000, guid: b7875a4e6b532c2438e42d2493b2c3cb, type: 3}
-  landClip: {fileID: 8300000, guid: eab1dba9d3f24534ebfb15e1c66fa982, type: 3}
-  slideClip: {fileID: 8300000, guid: f3196bfe281fa8a4da230c255382b984, type: 3}
-  volume: 0.5
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1357102785720648967
 GameObject:
   m_ObjectHideFlags: 0
@@ -3618,8 +3726,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.07
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.5
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.4
+  Offset: {x: 0, y: 0.1, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &3481535090346833327
@@ -3656,8 +3764,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.08
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.57
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.4
+  Offset: {x: 0, y: 0.09, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &598105755393124837
@@ -3861,8 +3969,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.06
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.28
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.2
+  Offset: {x: 0, y: 0.11, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &1958282363830202199
@@ -3898,9 +4006,9 @@ MonoBehaviour:
   Type: 1
   SphereRadius: 0
   CapsuleRadius: 0
-  BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
+  BoxExtents: {x: 0.06, y: 0.15, z: 0.05}
   CapsuleExtents: 0
-  Offset: {x: 0, y: 0, z: 0}
+  Offset: {x: 0, y: -0.09, z: 0.04}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &6461420128444100732
@@ -3937,8 +4045,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.07
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.5
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.4
+  Offset: {x: 0, y: 0.1, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &2472831399789365360
@@ -4051,8 +4159,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.06
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.28
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.2
+  Offset: {x: 0, y: 0.11, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &9117000028556425557
@@ -4098,9 +4206,9 @@ MonoBehaviour:
   Type: 1
   SphereRadius: 0
   CapsuleRadius: 0
-  BoxExtents: {x: 0.06, y: 0.15, z: 0.04}
+  BoxExtents: {x: 0.06, y: 0.15, z: 0.05}
   CapsuleExtents: 0
-  Offset: {x: 0, y: 0, z: 0}
+  Offset: {x: 0, y: -0.09, z: 0.04}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &870853513403114183
@@ -4175,8 +4283,8 @@ MonoBehaviour:
   SphereRadius: 0
   CapsuleRadius: 0.08
   BoxExtents: {x: 0, y: 0, z: 0}
-  CapsuleExtents: 0.57
-  Offset: {x: 0, y: 0, z: 0}
+  CapsuleExtents: 0.4
+  Offset: {x: 0, y: 0.09, z: 0}
   Root: {fileID: 370907293763831094}
   GizmosColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &3913850209456070777

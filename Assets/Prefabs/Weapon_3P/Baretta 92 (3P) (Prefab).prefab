@@ -142,9 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 810481303872a5f4da8dded3fc3bcf11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponAudioHandler
-  fireClip: {fileID: 8300000, guid: cdd722a423228b64f841904304047214, type: 3}
-  drawClip: {fileID: 8300000, guid: b072e3198cf2c6c4f991f560a5d55b0d, type: 3}
-  reloadClip: {fileID: 8300000, guid: c395f2d39dbd53344aad8100f9ef8866, type: 3}
+  sfxMixerGroup: {fileID: -8615410346417863774, guid: 6cc7c3223dd7d454da36984e759216ac, type: 2}
   minPitch: 0.95
   maxPitch: 1.05
   volume: 0.8

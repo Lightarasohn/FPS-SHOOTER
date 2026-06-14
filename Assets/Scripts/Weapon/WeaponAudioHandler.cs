@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 [RequireComponent(typeof(AudioSource))]
 public class WeaponAudioHandler : MonoBehaviour
 {
+    [Header("Mixer Kanalı")]
+    public AudioMixerGroup sfxMixerGroup;
+
     [Header("Dinamik Ses Ayarları")]
     [SerializeField] private float minPitch = 0.95f;
     [SerializeField] private float maxPitch = 1.05f;
@@ -21,6 +25,11 @@ public class WeaponAudioHandler : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         audioSource.spatialBlend = 1f;
         audioSource.playOnAwake = false;
+
+        if (sfxMixerGroup != null)
+        {
+            audioSource.outputAudioMixerGroup = sfxMixerGroup;
+        }
     }
 
     // YENİ: PlayerWeapon silahı kuşandığında sesleri bu namluya enjekte edecek

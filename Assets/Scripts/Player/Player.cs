@@ -25,11 +25,13 @@ public class Player : NetworkBehaviour
     public GameObject ThirdPersonBody;
     public GameObject ViewmodelRoot;
 
-    [Header("Ses Dinleyici Referansı")]
-    public AudioListener PlayerAudioListener;
-
     public BuffDebuff ActiveAugment { get; private set; }
     private Dictionary<Player, float> _damageContributors = new Dictionary<Player, float>();
+
+    private float _lastHealth;
+    private float _lastArmor;
+    private int _lastKills;
+    private PlayerAudioHandler _playerAudioHandler;
 
     // YENİ: Durum değişikliklerini izlemek için
     private ChangeDetector _changeDetector;
@@ -91,6 +93,11 @@ public class Player : NetworkBehaviour
 
             if (ViewmodelRoot != null) ViewmodelRoot.SetActive(false);
         }
+
+        _playerAudioHandler = GetComponent<PlayerAudioHandler>();
+        _lastHealth = Health;
+        _lastArmor = Armor;
+        _lastKills = Kills;
 
         // Doğduğunda görünürlük durumunu eşitle (Ölü doğduysa anında görünmez olur)
         TogglePlayerVisibility(IsAlive);
@@ -265,9 +272,15 @@ public class Player : NetworkBehaviour
         if (Object.HasInputAuthority && ViewmodelRoot != null)
             ViewmodelRoot.SetActive(isVisible);
 
-        // Mermilerin içinden geçmesi için kapsülü kapat
-        Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = isVisible;
+        // --- DEĞİŞTİRİLEN KISIM BURASI ---
+        // Madem Collider yok, Collider arama kısmını siliyoruz.
+        // Geriye sadece Fusion'ın Hitbox'larını açıp kapatmak kalıyor.
+        HitboxRoot hitboxRoot = GetComponent<HitboxRoot>();
+        if (hitboxRoot != null)
+        {
+            hitboxRoot.HitboxRootActive = isVisible;
+        }
+        // ---------------------------------
     }
 
     public override void Render()
@@ -280,8 +293,35 @@ public class Player : NetworkBehaviour
                 case nameof(IsAlive):
                     TogglePlayerVisibility(IsAlive);
                     break;
+
+                case nameof(Armor):
+                case nameof(Health): // Hem canı hem zırhı aynı case yapısına bağlıyoruz
+                    if (Object.HasInputAuthority)
+                    {
+                        // Can VEYA Zırh azaldıysa (hasar yemişiz demektir)
+                        if ((Health < _lastHealth) || (Armor < _lastArmor))
+                        {
+                            if (_playerAudioHandler != null)
+                            {
+                                _playerAudioHandler.PlayTakeDamage();
+                            }
+                        }
+                    }
+                    break;
+
+                case nameof(Kills):
+                    // KRİTİK KONTROL: Sadece skoru artan karakter BİZİM karakterimizse ses çal
+                    if (Object.HasInputAuthority && Kills > _lastKills && _playerAudioHandler != null)
+                    {
+                        _playerAudioHandler.PlayScoreSound();
+                    }
+                    break;
             }
         }
+
+        _lastHealth = Health;
+        _lastArmor = Armor;
+        _lastKills = Kills;
 
         if (Object.HasInputAuthority && PlayerHUD.Instance != null)
         {
