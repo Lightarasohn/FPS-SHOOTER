@@ -248,6 +248,22 @@ public class PlayerWeapon : NetworkBehaviour
             {
                 _current3PWeaponInstance = Instantiate(mapping.ThirdPersonPrefab, ThirdPersonWeaponAnchor);
 
+                // --- YENİ EKLENEN KISIM ---
+                // Eğer bu karakter bize aitse (InputAuthority), 3P silahın katmanını "MyWeapon" yap
+                if (HasInputAuthority)
+                {
+                    int myWeaponLayer = LayerMask.NameToLayer("MyWeapon");
+                    if (myWeaponLayer != -1) // Katmanın Unity'de var olduğundan emin olalım
+                    {
+                        SetWeaponLayerRecursively(_current3PWeaponInstance, myWeaponLayer);
+                    }
+                    else
+                    {
+                        Debug.LogError("Unity'de 'MyWeapon' adında bir katman bulunamadı! Lütfen Layers kısmından ekleyin.");
+                    }
+                }
+                // -------------------------
+
                 // PhysicalWeaponInfo yerine WeaponVisualInfo kullan
                 VisualWeaponInfo wvi = _current3PWeaponInstance.GetComponent<VisualWeaponInfo>();
                 if (wvi != null)
@@ -523,7 +539,8 @@ public class PlayerWeapon : NetworkBehaviour
                                             break;
                                     }
 
-                                    playerScript.TakeDamage(finalDamage, Owner);
+                                    // TakeDamage artık merminin çarptığı noktayı (hitPosition) ve yönünü (shootDirection) de alacak
+                                    playerScript.TakeDamage(finalDamage, Owner, hitPosition, shootDirection);
 
                                     HitmarkerCounter++;
                                 }
@@ -705,6 +722,20 @@ public class PlayerWeapon : NetworkBehaviour
         }
 
         if (trail != null) Destroy(trail.gameObject, trail.time);
+    }
+
+    // YENİ: Sadece silahlar için kullanılacak katman değiştirici
+    private void SetWeaponLayerRecursively(GameObject obj, int newLayer)
+    {
+        if (obj == null) return;
+
+        obj.layer = newLayer;
+
+        foreach (Transform child in obj.transform)
+        {
+            if (child == null) continue;
+            SetWeaponLayerRecursively(child.gameObject, newLayer);
+        }
     }
 
     public void OnDrawGizmos()

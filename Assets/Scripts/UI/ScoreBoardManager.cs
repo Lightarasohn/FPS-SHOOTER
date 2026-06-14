@@ -22,27 +22,19 @@ public class ScoreboardManager : MonoBehaviour
 
     void Update()
     {
-        // GÜVENLİK: Eğer bilgisayara klavye takılı değilse kodun çökmesini engeller
         if (Keyboard.current == null) return;
 
-        // YENİ SİSTEM KLAVYE KONTROLÜ
-        // Tab tuşuna ilk basıldığı an (Aç)
         if (Keyboard.current.tabKey.wasPressedThisFrame)
         {
             scoreboardPanel.SetActive(true);
-            UpdateScoreboard();
+            UpdateScoreboard(); // Sadece ilk açıldığında oluştur
         }
-        // Tab tuşundan elini çektiği an (Kapat)
         else if (Keyboard.current.tabKey.wasReleasedThisFrame)
         {
             scoreboardPanel.SetActive(false);
+            // Sadece tablo açıkken skorları güncellemeye devam etmesini İPTAL EDİYORUZ
         }
 
-        // Eğer menü açıksa skorları güncellemeye devam et
-        if (scoreboardPanel.activeSelf)
-        {
-            UpdateScoreboard();
-        }
     }
 
     private void UpdateScoreboard()

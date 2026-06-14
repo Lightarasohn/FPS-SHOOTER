@@ -255,16 +255,16 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
             if (playerObj != null)
             {
-                NetworkObject[] allNetworkObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
-                foreach (var no in allNetworkObjects)
+                // Runner.GetAllNetworkObjects ile Fusion'ın kendi optimize listesini kullan
+                foreach (var no in runner.GetAllNetworkObjects())
                 {
-                    if (no.InputAuthority == player)
+                    if (no != null && no.InputAuthority == player)
                     {
                         runner.Despawn(no);
                     }
                 }
 
-                runner.Despawn(playerObj);
+                // Kalan player referansını temizle
                 runner.SetPlayerObject(player, null);
             }
         }

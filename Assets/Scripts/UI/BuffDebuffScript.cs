@@ -31,6 +31,8 @@ public class BuffDebuffScript : MonoBehaviour
     private float _autoSelectTimer = 0f;
     private const float AUTO_SELECT_DELAY = 14f;
 
+    private Player _localPlayerCache;
+
     private void Update()
     {
         if (GameManager.Instance == null || !GameManager.Instance.IsReady ||
@@ -86,11 +88,24 @@ public class BuffDebuffScript : MonoBehaviour
 
     private Player GetLocalPlayer()
     {
-        Player[] players = FindObjectsByType<Player>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (Player p in players)
+        // Eğer önbellekte zaten varsa, tekrar arama
+        if (_localPlayerCache != null && _localPlayerCache.Object != null && _localPlayerCache.HasInputAuthority)
+            return _localPlayerCache;
+
+        // Eğer yoksa, GameManager üzerinden listeyi kontrol et (Tüm sahneyi taramaktan ÇOK daha ucuzdur)
+        if (GameManager.Instance != null)
         {
-            if (p.HasInputAuthority) return p;
+            foreach (Player p in GameManager.Instance.ActivePlayers)
+            {
+                if (p != null && p.Object != null && p.HasInputAuthority)
+                {
+                    _localPlayerCache = p;
+                    return _localPlayerCache;
+                }
+            }
         }
+
+        // Hala bulunamadıysa fallback
         return null;
     }
 

@@ -124,13 +124,17 @@ public class GameManager : NetworkBehaviour
         CurrentState = RoundState.PreRound;
         RoundTimer = TickTimer.CreateFromSeconds(Runner, 15f);
 
-        // --- 1. ÇÖZÜM: Yerdeki Silahların Temizlenmesi (Garbage Collection) ---
-        var droppedWeapons = FindObjectsByType<PhysicalWeaponInfo>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var weapon in droppedWeapons)
+        // --- 1. ÇÖZÜM: Yerdeki Silahların Temizlenmesi ---
+        // Fusion'ın kendi ağ listesini kontrol etmek tüm sahneyi taramaktan katbekat hızlıdır.
+        foreach (var netObj in Runner.GetAllNetworkObjects())
         {
-            if (weapon.Object != null && weapon.Object.IsValid && weapon.HasStateAuthority)
+            if (netObj != null && netObj.IsValid && netObj.HasStateAuthority)
             {
-                Runner.Despawn(weapon.Object);
+                PhysicalWeaponInfo weapon = netObj.GetComponent<PhysicalWeaponInfo>();
+                if (weapon != null)
+                {
+                    Runner.Despawn(netObj);
+                }
             }
         }
 

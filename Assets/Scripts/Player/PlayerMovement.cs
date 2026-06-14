@@ -301,14 +301,22 @@ public class PlayerMovement : NetworkBehaviour
 
     private void CheckGrounded(ref Vector3 currentVel)
     {
-        Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.05f));
-        float checkRadius = _capsuleRadius + 0.02f;
+        // Orijin noktasını ayağın tam merkezinden kapsül yarıçapı kadar yukarı alıyoruz
+        Vector3 origin = CharFootPoint.position + (Vector3.up * _capsuleRadius);
+
+        // SphereCast'in yarıçapı, karakterin kalınlığından biraz daha ufak olsun ki
+        // duvar kenarlarına sürterken yanlışlıkla zemindeymiş gibi algılamasın.
+        float checkRadius = _capsuleRadius * 0.95f;
+
+        // Sadece yere değip değmediğini anlamak için ufak bir pay atıyoruz (Havada asılı kalmayı çözer)
+        float castDistance = 0.05f;
 
         // DÜZELTİLDİ: Merkezi maske kullanılıyor
-        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, (_capsuleRadius + 0.1f), GetPlayerIgnoreMask());
+        IsGrounded = Runner.GetPhysicsScene().SphereCast(origin, checkRadius, Vector3.down, out RaycastHit hitInfo, castDistance, GetPlayerIgnoreMask());
 
         if (IsGrounded)
         {
+            // Zemin eğimi 0.5'ten büyükse (çok dik bir yokuş değilse) dur
             if (hitInfo.normal.y > 0.5f)
             {
                 if (currentVel.y < 0) currentVel.y = 0;
@@ -466,11 +474,12 @@ public class PlayerMovement : NetworkBehaviour
         bool grounded = false;
         if (Application.isPlaying && Object != null && Object.IsInSimulation) grounded = IsGrounded;
 
+        // Zemin kontrol küresi çizimi (Yeni ölçülere göre)
         Gizmos.color = grounded ? Color.green : Color.red;
-
-        Vector3 origin = CharFootPoint.position + (Vector3.up * (_capsuleRadius + 0.01f));
-        Gizmos.DrawWireSphere(origin, _capsuleRadius);
-        Gizmos.DrawLine(origin, origin + Vector3.down * (_capsuleRadius + 0.05f));
+        Vector3 origin = CharFootPoint.position + (Vector3.up * _capsuleRadius);
+        float checkRadius = _capsuleRadius * 0.95f;
+        Gizmos.DrawWireSphere(origin, checkRadius);
+        Gizmos.DrawLine(origin, origin + Vector3.down * 0.05f); // castDistance
 
         Gizmos.color = Color.blue;
         float tempHeight = Application.isPlaying ? _capsuleHeight : (CharHeadPoint.localPosition.y - CharFootPoint.localPosition.y);

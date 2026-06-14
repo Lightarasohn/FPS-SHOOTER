@@ -33,6 +33,16 @@ public class Player : NetworkBehaviour
     private int _lastKills;
     private PlayerAudioHandler _playerAudioHandler;
 
+    // RAGDOLL İÇİN YENİ DEĞİŞKENLER
+    [Networked] public Vector3 FatalHitPoint { get; set; }
+    [Networked] public Vector3 FatalHitDirection { get; set; }
+
+    private Rigidbody[] _ragdollRigidbodies;
+    private Collider[] _ragdollColliders;
+    private Animator _bodyAnimator;
+    public float RagdollImpactForce = 50f; // Vuruş şiddeti (Inspector'dan ayarlayabilirsin)
+
+
     // YENİ: Durum değişikliklerini izlemek için
     private ChangeDetector _changeDetector;
 
@@ -40,6 +50,18 @@ public class Player : NetworkBehaviour
     {
         EquippedWeapon = GetComponent<PlayerWeapon>();
         PlayerCrosshair = PlayerSaveManager.LoadCrosshair();
+
+        _bodyAnimator = GetComponent<Animator>();
+
+        // RAGDOLL KEMİKLERİNİ VE ANİMATÖRÜ BUL
+        if (ThirdPersonBody != null)
+        {
+            _ragdollRigidbodies = ThirdPersonBody.GetComponentsInChildren<Rigidbody>();
+            _ragdollColliders = ThirdPersonBody.GetComponentsInChildren<Collider>(); // YENİ EKLENDİ
+
+            // Oyun başlarken ragdoll kapalı olsun
+            SetRagdollState(false);
+        }
     }
 
     public override void Spawned()
@@ -106,7 +128,13 @@ public class Player : NetworkBehaviour
     private void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null) return;
-        obj.layer = newLayer;
+
+        // YENİ: EĞER obje IgnoreRaycast katmanındaysa (ragdoll kemikleri), ona hiç dokunma!
+        if (obj.layer != LayerMask.NameToLayer("IgnoreRaycast"))
+        {
+            obj.layer = newLayer;
+        }
+
         foreach (Transform child in obj.transform)
         {
             if (child == null) continue;
@@ -120,7 +148,7 @@ public class Player : NetworkBehaviour
             GameManager.Instance.RemovePlayer(this);
     }
 
-    public void TakeDamage(float damage, Player attacker)
+    public void TakeDamage(float damage, Player attacker, Vector3 hitPoint = default, Vector3 hitDirection = default)
     {
         if (!HasStateAuthority || !IsAlive) return;
 
@@ -163,6 +191,10 @@ public class Player : NetworkBehaviour
         if (Health <= 0)
         {
             Health = 0;
+
+            // YENİ: Ölüm vuruşunun geldiği yönü ve noktayı ağa kaydet
+            FatalHitPoint = hitPoint;
+            FatalHitDirection = hitDirection;
 
             // YENİ: Silahı yere atma işlemi IsAlive false olmadan hemen önce yapılmalı
             if (EquippedWeapon != null) EquippedWeapon.DropCurrentWeapon();
@@ -266,21 +298,74 @@ public class Player : NetworkBehaviour
     // YENİ: Oyuncuyu tamamen gizleyen ve fiziksel olarak yok eden metod
     private void TogglePlayerVisibility(bool isVisible)
     {
-        if (ThirdPersonBody != null)
-            ThirdPersonBody.SetActive(isVisible);
+        if (Object.HasInputAuthority)
+        {
+            // 1. Şahıs kollarını duruma göre aç/kapat
+            if (ViewmodelRoot != null)
+                ViewmodelRoot.SetActive(isVisible);
 
-        if (Object.HasInputAuthority && ViewmodelRoot != null)
-            ViewmodelRoot.SetActive(isVisible);
+            // YENİ: Hayattayken kendi vücudunu kameradan gizle, öldüğünde ragdoll'unu görmek için Default katmanına al
+            int targetLayer = isVisible ? LayerMask.NameToLayer("LocalPlayerBody") : LayerMask.NameToLayer("Default");
+            SetLayerRecursively(ThirdPersonBody, targetLayer);
+        }
 
-        // --- DEĞİŞTİRİLEN KISIM BURASI ---
-        // Madem Collider yok, Collider arama kısmını siliyoruz.
-        // Geriye sadece Fusion'ın Hitbox'larını açıp kapatmak kalıyor.
+        // Vurulabilme kutularını (Hitbox) kapatıyoruz ki yerdeki cesede mermi sıkılmasın
         HitboxRoot hitboxRoot = GetComponent<HitboxRoot>();
         if (hitboxRoot != null)
         {
             hitboxRoot.HitboxRootActive = isVisible;
         }
-        // ---------------------------------
+    }
+
+    private void SetRagdollState(bool isRagdollActive, Vector3 hitPoint = default, Vector3 hitDirection = default)
+    {
+        // 2. DÜZELTME: Ragdoll aktifse Animatör'ü kapat ki kemikleri serbest bıraksın!
+        if (_bodyAnimator != null)
+            _bodyAnimator.enabled = !isRagdollActive;
+
+        // 3. DÜZELTME: Animation Rigging kullanıyorsun, Rig Builder'ı da kapatmalıyız ki IK kemikleri kilitlemesin
+        UnityEngine.Animations.Rigging.RigBuilder rigBuilder = GetComponent<UnityEngine.Animations.Rigging.RigBuilder>();
+        if (rigBuilder != null)
+            rigBuilder.enabled = !isRagdollActive;
+
+        // YENİ: Fiziksel Collider Çakışmalarını Önleme
+        if (_ragdollColliders != null)
+        {
+            foreach (var col in _ragdollColliders)
+            {
+                // Karakter hayattayken kemiklerin collider'ları kapalı kalır, sadece ölünce açılır.
+                // Bu sayede yerdeki zemine sürtünüp yürümeyi (flickering) bozmaz.
+                col.enabled = isRagdollActive;
+            }
+        }
+
+        if (_ragdollRigidbodies == null) return;
+
+        Rigidbody closestBone = null;
+        float minDistance = float.MaxValue;
+
+        foreach (var rb in _ragdollRigidbodies)
+        {
+            // isKinematic true ise kemik animatörü takip eder, false ise yerçekimine yenik düşer
+            rb.isKinematic = !isRagdollActive;
+
+            // Eğer karaktere kuvvet uygulanacaksa (ölüm anı) en yakın kemiği bul
+            if (isRagdollActive && hitPoint != default)
+            {
+                float dist = Vector3.Distance(rb.position, hitPoint);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closestBone = rb;
+                }
+            }
+        }
+
+        // Eğer en yakın kemik bulunduysa, ona mermi yönünde bir itme gücü (Impulse) uygula
+        if (isRagdollActive && closestBone != null && hitDirection != default)
+        {
+            closestBone.AddForceAtPosition(hitDirection * RagdollImpactForce, hitPoint, ForceMode.Impulse);
+        }
     }
 
     public override void Render()
@@ -292,6 +377,9 @@ public class Player : NetworkBehaviour
             {
                 case nameof(IsAlive):
                     TogglePlayerVisibility(IsAlive);
+
+                    // YENİ: IsAlive false ise ragdoll açılır, true ise (yeni el başladıysa) ragdoll kapanır ve animatör düzelir.
+                    SetRagdollState(!IsAlive, FatalHitPoint, FatalHitDirection);
                     break;
 
                 case nameof(Armor):
