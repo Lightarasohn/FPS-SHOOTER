@@ -60,6 +60,32 @@ public class GameManager : NetworkBehaviour
     public void RemovePlayer(Player player)
     {
         _activePlayers.Remove(player);
+
+        if (!HasStateAuthority) return;
+
+        bool hasRedTeamPlayer = false;
+        bool hasBlueTeamPlayer = false;
+
+        foreach (var p in _activePlayers)
+        {
+            if (p.PlayerTeam == Team.Red) hasRedTeamPlayer = true;
+            if (p.PlayerTeam == Team.Blue) hasBlueTeamPlayer = true;
+
+            if (hasRedTeamPlayer && hasBlueTeamPlayer) break;
+        }
+
+        if (!hasRedTeamPlayer || !hasBlueTeamPlayer)
+        {
+            CurrentState = RoundState.WaitingForPlayers;
+            RoundTimer = TickTimer.None; 
+
+           
+             TeamRedScore = 0;
+             TeamBlueScore = 0;
+
+            return; 
+        }
+
         CheckWinCondition();
     }
 
