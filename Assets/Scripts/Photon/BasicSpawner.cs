@@ -111,18 +111,46 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 
         try
         {
-            await _runner.StartGame(new StartGameArgs
+            // 1. DÖNEN SONUCU BİR DEĞİŞKENE ATIYORUZ
+            var result = await _runner.StartGame(new StartGameArgs
             {
                 GameMode = mode,
                 Scene = sceneInfo,
                 SessionName = sessionName,
                 SceneManager = runnerObj.AddComponent<NetworkSceneManagerDefault>(),
-                // --- GÜNCELLENEN KISIM: Özellikleri Fusion'a paslıyoruz ---
                 SessionProperties = mode == GameMode.Host ? customProperties : null,
                 IsOpen = true,
                 IsVisible = true
             });
 
+            // 2. EĞER BAĞLANTI ZAMAN AŞIMINA UĞRADIYSA VEYA KOPTUYSA
+            if (!result.Ok)
+            {
+                Debug.LogError($"[BasicSpawner] Fusion Başlatma Başarısız: {result.ShutdownReason}");
+
+                if (mode == GameMode.Host)
+                {
+                    NotificationScript.Instance.ShowNotification($"Oyun oluşturulamadı");
+
+                    // Harita seçim panelini geri açıyoruz
+                    if (_mapSelectionPanel != null)
+                    {
+                        _mapSelectionPanel.SetActive(true);
+                    }
+                }
+                else
+                {
+                    NotificationScript.Instance.ShowNotification($"Oyuna katılım başarısız");
+                }
+
+                // Kullanıcının tekrar deneyebilmesi için butonları aktif ediyoruz
+                SetButtonsInteractable(true);
+
+                // İşlemi iptal edip alt satırlara inmesini engelliyoruz
+                return;
+            }
+
+            // 3. EĞER HER ŞEY BAŞARILIYSA SAHNEYİ TEMİZLE
             if (SceneManager.GetActiveScene().buildIndex == 0)
             {
                 _ = SceneManager.UnloadSceneAsync(0);
@@ -130,11 +158,19 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         }
         catch (Exception e)
         {
-            Debug.LogError($"[BasicSpawner] Başlatma Hatası: {e.Message}");
-            if (mode == GameMode.Client)
-                NotificationScript.Instance.ShowNotification("Oyuna katılırken bir sorun oluştu.");
+            // Bu kısım ağ hataları için değil, RAM veya kod kaynaklı çökmeler için kalmaya devam edebilir
+            Debug.LogError($"[BasicSpawner] Ciddi Başlatma Hatası: {e.Message}");
+
+            if (mode == GameMode.Host)
+            {
+                NotificationScript.Instance.ShowNotification("Oyun oluşturulurken kritik bir hata oluştu.");
+                if (_mapSelectionPanel != null) _mapSelectionPanel.SetActive(true);
+            }
             else
-                NotificationScript.Instance.ShowNotification("Oyun oluştururken bir sorun oluştu.");
+            {
+                NotificationScript.Instance.ShowNotification("Oyuna katılırken kritik bir hata oluştu.");
+            }
+            SetButtonsInteractable(true);
         }
     }
 
@@ -293,7 +329,13 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
+    {
+        Debug.LogWarning($"[BasicSpawner] Bağlantı reddedildi/başarısız: {reason}");
+        NotificationScript.Instance.ShowNotification("Sunucuya bağlantı kurulamadı.");
+        SetButtonsInteractable(true);
+        if (_mapSelectionPanel != null) _mapSelectionPanel.SetActive(true);
+    }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
