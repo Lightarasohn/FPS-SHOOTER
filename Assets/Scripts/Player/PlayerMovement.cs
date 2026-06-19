@@ -331,7 +331,7 @@ public class PlayerMovement : NetworkBehaviour
     private Vector3 ResolveCollisions(Vector3 startPos, Vector3 targetPos, ref Vector3 currentVelocity)
     {
         Vector3 currentPos = startPos;
-        int maxBounces = 3;
+        int maxBounces = 5;
         float skinWidth = 0.015f;
         Vector3 originalVelocity = currentVelocity;
 

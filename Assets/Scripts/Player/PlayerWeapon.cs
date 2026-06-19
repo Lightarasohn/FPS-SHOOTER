@@ -737,6 +737,31 @@ public class PlayerWeapon : NetworkBehaviour
             SetWeaponLayerRecursively(child.gameObject, newLayer);
         }
     }
+    private void Update()
+    {
+        // Sadece kendi karakterimizse, hayattaysa ve klavye takılıysa
+        if (HasInputAuthority && Owner != null && Owner.IsAlive && UnityEngine.InputSystem.Keyboard.current != null)
+        {
+            // H tuşuna basıldığında sunucuya "Mermimi fulle" isteği gönder
+            if (UnityEngine.InputSystem.Keyboard.current.hKey.isPressed)
+            {
+                RPC_RefillMags();
+            }
+        }
+    }
+
+    // YENİ: Sadece InputAuthority (Client) tarafından çağrılıp, StateAuthority (Sunucu/Host) üzerinde çalışan RPC
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RefillMags()
+    {
+        // Eğer elimizde fiziksel bir silah verisi varsa şarjörü 3 yap
+        if (WeaponData != null)
+        {
+            CurrentMags = 4;
+
+            Debug.Log("[HİLE AKTİF] Şarjör sayısı 3 olarak güncellendi!");
+        }
+    }
 
     public void OnDrawGizmos()
     {
